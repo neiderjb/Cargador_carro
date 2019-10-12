@@ -1,0 +1,23 @@
+{
+    "files.associations": {
+        "m90e32as.h": "c",
+        "array": "c",
+        "*.tcc": "c",
+        "sc18is602b.h": "c",
+        "stdlib.h": "c",
+        "stdio.h": "c",
+        "phoenixcontact.h": "c",
+        "zdu0210rjx.h": "c",
+        "stddef.h": "c",
+        "math.h": "c",
+        "pcf85063tp.h": "c",
+        "maxv.h": "c",
+<<<<<<< HEAD
+        "modbusmaster.h": "c"
+=======
+        "modbusmaster.h": "c",
+        "sim800.h": "c"
+>>>>>>> a1367b636927c448588335a6a94a281c572e3e22
+    },
+    "C_Cpp.dimInactiveRegions": false
+}

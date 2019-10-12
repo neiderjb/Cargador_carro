@@ -244,7 +244,16 @@ void app_main()
 	vTaskDelay(500);
 	fillScreen(RA8875_BLACK);
 	vTaskDelay(500);
+	textMode();
+	textSetCursor(10, 10);
+	textTransparent(RA8875_WHITE);
+	textEnlarge(1);
+	char* msg = "Capacitive touch sensor demo. Touch me !";
+	textWrite(msg,strlen(msg));
 	sw_i2c_init(PIN_SDA, PIN_SCL);
+	// sw_i2c_init(21, 14);
+	vTaskDelay(100);
+	sw_i2c_master_scan();
 
 	// xTaskCreate(ControlColor, "control", 4096, NULL, 3, NULL);
 	xTaskCreate(touchControl, "controltouch", 2048, NULL, 4, NULL);
