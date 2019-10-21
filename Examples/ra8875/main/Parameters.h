@@ -67,10 +67,6 @@ bool lecturaCorrecta;
 #define PIN_NUM_MISO 19
 #define PIN_NUM_CLK 18
 #define PIN_NUM_CS 5
-// #define PIN_NUM_MOSI 13
-// #define PIN_NUM_MISO 12
-// #define PIN_NUM_CLK 14
-// #define PIN_NUM_CS 15
 #define WRITE false
 #define READ true
 spi_device_handle_t spi_handle;
