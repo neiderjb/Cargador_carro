@@ -260,11 +260,11 @@ uint16_t CalibrateVI(unsigned short reg, unsigned short actualVal)
  */
 double GetLineVoltageA()
 {
-    unsigned short voltage = CommEnergyIC(READ, UrmsA, 0xFFFF);
+    double voltage = (double) CommEnergyIC(READ, UrmsA, 0xFFFF);
     unsigned short voltageLSB = CommEnergyIC(READ, UrmsALSB, 0xFFFF);
     voltageLSB = voltageLSB << 8 | voltageLSB >> 8;
-    unsigned short voltageRMS = (voltage*0.01)+((voltageLSB*0.01)/256);
-    return (double)voltageRMS;
+    double voltageRMS = (voltage*0.01)+(((double)voltageLSB*0.01)/256);
+    return voltageRMS;
 }
 
 /*! \brief This function get Voltage Line B.
@@ -774,7 +774,7 @@ void grid_analyzer_task(void *arg)
 
 	for (;;)
 	{
-
+        read_time = false;
 		unsigned short sys0 = GetSysStatus0();  //EMMState0
 		unsigned short sys1 = GetSysStatus1();  //EMMState1
 		unsigned short en0 = GetMeterStatus0(); //EMMIntState0
@@ -802,8 +802,6 @@ void grid_analyzer_task(void *arg)
 		}
 		else
 		{
-			// led_state_maxV(2, 1);
-			// getTime();
 			voltageA = GetLineVoltageA();
 			currentA = GetLineCurrentA();
 			temperature = GetTemperature();
@@ -813,27 +811,21 @@ void grid_analyzer_task(void *arg)
 			powerAppA = GetApparentPowerA();
 			freq = GetFrequency();
 			totalWattsA = (voltageA * currentA);
-			// char text1[10];
-			// sprintf(text1, "%.2f", voltageA);
-			// char text2[10];
-			// sprintf(text2, "%.2f", currentA);
-			// print_text(text1, text2);
 
 			printf("============================== \n");
-			// ESP_LOGI(TAG, "Hour %d, Minute %d, Seconds %d \n", hour, minute, second);
-			printf("Voltage A: %f [V] \n", voltageA);
-			printf("Current A: %f [A] \n", currentA);
-			printf("Chip Temp: %f [C] \n", temperature);
-			printf("Power Factor A: %f [W] \n ", powerFactorA);
-			printf("Active Power A: %f [W] \n", powerA);
-			printf("Reactive Power A: %f [Var] \n", powerReacA);
-			printf("Apparent Power A: %f [VA] \n", powerAppA);
-			printf("Power total A MAT : %f [W] \n ", totalWattsA);
-			printf("Frequency: %f [Hz] \n", freq);
+			printf("Voltage A: %.2f [V] \n", voltageA);
+			printf("Current A: %.2f [A] \n", currentA);
+			printf("Chip Temp: %.2f [C] \n", temperature);
+			printf("Power Factor A: %.2f [W] \n ", powerFactorA);
+			printf("Active Power A: %.2f [W] \n", powerA);
+			printf("Reactive Power A: %.2f [Var] \n", powerReacA);
+			printf("Apparent Power A: %.2f [VA] \n", powerAppA);
+			printf("Power total A MAT : %.2f [W] \n ", totalWattsA);
+			printf("Frequency: %.2f [Hz] \n", freq);
 			printf("============================== \n");
 
 		}
-
+        read_time = true;
 		vTaskDelay(1000);
 	}
 }

@@ -78,6 +78,9 @@ unsigned short CurrentGain;
 #define WRITE false
 #define READ true
 
+bool ready;
+bool read_time;
+
 // #define CTP_INT 2
 // #define GPIO_INPUT_PIN_SEL_CTP_INT  (1ULL<<CTP_INT)
 // #define ESP_INTR_FLAG_DEFAULT 0

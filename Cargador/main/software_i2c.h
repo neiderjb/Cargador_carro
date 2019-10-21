@@ -65,7 +65,7 @@ esp_err_t i2c_master_probe(uint8_t address);
 
 //*************I2C - UART****************
 uint8_t i2c_gpio_read(uint8_t DEVICE_ADDR);
-esp_err_t i2c_uart_enable_ZDU0210RJX(uint8_t DEVICE_ADDR, uint8_t data, uint8_t reg);
+esp_err_t i2c_uart_enable_ZDU0210RJX(int8_t DEVICE_ADDR, uint8_t data, uint8_t reg);
 esp_err_t i2c_gpio_write(uint8_t DEVICE_ADDR, uint8_t number_gpio, uint8_t status);
 esp_err_t i2c_gpio_configuration(uint8_t DEVICE_ADDR, uint8_t gpio, uint8_t mode);
 esp_err_t i2c_uart_read_16_ZDU0210RJX(uint8_t DEVICE_ADDR, uint8_t *data_rd, uint8_t reg);
