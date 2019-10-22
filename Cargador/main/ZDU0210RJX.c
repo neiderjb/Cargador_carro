@@ -71,7 +71,7 @@ void begin_ZDU0210RJX(uint8_t gpio, uint8_t mode)
     uint8_t  baudUart1[2];
     Read_Actual_baud_Rate_ZDU0210RJX(baudUart1,0);
     value = baudUart1[0] << 8 | baudUart1[1];
-    printf("Baudrate UART0: %d\n", value);
+    printf("Baudrate UART1: %d\n", value);
 
     Enable_Uart_ZDU0210RJX(EnableUartData, 0);
     Enable_Uart_ZDU0210RJX(EnableUartData, 1);
