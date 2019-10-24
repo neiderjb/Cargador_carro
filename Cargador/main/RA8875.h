@@ -8,6 +8,7 @@ enum RA8875sizes
     RA8875_800x480  /*!< 800x480 Pixel Display */
 };
 
+void init_screen();
 void initialize(void);
 void PLLinit(void);
 bool begin_RA8875(int reset, enum RA8875sizes s);
@@ -21,8 +22,8 @@ enum RA8875sizes _size;
 int16_t applyRotationX(int16_t x);
 int16_t applyRotationY(int16_t y);
 
-void writeReg(uint8_t reg, uint8_t val);
-uint8_t readReg(uint8_t reg);
+void writeRegRA8875(uint8_t reg, uint8_t val);
+uint8_t readRegRA8875(uint8_t reg);
 void writeData(uint8_t d);
 uint8_t readData(void);
 void writeCommand(uint8_t d);
@@ -78,6 +79,9 @@ void roundRectHelper(int16_t x, int16_t y, int16_t w, int16_t h, int16_t r, uint
 void setScrollWindow(int16_t x, int16_t y, int16_t w, int16_t h, uint8_t mode);
 void scrollX(int16_t dist);
 void scrollY(int16_t dist);
+
+void print_screen(float volA, float currA, float temp, float power, float frequen);
+void print_time();
 
 // Colors (RGB565)
 #define RA8875_BLACK 0x0000   ///< Black Color

@@ -37,8 +37,8 @@
 #define ESP_INTR_FLAG_DEFAULT 0
 
 //I2c pins
-#define PIN_SDA 21
-#define PIN_SCL 22
+#define PIN_SDA 0
+#define PIN_SCL 4
 xSemaphoreHandle Semaphore_control_touch;
 xSemaphoreHandle Semaphore_control_screen;
 bool finish_print;
@@ -63,8 +63,8 @@ unsigned short CurrentGain;
 bool lecturaCorrecta;
 
 //SPI command
-#define PIN_NUM_MOSI 23
-#define PIN_NUM_MISO 19
+#define PIN_NUM_MOSI 19
+#define PIN_NUM_MISO 23
 #define PIN_NUM_CLK 18
 #define PIN_NUM_CS 5
 // #define PIN_NUM_MOSI 13
