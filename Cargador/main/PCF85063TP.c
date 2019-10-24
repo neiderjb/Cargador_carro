@@ -80,6 +80,10 @@ void getTime()
 /*Frunction: Write the time that includes the date to the RTC chip */
 void setTime()
 {
+    dayOfMonth = 24;
+    dayOfWeek = 4;
+    month = 10; 
+    year = 19;
     writeReg(REG_SEC, decToBcd(second)); // 0 to bit 7 starts the clock, bit 8 is OS reg
     writeReg(REG_MIN, decToBcd(minute));
     writeReg(REG_HOUR, decToBcd(hour)); // If you want 12 hour am/pm you need to set bit 6
@@ -215,5 +219,6 @@ void Set_Time_Reference(char *s)
         minute = cJSON_GetObjectItem(root, "minute") -> valueint;
         hour = cJSON_GetObjectItem(root, "hour") -> valueint;
         setTime();
+        startClock();
     }
 }
