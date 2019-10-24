@@ -171,7 +171,7 @@ void ControlColor(void *p)
 void touchControl(void *p)
 {
 
-	gpio_write(16, 1);
+	gpio_write(15, 1);
 	begin_FT5206();
 	finish_print = true;
 	printf("Waiting for touch events ...\n");
@@ -208,13 +208,15 @@ void touchControl(void *p)
 
 void app_main()
 {
+	sw_i2c_init(PIN_SDA, PIN_SCL);
+	sw_i2c_master_scan();
 	// i2c
 	// i2c_configuration(I2C_NUM_0, PIN_SDA, PIN_SCL);
 	// i2c_list_devices();
 
 	cambio = false;
-	gpio_begin(16, 0);
-	gpio_write(16, 0);
+	gpio_begin(15, 0);
+	gpio_write(15, 0);
 
 	Semaphore_control_touch = xSemaphoreCreateBinary();
 	Semaphore_control_screen = xSemaphoreCreateBinary();
@@ -225,7 +227,7 @@ void app_main()
 	spi_begin();
 
 	//commands
-	if (!begin_RA8875(4, RA8875_800x480))
+	if (!begin_RA8875(14, RA8875_800x480))
 	{
 		printf("RA8875 Not Found!\n");
 		while (1)
@@ -250,10 +252,7 @@ void app_main()
 	textEnlarge(1);
 	char* msg = "Capacitive touch sensor demo. Touch me !";
 	textWrite(msg,strlen(msg));
-	sw_i2c_init(PIN_SDA, PIN_SCL);
-	// sw_i2c_init(21, 14);
-	vTaskDelay(100);
-	sw_i2c_master_scan();
+	
 
 	// xTaskCreate(ControlColor, "control", 4096, NULL, 3, NULL);
 	xTaskCreate(touchControl, "controltouch", 2048, NULL, 4, NULL);

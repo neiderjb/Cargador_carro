@@ -71,23 +71,24 @@ unsigned short CurrentGain;
 // 	char *time_zone;
 // };
 
-// #define PIN_NUM_MOSI 19
-// #define PIN_NUM_MISO 23
-// #define PIN_NUM_CLK 18
-// #define PIN_NUM_CS 5
+#define PIN_NUM_MOSI 19
+#define PIN_NUM_MISO 23
+#define PIN_NUM_CLK 18
+#define PIN_NUM_CS 5
+#define PIN_RESET_SCREEN 14
+#define TOUCH_RESET 15
+
 #define WRITE false
 #define READ true
 
 bool ready;
 bool read_time;
 
-// #define CTP_INT 2
-// #define GPIO_INPUT_PIN_SEL_CTP_INT  (1ULL<<CTP_INT)
-// #define ESP_INTR_FLAG_DEFAULT 0
+#define CTP_INT 2
+#define GPIO_INPUT_PIN_SEL_CTP_INT  (1ULL<<CTP_INT)
+#define ESP_INTR_FLAG_DEFAULT 0
 
-// xSemaphoreHandle Semaphore_control_touch;
-// xSemaphoreHandle Semaphore_control_screen;
-// bool cambio;
-// bool finish_print;
-// spi_device_handle_t spi_handle;
-// bool FinishTrans;
+xSemaphoreHandle Semaphore_control_touch;
+bool cambio;
+bool finish_print;
+spi_device_handle_t spi_handle;

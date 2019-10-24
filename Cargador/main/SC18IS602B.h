@@ -43,7 +43,7 @@ enum SC18IS601B_SPI_Mode
 };
 
 /* address of the module */
-#define SC18IS601B_address 0x2B        
+#define SC18IS601B_address 0x29        
 
 /* Function IDs */
 uint8_t SC18IS601B_CONFIG_SPI_CMD;

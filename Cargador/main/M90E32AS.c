@@ -64,6 +64,7 @@
 #include "M90E32AS.h"
 #include "SC18IS602B.h"
 #include "Parameters.h"
+#include "RA8875.h"
 
 static const char *TAG = "M90E32AS";
 /* 
@@ -811,21 +812,23 @@ void grid_analyzer_task(void *arg)
 			powerAppA = GetApparentPowerA();
 			freq = GetFrequency();
 			totalWattsA = (voltageA * currentA);
+            print_screen(voltageA,currentA,temperature,powerAppA,freq);
 
 			printf("============================== \n");
 			printf("Voltage A: %.2f [V] \n", voltageA);
 			printf("Current A: %.2f [A] \n", currentA);
 			printf("Chip Temp: %.2f [C] \n", temperature);
-			printf("Power Factor A: %.2f [W] \n ", powerFactorA);
+			printf("Power Factor A: %.2f [W] \n", powerFactorA);
 			printf("Active Power A: %.2f [W] \n", powerA);
 			printf("Reactive Power A: %.2f [Var] \n", powerReacA);
 			printf("Apparent Power A: %.2f [VA] \n", powerAppA);
-			printf("Power total A MAT : %.2f [W] \n ", totalWattsA);
+			printf("Power total A MAT : %.2f [W] \n", totalWattsA);
 			printf("Frequency: %.2f [Hz] \n", freq);
 			printf("============================== \n");
 
-		}
+		}        
+		
         read_time = true;
-		vTaskDelay(1000);
+        vTaskDelay(1000);
 	}
 }

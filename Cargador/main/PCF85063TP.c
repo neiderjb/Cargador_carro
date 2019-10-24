@@ -19,6 +19,7 @@
 #include "PCF85063TP.h"
 #include "software_i2c.h"
 #include "Parameters.h"
+#include "RA8875.h"
 
 
 static const char *TAG = "PCF85063TP";
@@ -192,6 +193,7 @@ void Time_Task_Control(void *p)
             printf("\033[0;32m");
             printf("System Time: %d:%d:%d \n", hour, minute, second);
             printf("\033[0m");
+            print_time();
         }        
         vTaskDelay(1000);
     }
