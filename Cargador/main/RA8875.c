@@ -1054,7 +1054,7 @@ void print_time()
   char text3[10];
   sprintf(text3, "%d", second);
 
-  fillRect(600, 0, 100, 150, RA8875_BLACK);
+  fillRect(600, 0, 200, 150, RA8875_BLACK);
 	textMode();
 	textSetCursor(600, 20);
 	textTransparent(RA8875_WHITE);
