@@ -63,8 +63,8 @@ unsigned short CurrentGain;
 bool lecturaCorrecta;
 
 //SPI command
-#define PIN_NUM_MOSI 23
-#define PIN_NUM_MISO 19
+#define PIN_NUM_MOSI 19
+#define PIN_NUM_MISO 23
 #define PIN_NUM_CLK 18
 #define PIN_NUM_CS 5
 #define WRITE false
