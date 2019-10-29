@@ -75,6 +75,10 @@ unsigned short CurrentGain;
 #define PIN_NUM_MISO 23
 #define PIN_NUM_CLK 18
 #define PIN_NUM_CS 5
+// #define PIN_NUM_MISO 25
+// #define PIN_NUM_MOSI 23
+// #define PIN_NUM_CLK  19
+// #define PIN_NUM_CS   22
 #define PIN_RESET_SCREEN 14
 #define TOUCH_RESET 15
 
@@ -86,6 +90,7 @@ bool read_time;
 
 #define CTP_INT 2
 #define GPIO_INPUT_PIN_SEL_CTP_INT  (1ULL<<CTP_INT)
+#define GPIO_INPUT_PIN_SEL_CLK_INT  (1ULL<<PIN_NUM_CLK)
 #define ESP_INTR_FLAG_DEFAULT 0
 
 xSemaphoreHandle Semaphore_control_touch;

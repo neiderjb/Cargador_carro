@@ -1,5 +1,4 @@
 #include "../lvgl/lvgl.h"
-#include "RA8875.h"
 
 
 void set_pixel(int32_t x, int32_t y, lv_color_t color);

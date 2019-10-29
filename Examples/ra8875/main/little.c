@@ -1,5 +1,7 @@
 #include "little.h"
 
+#include "RA8875.h"
+
 void set_pixel(int32_t x, int32_t y, lv_color_t color)
 {
     drawPixel((int16_t)x, (int16_t)y, color.full);

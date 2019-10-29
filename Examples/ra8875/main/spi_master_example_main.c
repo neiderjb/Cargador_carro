@@ -16,6 +16,7 @@
 #include "FT5206.h"
 #include "i2c.h"
 #include "software_i2c.h"
+#include "little.h"
 
 #include "../lvgl/lvgl.h"
 
@@ -25,10 +26,6 @@
 uint16_t tx, ty;
 uint16_t prev_coordinates[10]; // 5 pairs of x and y
 char nr_of_touches = 0;
-
-static lv_disp_buf_t disp_buf;
-static lv_color_t buf[LV_HOR_RES_MAX * 10];					 /*Declare a buffer for 10 lines*/
-lv_disp_buf_init(&disp_buf, buf, NULL, LV_HOR_RES_MAX * 10); /*Initialize the display buffer*/
 
 void serialDebugOutput(int nr_of_touches, uint16_t *coordinates)
 {
@@ -202,15 +199,7 @@ void app_main()
 	vTaskDelay(500);
 	sw_i2c_init(PIN_SDA, PIN_SCL);
 
-	lv_tick_inc(1);
-	lv_init();
-
-	lv_disp_drv_t disp_drv;			   /*Descriptor of a display driver*/
-	lv_disp_drv_init(&disp_drv);	   /*Basic initialization*/
-	disp_drv.flush_cb = my_disp_flush; /*Set your driver function*/
-	disp_drv.buffer = &disp_buf;	   /*Assign the buffer to the display*/
-	lv_disp_drv_register(&disp_drv);   /*Finally register the driver*/
-
+	
 	// xTaskCreate(ControlColor, "control", 4096, NULL, 3, NULL);
 	xTaskCreate(touchControl, "controltouch", 2048, NULL, 4, NULL);
 

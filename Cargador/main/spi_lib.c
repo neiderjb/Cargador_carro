@@ -59,6 +59,7 @@ void spi_begin()
 		.quadhd_io_num = -1};
 
 	spi_bus_initialize(VSPI_HOST, &buscfg, 0);
+	// spi_bus_initialize(HSPI_HOST, &buscfg, 1);
 
 	spi_device_interface_config_t dev_config;
 	dev_config.command_bits = 0;
@@ -68,7 +69,7 @@ void spi_begin()
 	dev_config.duty_cycle_pos = 128; // default 128 = 50%/50% duty
 	dev_config.cs_ena_pretrans = 0;  // 0 not used
 	dev_config.cs_ena_posttrans = 0; // 0 not used
-	dev_config.clock_speed_hz = 1000000;
+	dev_config.clock_speed_hz = 1*1000*1000;
 	dev_config.spics_io_num = -1;
 	dev_config.flags = SPI_DEVICE_NO_DUMMY; // 0 not used
 	dev_config.queue_size = 4;
@@ -77,5 +78,6 @@ void spi_begin()
 	
 
 	spi_bus_add_device(VSPI_HOST, &dev_config, &spi_handle);
+	// spi_bus_add_device(HSPI_HOST, &dev_config, &spi_handle);
 	ESP_LOGI(TAG, "begin_SPI OK");
 }

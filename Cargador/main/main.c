@@ -37,6 +37,14 @@ void Network_Control(void *p)
 void app_main()
 {
 	//SPI
+	// gpio_config_t io_conf;
+    // io_conf.pin_bit_mask = GPIO_INPUT_PIN_SEL_CLK_INT;
+    // io_conf.intr_type = GPIO_INTR_DISABLE ;
+    // io_conf.mode = GPIO_MODE_OUTPUT;
+    // io_conf.pull_up_en = 0;
+    // io_conf.pull_down_en = 1;
+    // gpio_config(&io_conf);
+
 	cambio = false;
 	gpio_begin(TOUCH_RESET, 0);
 	gpio_write(TOUCH_RESET, 0);

@@ -829,6 +829,6 @@ void grid_analyzer_task(void *arg)
 		}        
 		
         read_time = true;
-        vTaskDelay(3000);
+        vTaskDelay(1000);
 	}
 }
