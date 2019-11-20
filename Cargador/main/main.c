@@ -9,6 +9,9 @@
 #include "spi_lib.h"
 #include "FT5206.h"
 #include "gpio_lib.h"
+#include "FunctionsCC.h"
+#include "EPLD.h"
+#include "ZDU0210RJX.h"
 
 void Network_Control(void *p)
 {
@@ -48,6 +51,11 @@ void app_main()
 	sw_i2c_init(PIN_SDA, PIN_SCL);
 	sw_i2c_master_scan();
 
+	//EPLD 
+	begin_maxV();
+	
+	
+	//
 	while(1){
 		printf("Waiting . . . .\n");
 		vTaskDelay(5000);
@@ -56,7 +64,7 @@ void app_main()
 
 	if (!begin_RA8875(PIN_RESET_SCREEN, RA8875_800x480))
 	{
-		printf("RA8875 Not Found!\n");
+		printf("Drive RA8875 Not Found! - NO screen\n");
 		while (1)
 		{
 			vTaskDelay(100);
@@ -72,17 +80,18 @@ void app_main()
 	
 	//I2C-SPI
 	begin_SC18IS602B();
+	//I2C-UART
+	begin_ZDU0210RJX(0xFF, 0xFF);
 
 	//RTC
 	begin_PCF85063TP();
 	calibratBySeconds(0, -0.000041);
 
-	//Grid Analyzer
-	LineFreq = 5255;
-	PGAGain = 42; //X4
-	VoltageGain = 50306;
-	CurrentGain = 40953;
-	begin_M90E32AS(LineFreq, PGAGain, VoltageGain, CurrentGain, CurrentGain, CurrentGain); //
+	//configuration analizer
+	begin_analizer();
+	begin_calibration_analizer(LineFreq, PGAGain, VoltageGain, CurrentGain, 60853, 63853);
+	set_PhaseControl();
+
 
 	//initialize flash memory
 	nvs_flash_init();

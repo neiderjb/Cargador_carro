@@ -29,6 +29,7 @@ unsigned short LineFreq;
 unsigned short PGAGain;
 unsigned short VoltageGain;
 unsigned short CurrentGain;
+double frequencyValue;
 
 
 // //static TaskHandle_t task_handles[portNUM_PROCESSORS];
@@ -71,10 +72,14 @@ unsigned short CurrentGain;
 // 	char *time_zone;
 // };
 
+//SPI
 #define PIN_NUM_MOSI 19
 #define PIN_NUM_MISO 23
 #define PIN_NUM_CLK 18
 #define PIN_NUM_CS 5
+spi_device_handle_t spi_handle;
+bool FinishTrans;
+
 #define PIN_RESET_SCREEN 14
 #define TOUCH_RESET 15
 
@@ -91,4 +96,12 @@ bool read_time;
 xSemaphoreHandle Semaphore_control_touch;
 bool cambio;
 bool finish_print;
-spi_device_handle_t spi_handle;
+
+int contador_faseA;
+int contador_faseB;
+int contador_faseC;
+
+bool MONOPHASE;
+
+
+

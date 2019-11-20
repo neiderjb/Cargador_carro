@@ -16,11 +16,13 @@ static const char *TAG = "SPI";
 void preTransferCallback(spi_transaction_t *t)
 {
 	gpio_write(PIN_NUM_CS, 0);
+	FinishTrans = false;
 }
 
 void postTransferCallback(spi_transaction_t *t)
 {
 	gpio_write(PIN_NUM_CS, 1);
+	FinishTrans = true;
 }
 
 void sendtospi(bool ReadWrite, spi_device_handle_t spi, uint8_t command, uint8_t datatosend, uint8_t *dataread)
