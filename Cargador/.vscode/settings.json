@@ -3,6 +3,8 @@
     "files.associations": {
         "m90e32as.h": "c",
         "functions.h": "c",
-        "spi_lib.h": "c"
+        "spi_lib.h": "c",
+        "pcf85063tp.h": "c",
+        "zdu0210rjx.h": "c"
     }
 }

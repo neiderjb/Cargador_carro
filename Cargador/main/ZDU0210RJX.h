@@ -20,8 +20,8 @@
 #include <stdbool.h> 
 
 /* address of the module */
-#define ZDU0210RJX_address 0x58     //59
-#define ZDU0210RJX_address1 0x50    //51
+#define ZDU0210RJX_address 0x5b     //58    //59    //5b
+#define ZDU0210RJX_address1 0x53    //58    //51    //53
 
 //EEPROM Command Detail
 #define WriteEEPROMCurrentLocation 0x00

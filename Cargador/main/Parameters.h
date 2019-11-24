@@ -73,15 +73,27 @@ double frequencyValue;
 // };
 
 //SPI
-#define PIN_NUM_MOSI 19
-#define PIN_NUM_MISO 23
+//External ESP32
+#define PIN_NUM_MOSI 23
+#define PIN_NUM_MISO 19
 #define PIN_NUM_CLK 18
 #define PIN_NUM_CS 5
+#define PIN_RESET_SCREEN 2
+//Maqueta
+// #define PIN_NUM_MOSI 19
+// #define PIN_NUM_MISO 23
+// #define PIN_NUM_CLK 18
+// #define PIN_NUM_CS 5
+// #define PIN_RESET_SCREEN 14
+#define TOUCH_RESET 15
+#define DMA_CHAN 2
+#define LCD_HOST HSPI_HOST
 spi_device_handle_t spi_handle;
 bool FinishTrans;
+#define CONFIG_LCD_OVERCLOCK
 
-#define PIN_RESET_SCREEN 14
-#define TOUCH_RESET 15
+
+
 
 #define WRITE false
 #define READ true

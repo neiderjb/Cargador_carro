@@ -12,6 +12,8 @@
 #include "PCF85063TP.h"
 #include "driver/spi_master.h"
 
+
+
 uint8_t readStatus(void)
 {
   uint8_t x = 0;
@@ -21,28 +23,41 @@ uint8_t readStatus(void)
 
 void writeCommand(uint8_t d)
 {
-  sendtospi(WRITE, spi_handle, RA8875_CMDWRITE, d, NULL);
+  gpio_write(PIN_NUM_CS, 0);
+  send8(RA8875_CMDWRITE);
+  send8(d);
+  gpio_write(PIN_NUM_CS, 1);
+  vTaskDelay(10 / portTICK_RATE_MS);
 }
 
 uint8_t readData(void)
 {
-  uint8_t x = 0;
-  sendtospi(READ, spi_handle, RA8875_DATAREAD, 0, &x);
-  return x;
+  uint8_t read;
+  gpio_set_level(PIN_NUM_CS, 0);
+  send8(RA8875_DATAREAD);
+  //read = (uint8_t)read8();
+  return (uint8_t)read8();
+  gpio_set_level(PIN_NUM_CS, 1);
+  vTaskDelay(10 / portTICK_RATE_MS);
+  //return read;
 }
 
 void writeData(uint8_t d)
 {
-  sendtospi(WRITE, spi_handle, RA8875_DATAWRITE, d, NULL);
+  gpio_write(PIN_NUM_CS, 0);
+  send8(RA8875_DATAWRITE);
+  send8(d);
+  gpio_write(PIN_NUM_CS, 1);
+  vTaskDelay(10 / portTICK_RATE_MS);
 }
 
-uint8_t readRegRA8875(uint8_t reg)
+uint8_t readRegRA(uint8_t reg)
 {
   writeCommand(reg);
   return readData();
 }
 
-void writeRegRA8875(uint8_t reg, uint8_t val)
+void writeRegRA(uint8_t reg, uint8_t val)
 {
   writeCommand(reg);
   writeData(val);
@@ -52,24 +67,26 @@ void PLLinit(void)
 {
   if (_size == RA8875_480x80 || _size == RA8875_480x128 || _size == RA8875_480x272)
   {
-    writeRegRA8875(RA8875_PLLC1, RA8875_PLLC1_PLLDIV1 + 10);
-    vTaskDelay(1);
-    writeRegRA8875(RA8875_PLLC2, RA8875_PLLC2_DIV4);
-    vTaskDelay(1);
+    writeRegRA(RA8875_PLLC1, RA8875_PLLC1_PLLDIV1 + 10);
+    vTaskDelay(10 / portTICK_RATE_MS);
+    writeRegRA(RA8875_PLLC2, RA8875_PLLC2_DIV4);
+    vTaskDelay(10 / portTICK_RATE_MS);
   }
   else /* (_size == RA8875_800x480) */
   {
-    writeRegRA8875(RA8875_PLLC1, RA8875_PLLC1_PLLDIV1 + 11);
-    vTaskDelay(1);
-    writeRegRA8875(RA8875_PLLC2, RA8875_PLLC2_DIV4);
-    vTaskDelay(1);
+    printf("pll 800x480");
+    writeRegRA(RA8875_PLLC1, RA8875_PLLC1_PLLDIV1 + 11);
+    vTaskDelay(10 / portTICK_RATE_MS);
+    writeRegRA(RA8875_PLLC2, RA8875_PLLC2_DIV1); //RA8875_PLLC2_DIV4
+    vTaskDelay(10 / portTICK_RATE_MS);
   }
 }
 
 void initialize(void)
 {
+  
   PLLinit();
-  writeRegRA8875(RA8875_SYSR, RA8875_SYSR_16BPP | RA8875_SYSR_MCU8);
+  writeRegRA(RA8875_SYSR, RA8875_SYSR_16BPP | RA8875_SYSR_MCU8);
 
   /* Timing values */
   uint8_t pixclk;
@@ -80,6 +97,29 @@ void initialize(void)
   uint8_t vsync_pw;
   uint16_t vsync_nondisp;
   uint16_t vsync_start;
+
+  if (_size == RA8875_480x80)
+  {
+    _width = 480;
+    _height = 80;
+  }
+  else if (_size == RA8875_480x128)
+  {
+    _width = 480;
+    _height = 128;
+  }
+  else if (_size == RA8875_480x272)
+  {
+    _width = 480;
+    _height = 272;
+  }
+  else if (_size == RA8875_800x480)
+  {
+    _width = 800;
+    _height = 480;
+  }
+
+  _rotation = 0;
 
   /* Set the correct values for the display being used */
   if (_size == RA8875_480x80)
@@ -119,89 +159,72 @@ void initialize(void)
     _voffset = 0;
   }
 
-  writeRegRA8875(RA8875_PCSR, pixclk);
-  vTaskDelay(1);
+  writeRegRA(RA8875_PCSR, pixclk);
+  vTaskDelay(10 / portTICK_RATE_MS);
+
   /* Horizontal settings registers */
-  writeRegRA8875(RA8875_HDWR, (_width / 8) - 1); // H width: (HDWR + 1) * 8 = 480
-  writeRegRA8875(RA8875_HNDFTR, RA8875_HNDFTR_DE_HIGH + hsync_finetune);
-  writeRegRA8875(RA8875_HNDR, (hsync_nondisp - hsync_finetune - 2) / 8); // H non-display: HNDR * 8 + HNDFTR + 2 = 10
-  writeRegRA8875(RA8875_HSTR, hsync_start / 8 - 1);                      // Hsync start: (HSTR + 1)*8
-  writeRegRA8875(RA8875_HPWR, RA8875_HPWR_LOW + (hsync_pw / 8 - 1));     // HSync pulse width = (HPWR+1) * 8
+  writeRegRA(RA8875_HDWR, (_width / 8) - 1); // H width: (HDWR + 1) * 8 = 480
+  writeRegRA(RA8875_HNDFTR, RA8875_HNDFTR_DE_HIGH + hsync_finetune);
+  writeRegRA(RA8875_HNDR, (hsync_nondisp - hsync_finetune - 2) / 8); // H non-display: HNDR * 8 + HNDFTR + 2 = 10
+  writeRegRA(RA8875_HSTR, hsync_start / 8 - 1);                      // Hsync start: (HSTR + 1)*8
+  writeRegRA(RA8875_HPWR, RA8875_HPWR_LOW + (hsync_pw / 8 - 1));     // HSync pulse width = (HPWR+1) * 8
 
   /* Vertical settings registers */
-  writeRegRA8875(RA8875_VDHR0, (uint16_t)(_height - 1 + _voffset) & 0xFF);
-  writeRegRA8875(RA8875_VDHR1, (uint16_t)(_height - 1 + _voffset) >> 8);
-  writeRegRA8875(RA8875_VNDR0, vsync_nondisp - 1); // V non-display period = VNDR + 1
-  writeRegRA8875(RA8875_VNDR1, vsync_nondisp >> 8);
-  writeRegRA8875(RA8875_VSTR0, vsync_start - 1); // Vsync start position = VSTR + 1
-  writeRegRA8875(RA8875_VSTR1, vsync_start >> 8);
-  writeRegRA8875(RA8875_VPWR, RA8875_VPWR_LOW + vsync_pw - 1); // Vsync pulse width = VPWR + 1
+  writeRegRA(RA8875_VDHR0, (uint16_t)(_height - 1 + _voffset) & 0xFF);
+  writeRegRA(RA8875_VDHR1, (uint16_t)(_height - 1 + _voffset) >> 8);
+  writeRegRA(RA8875_VNDR0, vsync_nondisp - 1); // V non-display period = VNDR + 1
+  writeRegRA(RA8875_VNDR1, vsync_nondisp >> 8);
+  writeRegRA(RA8875_VSTR0, vsync_start - 1); // Vsync start position = VSTR + 1
+  writeRegRA(RA8875_VSTR1, vsync_start >> 8);
+  writeRegRA(RA8875_VPWR, RA8875_VPWR_LOW + vsync_pw - 1); // Vsync pulse width = VPWR + 1
 
   /* Set active window X */
-  writeRegRA8875(RA8875_HSAW0, 0); // horizontal start point
-  writeRegRA8875(RA8875_HSAW1, 0);
-  writeRegRA8875(RA8875_HEAW0, (uint16_t)(_width - 1) & 0xFF); // horizontal end point
-  writeRegRA8875(RA8875_HEAW1, (uint16_t)(_width - 1) >> 8);
+  writeRegRA(RA8875_HSAW0, 0); // horizontal start point
+  writeRegRA(RA8875_HSAW1, 0);
+  writeRegRA(RA8875_HEAW0, (uint16_t)(_width - 1) & 0xFF); // horizontal end point
+  writeRegRA(RA8875_HEAW1, (uint16_t)(_width - 1) >> 8);
 
   /* Set active window Y */
-  writeRegRA8875(RA8875_VSAW0, 0 + _voffset); // vertical start point
-  writeRegRA8875(RA8875_VSAW1, 0 + _voffset);
-  writeRegRA8875(RA8875_VEAW0, (uint16_t)(_height - 1 + _voffset) & 0xFF); // vertical end point
-  writeRegRA8875(RA8875_VEAW1, (uint16_t)(_height - 1 + _voffset) >> 8);
+  writeRegRA(RA8875_VSAW0, 0 + _voffset); // vertical start point
+  writeRegRA(RA8875_VSAW1, 0 + _voffset);
+  writeRegRA(RA8875_VEAW0, (uint16_t)(_height - 1 + _voffset) & 0xFF); // vertical end point
+  writeRegRA(RA8875_VEAW1, (uint16_t)(_height - 1 + _voffset) >> 8);
 
   /* ToDo: Setup touch panel? */
 
   /* Clear the entire window */
-  writeRegRA8875(RA8875_MCLR, RA8875_MCLR_START | RA8875_MCLR_FULL);
-  vTaskDelay(100);
+  writeRegRA(RA8875_MCLR, RA8875_MCLR_START | RA8875_MCLR_FULL);
+  vTaskDelay(500 / portTICK_RATE_MS);
 }
 
-bool begin_RA8875(int reset, enum RA8875sizes s)
+bool begin_RA8875(enum RA8875sizes s)
 {
-
   _size = s;
-
-  if (_size == RA8875_480x80)
-  {
-    _width = 480;
-    _height = 80;
-  }
-  else if (_size == RA8875_480x128)
-  {
-    _width = 480;
-    _height = 128;
-  }
-  else if (_size == RA8875_480x272)
-  {
-    _width = 480;
-    _height = 272;
-  }
-  else if (_size == RA8875_800x480)
-  {
-    _width = 800;
-    _height = 480;
-  }
-  else
-  {
-    return false;
-  }
+  _textScale = 0;
   _rotation = 0;
-
+  _voffset = 0;
   //reset display
-  gpio_begin(reset, 0);
-  gpio_write(reset, 0);
-  vTaskDelay(100);
-  gpio_write(reset, 1);
-  vTaskDelay(100);
+  gpio_begin(TOUCH_RESET, 0);
+	gpio_write(TOUCH_RESET, 0);
+  gpio_begin(PIN_RESET_SCREEN, 0);
+  gpio_begin(PIN_NUM_CS, 0);
+  gpio_write(PIN_NUM_CS, 1);
+  //Reset the display
+  gpio_write(PIN_RESET_SCREEN, 0);
+  vTaskDelay(100 / portTICK_RATE_MS);
+  gpio_write(PIN_RESET_SCREEN, 1);
+  vTaskDelay(500 / portTICK_RATE_MS);
 
-  uint8_t x = readRegRA8875(0);
+  uint8_t x = readRegRA(0);
   if (x != 0x75)
   {
-    printf("%x\n", x);
+    ESP_LOGI("LOOK>", "reg 0x00 = %02X\n", x);
     return false;
   }
 
   initialize();
+
+  spi_config();
 
   return true;
 }
@@ -209,38 +232,39 @@ bool begin_RA8875(int reset, enum RA8875sizes s)
 void displayOn(bool on)
 {
   if (on)
-    writeRegRA8875(RA8875_PWRR, RA8875_PWRR_NORMAL | RA8875_PWRR_DISPON);
+    writeRegRA(RA8875_PWRR, RA8875_PWRR_NORMAL | RA8875_PWRR_DISPON);
   else
-    writeRegRA8875(RA8875_PWRR, RA8875_PWRR_NORMAL | RA8875_PWRR_DISPOFF);
+    writeRegRA(RA8875_PWRR, RA8875_PWRR_NORMAL | RA8875_PWRR_DISPOFF);
 }
 
 void GPIOX(bool on)
 {
   if (on)
-    writeRegRA8875(RA8875_GPIOX, 1);
+    writeRegRA(RA8875_GPIOX, 1);
   else
-    writeRegRA8875(RA8875_GPIOX, 0);
+    writeRegRA(RA8875_GPIOX, 0);
 }
 
 void PWM1config(bool on, uint8_t clock)
 {
   if (on)
   {
-    writeRegRA8875(RA8875_P1CR, RA8875_P1CR_ENABLE | (clock & 0xF));
+    writeRegRA(RA8875_P1CR, RA8875_P1CR_ENABLE | (clock & 0xF));
   }
   else
   {
-    writeRegRA8875(RA8875_P1CR, RA8875_P1CR_DISABLE | (clock & 0xF));
+    writeRegRA(RA8875_P1CR, RA8875_P1CR_DISABLE | (clock & 0xF));
   }
 }
 
 void PWM1out(uint8_t p)
 {
-  writeRegRA8875(RA8875_P1DCR, p);
+  writeRegRA(RA8875_P1DCR, p);
 }
 
 void fillScreen(uint16_t color)
 {
+  printf("fillScreen!\n");
   rectHelper(0, 0, _width - 1, _height - 1, color, true);
 }
 
@@ -271,18 +295,27 @@ int16_t applyRotationY(int16_t y)
 bool waitPoll(uint8_t regname, uint8_t waitflag)
 {
   /* Wait for the command to finish */
+  printf("enter waitPoll");
   while (1)
   {
-    uint8_t temp = readRegRA8875(regname);
+    uint8_t temp = readRegRA(regname);
     if (!(temp & waitflag))
+    {
+      printf("waitpoll temp: %d", temp);
       return true;
-    vTaskDelay(10);
+    }
+
+    vTaskDelay(10 / portTICK_RATE_MS);
+    printf("waitpoll temp: %d", temp);
   }
   return false; // MEMEFIX: yeah i know, unreached! - add timeout?
+                // vTaskDelay(100 / portTICK_RATE_MS);
+  // return true;
 }
 
 void rectHelper(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color, bool filled)
 {
+  printf("Enter fillScreen");
   x = applyRotationX(x);
   y = applyRotationY(y);
   w = applyRotationX(w);
@@ -332,7 +365,9 @@ void rectHelper(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color, bool
   }
 
   /* Wait for the command to finish */
+
   waitPoll(RA8875_DCR, RA8875_DCR_LINESQUTRI_STATUS);
+  printf("end fillScreen");
 }
 
 void touchEnable(bool on)
@@ -345,23 +380,23 @@ void touchEnable(bool on)
   if (on)
   {
     /* Enable Touch Panel (Reg 0x70) */
-    writeRegRA8875(RA8875_TPCR0, RA8875_TPCR0_ENABLE |
-                                     RA8875_TPCR0_WAIT_4096CLK |
-                                     RA8875_TPCR0_WAKEENABLE |
-                                     adcClk); // 10mhz max!
+    writeRegRA(RA8875_TPCR0, RA8875_TPCR0_ENABLE |
+                                 RA8875_TPCR0_WAIT_4096CLK |
+                                 RA8875_TPCR0_WAKEENABLE |
+                                 adcClk); // 10mhz max!
     /* Set Auto Mode      (Reg 0x71) */
-    writeRegRA8875(RA8875_TPCR1, RA8875_TPCR1_AUTO |
-                                     // RA8875_TPCR1_VREFEXT |
-                                     RA8875_TPCR1_DEBOUNCE);
+    writeRegRA(RA8875_TPCR1, RA8875_TPCR1_AUTO |
+                                 // RA8875_TPCR1_VREFEXT |
+                                 RA8875_TPCR1_DEBOUNCE);
     /* Enable TP INT */
-    writeRegRA8875(RA8875_INTC1, readRegRA8875(RA8875_INTC1) | RA8875_INTC1_TP);
+    writeRegRA(RA8875_INTC1, readRegRA(RA8875_INTC1) | RA8875_INTC1_TP);
   }
   else
   {
     /* Disable TP INT */
-    writeRegRA8875(RA8875_INTC1, readRegRA8875(RA8875_INTC1) & ~RA8875_INTC1_TP);
+    writeRegRA(RA8875_INTC1, readRegRA(RA8875_INTC1) & ~RA8875_INTC1_TP);
     /* Disable Touch Panel (Reg 0x70) */
-    writeRegRA8875(RA8875_TPCR0, RA8875_TPCR0_DISABLE);
+    writeRegRA(RA8875_TPCR0, RA8875_TPCR0_DISABLE);
   }
 }
 
@@ -376,7 +411,7 @@ uint16_t height(void)
 
 bool touched(void)
 {
-  if (readRegRA8875(RA8875_INTC2) & RA8875_INTC2_TP)
+  if (readRegRA(RA8875_INTC2) & RA8875_INTC2_TP)
     return true;
   return false;
 }
@@ -386,9 +421,9 @@ bool touchRead(uint16_t *x, uint16_t *y)
   uint16_t tx, ty;
   uint8_t temp;
 
-  tx = readRegRA8875(RA8875_TPXH);
-  ty = readRegRA8875(RA8875_TPYH);
-  temp = readRegRA8875(RA8875_TPXYL);
+  tx = readRegRA(RA8875_TPXH);
+  ty = readRegRA(RA8875_TPYH);
+  temp = readRegRA(RA8875_TPXYL);
   tx <<= 2;
   ty <<= 2;
   tx |= temp & 0x03;        // get the bottom x bits
@@ -398,7 +433,7 @@ bool touchRead(uint16_t *x, uint16_t *y)
   *y = ty;
 
   /* Clear TP INT Status */
-  writeRegRA8875(RA8875_INTC2, RA8875_INTC2_TP);
+  writeRegRA(RA8875_INTC2, RA8875_INTC2_TP);
 
   return true;
 }
@@ -572,11 +607,11 @@ void textWrite(const char *buffer, uint16_t len)
     // This delay is needed with textEnlarge(1) because
     // Teensy 3.X is much faster than Arduino Uno
     if (_textScale > 0)
-      vTaskDelay(1);
+      vTaskDelay(10);
 #else
     // For others, delay starting with textEnlarge(2)
     if (_textScale > 1)
-      vTaskDelay(1);
+      vTaskDelay(10);
 #endif
   }
 }
@@ -591,10 +626,10 @@ void graphicsMode(void)
 
 void setXY(uint16_t x, uint16_t y)
 {
-  writeRegRA8875(RA8875_CURH0, x);
-  writeRegRA8875(RA8875_CURH1, x >> 8);
-  writeRegRA8875(RA8875_CURV0, y);
-  writeRegRA8875(RA8875_CURV1, y >> 8);
+  writeRegRA(RA8875_CURH0, x);
+  writeRegRA(RA8875_CURH1, x >> 8);
+  writeRegRA(RA8875_CURV0, y);
+  writeRegRA(RA8875_CURV1, y >> 8);
 }
 
 void fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color)
@@ -976,25 +1011,45 @@ void scrollY(int16_t dist)
   writeData(dist >> 8);
 }
 
+void drawPixels(uint16_t *p, uint32_t num, int16_t x, int16_t y)
+{
+  x = applyRotationX(x);
+  y = applyRotationY(y);
+
+  writeRegRA(RA8875_CURH0, x);
+  writeRegRA(RA8875_CURH1, x >> 8);
+  writeRegRA(RA8875_CURV0, y);
+  writeRegRA(RA8875_CURV1, y >> 8);
+
+  uint8_t dir = RA8875_MWCR0_LRTD;
+  if (_rotation == 2)
+  {
+    dir = RA8875_MWCR0_RLTD;
+  }
+  writeRegRA(RA8875_MWCR0, (readRegRA(RA8875_MWCR0) & ~RA8875_MWCR0_DIRMASK) | dir);
+
+  writeCommand(RA8875_MRWC);
+  gpio_set_level(PIN_NUM_CS, 0);
+  spidrawpixels(p, num);
+  gpio_set_level(PIN_NUM_CS, 1);
+}
+
 void init_screen()
 {
-  printf("Found RA8875\n");
+  printf("Found RA8875, Display initialized!\n");
   displayOn(true);
-  GPIOX(true);                              // Enable TFT - display enable tied to GPIOX
+  //printf("Display ON!\n");
+  GPIOX(true); // Enable TFT - display enable tied to GPIOX
+  //printf("GPIOX!\n");
   PWM1config(true, RA8875_PWM_CLK_DIV1024); // PWM output for backlight
+  //printf("PWM1config!\n");
   PWM1out(255);
-  vTaskDelay(500);
+  //printf("PWM1out!\n");
+  vTaskDelay(100 / portTICK_RATE_MS);
   fillScreen(RA8875_WHITE);
-  vTaskDelay(500);
-  fillScreen(RA8875_YELLOW);
-  vTaskDelay(500);
-  fillScreen(RA8875_MAGENTA);
-  vTaskDelay(500);
-  fillScreen(RA8875_RED);
-  vTaskDelay(500);
-  fillScreen(RA8875_BLUE);
-  vTaskDelay(500);
-  fillScreen(RA8875_BLACK);
+  printf("fillScreen White \n");
+  vTaskDelay(100 / portTICK_RATE_MS);
+  printf("End Display initialized!\n");
 }
 
 void print_screen(float volA, float currA, float temp, float power, float frequen)
@@ -1011,38 +1066,37 @@ void print_screen(float volA, float currA, float temp, float power, float freque
   sprintf(text5, "%.1f", frequen);
 
   fillRect(0, 0, 500, 250, RA8875_BLACK);
-	textMode();
-	textSetCursor(10, 20);
-	textTransparent(RA8875_WHITE);
-	textEnlarge(1);
-	char* msg1 = "Voltaje A: ";
-	textWrite(msg1, strlen(msg1));
-	textWrite(text1, strlen(text1));
-	textSetCursor(10, 50);
-	textTransparent(RA8875_WHITE);
+  textMode();
+  textSetCursor(10, 20);
+  textTransparent(RA8875_WHITE);
   textEnlarge(1);
-	char* msg2 = "Corriente A: ";
-	textWrite(msg2, strlen(msg2));
+  char *msg1 = "Voltaje A: ";
+  textWrite(msg1, strlen(msg1));
+  textWrite(text1, strlen(text1));
+  textSetCursor(10, 50);
+  textTransparent(RA8875_WHITE);
+  textEnlarge(1);
+  char *msg2 = "Corriente A: ";
+  textWrite(msg2, strlen(msg2));
   textWrite(text2, strlen(text2));
   textTransparent(RA8875_WHITE);
   textSetCursor(10, 80);
-	textEnlarge(1);
-	char* msg3 = "Temperatura Chip: ";
-	textWrite(msg3, strlen(msg3));
+  textEnlarge(1);
+  char *msg3 = "Temperatura Chip: ";
+  textWrite(msg3, strlen(msg3));
   textWrite(text3, strlen(text3));
   textTransparent(RA8875_WHITE);
   textSetCursor(10, 110);
-	textEnlarge(1);
-	char* msg4 = "Potencia A: ";
-	textWrite(msg4, strlen(msg4));
+  textEnlarge(1);
+  char *msg4 = "Potencia A: ";
+  textWrite(msg4, strlen(msg4));
   textWrite(text4, strlen(text4));
   textTransparent(RA8875_WHITE);
   textSetCursor(10, 140);
-	textEnlarge(1);
-	char* msg5 = "Frecuencia: ";
-	textWrite(msg5, strlen(msg5));
+  textEnlarge(1);
+  char *msg5 = "Frecuencia: ";
+  textWrite(msg5, strlen(msg5));
   textWrite(text5, strlen(text5));
-	
 }
 
 void print_time()
@@ -1055,12 +1109,12 @@ void print_time()
   sprintf(text3, "%d", second);
 
   fillRect(600, 0, 200, 150, RA8875_BLACK);
-	textMode();
-	textSetCursor(600, 20);
-	textTransparent(RA8875_WHITE);
-	textEnlarge(1);
-	char* msg1 = ":";	
-	textWrite(text1, strlen(text1));
+  textMode();
+  textSetCursor(600, 20);
+  textTransparent(RA8875_WHITE);
+  textEnlarge(1);
+  char *msg1 = ":";
+  textWrite(text1, strlen(text1));
   textWrite(msg1, strlen(msg1));
   textWrite(text2, strlen(text2));
   textWrite(msg1, strlen(msg1));
