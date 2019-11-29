@@ -31,60 +31,60 @@ unsigned short VoltageGain;
 unsigned short CurrentGain;
 
 
-// //static TaskHandle_t task_handles[portNUM_PROCESSORS];
-// static TaskHandle_t task_http_server;
-// static TaskHandle_t task_wifi_manager;
+//static TaskHandle_t task_handles[portNUM_PROCESSORS];
+static TaskHandle_t task_http_server;
+static TaskHandle_t task_wifi_manager;
 
-// static TaskHandle_t task_network;
+static TaskHandle_t task_network;
 
-// static TaskHandle_t task_analyzer;
-// static TaskHandle_t task_phoenix;
+static TaskHandle_t task_analyzer;
+static TaskHandle_t task_phoenix;
 
-// static TaskHandle_t task_sim800_rx;
+static TaskHandle_t task_sim800_rx;
 
-// //timer Control
+//timer Control
 
-// xSemaphoreHandle Semaphore_control;
-// xSemaphoreHandle Semaphore_control_timer;
-// xQueueHandle Queue_control;
+xSemaphoreHandle Semaphore_control;
+xSemaphoreHandle Semaphore_control_timer;
+xQueueHandle Queue_control;
 
-// struct Config config_network;
+struct Config config_network;
 
-// struct Config
-// {
-// 	bool IP_mode;
-// 	char *ssid;
-// 	char *password;
-// 	int ip_c[4];
-// 	int gw_c[4];
-// 	int dns_c[4];
-// 	int msk_c[4];
-// 	char *pin_bt;
-// 	char *broker_mqtt;
-// 	char *Username;
-// 	char *Password_broker;
-// 	char *Output_topic;
-// 	char *Input_topic;
-// 	char *ID;
-// 	char *SoftVersion;
-// 	char *HardVersion;
-// 	char *time_zone;
-// };
+struct Config
+{
+	bool IP_mode;
+	char *ssid;
+	char *password;
+	int ip_c[4];
+	int gw_c[4];
+	int dns_c[4];
+	int msk_c[4];
+	char *pin_bt;
+	char *broker_mqtt;
+	char *Username;
+	char *Password_broker;
+	char *Output_topic;
+	char *Input_topic;
+	char *ID;
+	char *SoftVersion;
+	char *HardVersion;
+	char *time_zone;
+};
 
-// #define PIN_NUM_MOSI 19
-// #define PIN_NUM_MISO 23
-// #define PIN_NUM_CLK 18
-// #define PIN_NUM_CS 5
+#define PIN_NUM_MOSI 19
+#define PIN_NUM_MISO 23
+#define PIN_NUM_CLK 18
+#define PIN_NUM_CS 5
 #define WRITE false
 #define READ true
 
-// #define CTP_INT 2
-// #define GPIO_INPUT_PIN_SEL_CTP_INT  (1ULL<<CTP_INT)
-// #define ESP_INTR_FLAG_DEFAULT 0
+#define CTP_INT 2
+#define GPIO_INPUT_PIN_SEL_CTP_INT  (1ULL<<CTP_INT)
+#define ESP_INTR_FLAG_DEFAULT 0
 
-// xSemaphoreHandle Semaphore_control_touch;
-// xSemaphoreHandle Semaphore_control_screen;
-// bool cambio;
-// bool finish_print;
-// spi_device_handle_t spi_handle;
-// bool FinishTrans;
+xSemaphoreHandle Semaphore_control_touch;
+xSemaphoreHandle Semaphore_control_screen;
+bool cambio;
+bool finish_print;
+spi_device_handle_t spi_handle;
+bool FinishTrans;

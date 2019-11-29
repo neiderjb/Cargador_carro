@@ -61,6 +61,7 @@
 
 #include "esp_log.h"
 
+#include "i2c.h"
 #include "M90E32AS.h"
 #include "SC18IS602B.h"
 #include "Parameters.h"
@@ -762,78 +763,4 @@ void begin_M90E32AS(unsigned short lineFreq, unsigned short pgagain, unsigned sh
 
 	ESP_LOGI(TAG, "begin_M90E32AS OK");
 
-}
-
-
-void grid_analyzer_task(void *arg)
-{
-	ESP_LOGI(TAG, "Initiation grid_analyzer_task");
-
-	float voltageA, currentA, temperature, powerFactorA, powerA, powerReacA,
-		powerAppA, freq, totalWattsA;
-
-	for (;;)
-	{
-
-		unsigned short sys0 = GetSysStatus0();  //EMMState0
-		unsigned short sys1 = GetSysStatus1();  //EMMState1
-		unsigned short en0 = GetMeterStatus0(); //EMMIntState0
-		unsigned short en1 = GetMeterStatus1(); //EMMIntState1
-
-		printf("Sys Status: S0:0x %d, S1:0x %d \n", sys0, sys1);
-		printf("Meter Status: E0:0x %d, E1:0x %d \n", en0, en1);
-		vTaskDelay(5);
-
-		//if true the MCU is not getting data from the energy meter
-		if (sys0 == 65535 || sys0 == 0)
-		{
-			// led_state_maxV(2, 2);
-			ESP_LOGI(TAG, "Error: Not receiving data from energy meter - check your connections \n");
-			voltageA = 0;
-			currentA = 0;
-			temperature = 0;
-			powerFactorA = 0;
-			powerA = 0;
-			powerReacA = 0;
-			powerAppA = 0;
-			freq = 0;
-			totalWattsA = (voltageA * currentA);
-			//begin_M90E32AS(0, LineFreq, PGAGain, VoltageGain, CurrentGain, CurrentGain, CurrentGain);	//
-		}
-		else
-		{
-			// led_state_maxV(2, 1);
-			// getTime();
-			voltageA = GetLineVoltageA();
-			currentA = GetLineCurrentA();
-			temperature = GetTemperature();
-			powerFactorA = GetTotalPowerFactor();
-			powerA = GetActivePowerA();
-			powerReacA = GetReactivePowerA();
-			powerAppA = GetApparentPowerA();
-			freq = GetFrequency();
-			totalWattsA = (voltageA * currentA);
-			// char text1[10];
-			// sprintf(text1, "%.2f", voltageA);
-			// char text2[10];
-			// sprintf(text2, "%.2f", currentA);
-			// print_text(text1, text2);
-
-			printf("============================== \n");
-			// ESP_LOGI(TAG, "Hour %d, Minute %d, Seconds %d \n", hour, minute, second);
-			printf("Voltage A: %f [V] \n", voltageA);
-			printf("Current A: %f [A] \n", currentA);
-			printf("Chip Temp: %f [C] \n", temperature);
-			printf("Power Factor A: %f [W] \n ", powerFactorA);
-			printf("Active Power A: %f [W] \n", powerA);
-			printf("Reactive Power A: %f [Var] \n", powerReacA);
-			printf("Apparent Power A: %f [VA] \n", powerAppA);
-			printf("Power total A MAT : %f [W] \n ", totalWattsA);
-			printf("Frequency: %f [Hz] \n", freq);
-			printf("============================== \n");
-
-		}
-
-		vTaskDelay(1000);
-	}
 }

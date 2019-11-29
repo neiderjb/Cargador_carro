@@ -26,17 +26,17 @@
 #define FirmwareMinVersion 0x0409   //1033
 
 //Holding 16bits
-#define ConfigurationSwitchS1 0x07D0    //2000  //Read
-#define ConfigurationSwitchS2 0x07D1    //2001  //Read
-#define EnableChargingConfig 0x0FA0      //4000   //Read/write
-#define ExternalReleaseConfig 0x0FA1     //4001   //Read/write
-#define LockingConfig 0x0FA2             //4002   //Read/write
-#define WeldedContactDetectionConfig 0x0FA6         //4006  //Read/write
-#define WeldedContactDetectionDelayConfig 0x0FA7    //4007  //Read/write
-#define RejectingInvalidChargingCable 0x0FA8        //4008  //Read
-#define ConfiguringConnectionCaseBorC 0x0FA9        //4009
-#define AllowStateVehiclesConfig 0x0FAA             //4010
-#define RCMConfig 0x0FAB                            //4011
+#define ConfigurationSwitchS1 2000  //Read
+#define ConfigurationSwitchS2 2001  //Read
+#define EnableChargingConfig 0xFA0      //4000   //Read/write
+#define ExternalReleaseConfig 0xFA1     //4001   //Read/write
+#define LockingConfig 0xFA2             //4002   //Read/write
+#define WeldedContactDetectionConfig 0xFA6         //4006  //Read/write
+#define WeldedContactDetectionDelayConfig 0xFA7    //4007  //Read/write
+#define RejectingInvalidChargingCable 0xFA8        //4008  //Read
+#define ConfiguringConnectionCaseBorC 0xFA9        //4009
+#define AllowStateVehiclesConfig 0xFAA             //4010
+#define RCMConfig 0xFAB                            //4011
 #define ChangeCurrentReductionConfig 0xFAC         //4012
 #define ChangeCurrentReductionAnalogValueForMinCurrent 0xFAD   //4013
 #define ChangeCurrentReductionAnalogValueForMaxCurrent 0xFAE   //4014
@@ -127,23 +127,8 @@ Value Function
 
 void begin_phoenixcontact();
 
-void start_charging();
-void stop_charging();
-void Charging_connector(int state);
-
-//Register MODBUS TYPE: INPUT = ReadInputRegisters 0x04
-//-------------------------------------------//
 void Year_manufacture();
-void Date_manufacture();
 void Hardware_version();
-void Firmware_version();
-//-------------------------------------------//
-
-//Register MODBUS TYPE: HOLDING = ReadHoldingRegisters 0x03
-//-------------------------------------------//
-void switch_S1();
-void switch_S2();
-//-------------------------------------------//
 
 void GetDataPhoenix();
 

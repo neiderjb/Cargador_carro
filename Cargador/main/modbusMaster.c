@@ -16,6 +16,7 @@
 
 #include "ZDU0210RJX.h"
 #include "modbusMaster.h"
+#include "Function.h"
 
 #include "esp_log.h"
 
@@ -35,12 +36,12 @@ uint8_t ku8MBInvalidCRC = 0xE3;
 
 uint8_t ku8MBReadCoils = 0x01;
 uint8_t ku8MBReadDiscreteInputs = 0x02; ///< Modbus function 0x02 Read Discrete Inputs
+uint8_t ku8MBWriteSingleCoil = 0x05;    ///< Modbus function 0x05 Write Single Coil
+uint8_t ku8MBWriteMultipleCoils = 0x0F; ///< Modbus function 0x0F Write Multiple Coils
+
 uint8_t ku8MBReadHoldingRegisters = 0x03;       ///< Modbus function 0x03 Read Holding Registers
 uint8_t ku8MBReadInputRegisters = 0x04;         ///< Modbus function 0x04 Read Input Registers
-uint8_t ku8MBWriteSingleCoil = 0x05;    ///< Modbus function 0x05 Write Single Coil
 uint8_t ku8MBWriteSingleRegister = 0x06;        ///< Modbus function 0x06 Write Single Register
-
-uint8_t ku8MBWriteMultipleCoils = 0x0F; ///< Modbus function 0x0F Write Multiple Coils
 uint8_t ku8MBWriteMultipleRegisters = 0x10;     ///< Modbus function 0x10 Write Multiple Registers
 uint8_t ku8MBMaskWriteRegister = 0x16;          ///< Modbus function 0x16 Mask Write Register
 uint8_t ku8MBReadWriteMultipleRegisters = 0x17; ///< Modbus function 0x17 Read Write Multiple Registers
@@ -61,12 +62,17 @@ Call once class has been instantiated, typically within setup().
 
 void begin_modbusMaster(uint8_t slave)
 {
-  
+    //  txBuffer = (uint16_t*) calloc(ku8MaxBufferSize, sizeof(uint16_t));
     _u8MBSlave = slave;
+    //_serial = &serial;
     _u8TransmitBufferIndex = 0;
     u16TransmitBufferLength = 0;
-    //  txBuffer = (uint16_t*) calloc(ku8MaxBufferSize, sizeof(uint16_t));
-    //_serial = &serial;
+    //begin_ZDU0210RJX();
+    // #if __MODBUSMASTER_DEBUG__
+    //   pinMode(__MODBUSMASTER_DEBUG_PIN_A__, OUTPUT);
+    //   pinMode(__MODBUSMASTER_DEBUG_PIN_B__, OUTPUT);
+    // #endif
+
     ESP_LOGI(TAG, "begin_modbusMaster OK");
 }
 
@@ -282,7 +288,7 @@ order end of the word).
 */
 uint8_t readCoils(uint16_t u16ReadAddress, uint16_t u16BitQty)
 {
-    _u16ReadAddress = u16ReadAddress-0X4E20;
+    _u16ReadAddress = u16ReadAddress;
     _u16ReadQty = u16BitQty;
     return ModbusMasterTransaction(ku8MBReadCoils);
 }
@@ -328,7 +334,7 @@ register.
 */
 uint8_t readHoldingRegisters(uint16_t u16ReadAddress, uint16_t u16ReadQty)
 {
-    _u16ReadAddress = u16ReadAddress-0x7D0;
+    _u16ReadAddress = u16ReadAddress;
     _u16ReadQty = u16ReadQty;
     return ModbusMasterTransaction(ku8MBReadHoldingRegisters);
 }
@@ -348,7 +354,7 @@ register.
 */
 uint8_t readInputRegisters(uint16_t u16ReadAddress, uint8_t u16ReadQty)
 {
-    _u16ReadAddress = u16ReadAddress-0x3E8;
+    _u16ReadAddress = u16ReadAddress;
     _u16ReadQty = u16ReadQty;
     return ModbusMasterTransaction(ku8MBReadInputRegisters);
 }
@@ -531,7 +537,6 @@ Sequence:
 
 uint8_t ModbusMasterTransaction(uint8_t u8MBFunction)
 {
-    vTaskDelay(100);
     uint8_t u8ModbusADU[64];
     uint8_t u8ModbusADUSize = 0;
     uint8_t i;
@@ -548,22 +553,12 @@ uint8_t ModbusMasterTransaction(uint8_t u8MBFunction)
     {
         u8ModbusADU[u8ModbusADUSize++] = highByte(_u16WriteAddress);
         u8ModbusADU[u8ModbusADUSize++] = lowByte(_u16WriteAddress);
-        u8ModbusADU[u8ModbusADUSize++] = highByte(_u16ReadQty);
-        u8ModbusADU[u8ModbusADUSize++] = lowByte(_u16ReadQty);
     }
     else if (u8MBFunction == ku8MBReadDiscreteInputs)
     {
-        u8ModbusADU[u8ModbusADUSize++] = highByte(_u16WriteAddress);
-        u8ModbusADU[u8ModbusADUSize++] = lowByte(_u16WriteAddress);
-        u8ModbusADU[u8ModbusADUSize++] = highByte(_u16ReadQty);
-        u8ModbusADU[u8ModbusADUSize++] = lowByte(_u16ReadQty);
     }
     else if (u8MBFunction == ku8MBReadHoldingRegisters)
     {
-        u8ModbusADU[u8ModbusADUSize++] = highByte(_u16ReadAddress);
-        u8ModbusADU[u8ModbusADUSize++] = lowByte(_u16ReadAddress);
-        u8ModbusADU[u8ModbusADUSize++] = highByte(_u16ReadQty);
-        u8ModbusADU[u8ModbusADUSize++] = lowByte(_u16ReadQty);
     }
     else if (u8MBFunction == ku8MBReadInputRegisters)
     {
@@ -604,180 +599,17 @@ uint8_t ModbusMasterTransaction(uint8_t u8MBFunction)
     u8ModbusADU[u8ModbusADUSize++] = highByte(u16CRC);
 
     //u8ModbusADU[u8ModbusADUSize] = 0;
-    
+
     //Send to RS485 Mod Bus
-    printf("send MODBUS: \n");
     for (i = 0; i < u8ModbusADUSize; i++)
     {
         Write_Data_TX_FIFO_ZDU0210RJX(u8ModbusADU[i], 0);
-        printf("%x \n", u8ModbusADU[i]);
     }
-    printf("\n");
     u8ModbusADUSize = 0;
-
-    // printf("send MODBUS HOLA: \n");
-    // uint8_t u8ModbusADU2[] = "hola";
-    // for (i = 0; i < 4; i++)
-    // {
-    //     Write_Data_TX_FIFO_ZDU0210RJX(u8ModbusADU2[i], 0);
-    //     printf("%x \n", u8ModbusADU2[i]);
-    // }
-    // printf("\n");
-   
 
     return u8ModbusADUSize;
 }
 
-void responseModbus(uint8_t u8MBFunction, uint8_t *data_rd)
-{
-    vTaskDelay(500);
-    uint8_t u8ModbusADU[64];
-    uint8_t u8MBStatus = ku8MBSuccess;
-    uint8_t u8ModbusADUSize = 0;
-    uint16_t u16CRC;
-    uint8_t i;
-
-    uint8_t rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(0, 0);
-    printf("RX size MODBUS: %d \n", rx_size);
-
-    u8ModbusADUSize = rx_size;
-
-    Read_Data_RX_FIFO_ZDU0210RJX(0, u8ModbusADU, u8ModbusADUSize);
-    printf("Response Phoenix: \n");
-    for (int i = 0; i < u8ModbusADUSize; i++)
-    {
-        printf("%x \n", u8ModbusADU[i]);
-    }
-    printf("\n");
-
-    // evaluate slave ID, function code once enough bytes have been read
-    if (u8ModbusADUSize >= 5)
-    {
-        // verify response is for correct Modbus slave
-        if (u8ModbusADU[0] != _u8MBSlave)
-        {
-            u8MBStatus = ku8MBInvalidSlaveID;
-            ESP_LOGE(TAG, "FAIL SLAVE %x -NO VALID %x \n ", u8ModbusADU[0], u8MBStatus);
-        }
-
-        // verify response is for correct Modbus function code (mask exception bit 7)
-        if ((u8ModbusADU[1] & 0x7F) != u8MBFunction)
-        {
-            u8MBStatus = ku8MBInvalidFunction;
-            ESP_LOGE(TAG, "FAIL function code  %x -NO VALID %x \n ", u8ModbusADU[1], u8MBStatus);
-        }
-
-        // check whether Modbus exception occurred; return Modbus Exception Code
-        //if (bitRead(u8ModbusADU[1], 7))
-        if ((u8ModbusADU[1] >> 7) & 0x01)
-        {
-            u8MBStatus = u8ModbusADU[2];
-            ESP_LOGE(TAG, "FAIL function code Exception %x -NO VALID %x \n ", u8ModbusADU[1], u8MBStatus);
-        }
-
-        // evaluate returned Modbus function code
-
-        if (u8ModbusADU[1] == ku8MBReadCoils)
-        {
-            ESP_LOGI(TAG, "ReadCoils");
-        }
-        else if (u8ModbusADU[1] == ku8MBReadDiscreteInputs)
-        {
-            ESP_LOGI(TAG, "ReadDiscreteInputs");
-        }
-        else if (u8ModbusADU[1] == ku8MBReadInputRegisters)
-        {
-            ESP_LOGI(TAG, "ReadInputRegisters");
-        }
-        else if (u8ModbusADU[1] == ku8MBReadHoldingRegisters)
-        {
-            ESP_LOGI(TAG, "ReadHoldingRegisters");
-        }
-        else if (u8ModbusADU[1] == ku8MBReadWriteMultipleRegisters)
-        {
-            ESP_LOGI(TAG, "ReadWriteMultipleRegisters");
-        }
-    }
-
-    // verify response is large enough to inspect further
-    if (!u8MBStatus && u8ModbusADUSize >= 5)
-    {
-        // calculate CRC
-        u16CRC = 0xFFFF;
-        for (i = 0; i < (u8ModbusADUSize - 2); i++)
-        {
-            u16CRC = crc16_update(u16CRC, u8ModbusADU[i]);
-        }
-
-        // verify CRC
-        if (!u8MBStatus && ((uint8_t)(u16CRC) != u8ModbusADU[u8ModbusADUSize - 2] ||
-                            (uint8_t)(u16CRC >> 8) != u8ModbusADU[u8ModbusADUSize - 1]))
-        {
-            u8MBStatus = ku8MBInvalidCRC;
-            ESP_LOGI(TAG, "Validate CRC State:  %d \n", u8MBStatus);
-        }
-    }
-
-    // disassemble ADU into words
-    if (!u8MBStatus)
-    {
-        // evaluate returned Modbus function code
-        if (u8ModbusADU[1] == ku8MBReadCoils)
-        {
-        }
-        else if (u8ModbusADU[1] == ku8MBReadDiscreteInputs)
-        {
-        }
-        else if (u8ModbusADU[1] == ku8MBReadInputRegisters)
-        {
-            data_rd[0] = u8ModbusADU[5];
-            data_rd[1] = u8ModbusADU[6];
-            ESP_LOGI(TAG, "DATA Modbus: %x - %x \n", data_rd[0], data_rd[1]);
-        }
-        else if (u8ModbusADU[1] == ku8MBReadHoldingRegisters)
-        {
-            data_rd[0] = u8ModbusADU[5];
-            data_rd[1] = u8ModbusADU[6];
-            ESP_LOGI(TAG, "DATA Modbus: %x - %x \n", data_rd[0], data_rd[1]);
-        }
-    }
-
-    memset(u8ModbusADU, 0, sizeof(u8ModbusADU));
-}
-
-
-
-/** @ingroup util_word
-    Return low word of a 32-bit integer.
-    @param uint32_t ww (0x00000000..0xFFFFFFFF)
-    @return low word of input (0x0000..0xFFFF)
-*/
-uint16_t lowWord(uint32_t ww)
-{
-  return (uint16_t) ((ww) & 0xFFFF);
-}
-
-uint8_t lowByte(uint16_t ww)
-{
-  return (uint8_t) ((ww) & 0xFFFF);
-}
-
-uint8_t highByte(uint16_t ww)
-{
-  return (uint8_t) ((ww) >> 8);
-}
-
-
-/** @ingroup util_word
-    Return high word of a 32-bit integer.
-    @param uint32_t ww (0x00000000..0xFFFFFFFF)
-    @return high word of input (0x0000..0xFFFF)
-*/
-uint16_t highWord(uint32_t ww)
-{
-  return (uint16_t) ((ww) >> 16);
-}
-/*
 uint8_t ModbusMasterTransactionOLD(uint8_t u8MBFunction)
 {
     uint8_t u8ModbusADU[256];
@@ -1099,4 +931,116 @@ uint8_t ModbusMasterTransactionOLD(uint8_t u8MBFunction)
     printf("out ModbusMasterTransaction \n");
     return u8MBStatus;
 }
-*/
+
+void responseModbus(uint8_t u8MBFunction, uint8_t *data_rd)
+{
+    uint8_t u8ModbusADU[64];
+    uint8_t u8MBStatus = ku8MBSuccess;
+    uint8_t u8ModbusADUSize = 0;
+    uint16_t u16CRC;
+    uint8_t i;
+
+    vTaskDelay(20);
+    uint8_t rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(0, 0);
+    uint8_t tx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(0, 1);
+    printf("RX size MODBUS: %d, TX size MODBUS: %d \n", rx_size, tx_size);
+
+    u8ModbusADUSize = rx_size;
+
+    Read_Data_RX_FIFO_ZDU0210RJX(0, u8ModbusADU, u8ModbusADUSize);
+    for (int i = 0; i < u8ModbusADUSize; i++)
+    {
+        printf("Response Phoenix: %x \n", u8ModbusADU[i]);
+    }
+
+    // evaluate slave ID, function code once enough bytes have been read
+    if (u8ModbusADUSize >= 5)
+    {
+        // verify response is for correct Modbus slave
+        if (u8ModbusADU[0] != _u8MBSlave)
+        {
+            u8MBStatus = ku8MBInvalidSlaveID;
+            ESP_LOGE(TAG, "FAIL SLAVE %x -NO VALID %x \n ", u8ModbusADU[0], u8MBStatus);
+        }
+
+        // verify response is for correct Modbus function code (mask exception bit 7)
+        if ((u8ModbusADU[1] & 0x7F) != u8MBFunction)
+        {
+            u8MBStatus = ku8MBInvalidFunction;
+            ESP_LOGE(TAG, "FAIL function code  %x -NO VALID %x \n ", u8ModbusADU[1], u8MBStatus);
+        }
+
+        // check whether Modbus exception occurred; return Modbus Exception Code
+        //if (bitRead(u8ModbusADU[1], 7))
+        if ((u8ModbusADU[1] >> 7) & 0x01)
+        {
+            u8MBStatus = u8ModbusADU[2];
+            ESP_LOGE(TAG, "FAIL function code Exception %x -NO VALID %x \n ", u8ModbusADU[1], u8MBStatus);
+        }
+
+        // evaluate returned Modbus function code
+
+        if (u8ModbusADU[1] == ku8MBReadCoils)
+        {
+            ESP_LOGI(TAG, "ReadCoils");
+        }
+        else if (u8ModbusADU[1] == ku8MBReadDiscreteInputs)
+        {
+            ESP_LOGI(TAG, "ReadDiscreteInputs");
+        }
+        else if (u8ModbusADU[1] == ku8MBReadInputRegisters)
+        {
+            ESP_LOGI(TAG, "ReadInputRegisters");
+        }
+        else if (u8ModbusADU[1] == ku8MBReadHoldingRegisters)
+        {
+            ESP_LOGI(TAG, "ReadHoldingRegisters");
+        }
+        else if (u8ModbusADU[1] == ku8MBReadWriteMultipleRegisters)
+        {
+            ESP_LOGI(TAG, "ReadWriteMultipleRegisters");
+        }
+    }
+
+    // verify response is large enough to inspect further
+    if (!u8MBStatus && u8ModbusADUSize >= 5)
+    {
+        // calculate CRC
+        u16CRC = 0xFFFF;
+        for (i = 0; i < (u8ModbusADUSize - 2); i++)
+        {
+            u16CRC = crc16_update(u16CRC, u8ModbusADU[i]);
+        }
+
+        // verify CRC
+        if (!u8MBStatus && ((uint8_t)(u16CRC) != u8ModbusADU[u8ModbusADUSize - 2] ||
+                            (uint8_t)(u16CRC >> 8) != u8ModbusADU[u8ModbusADUSize - 1]))
+        {
+            u8MBStatus = ku8MBInvalidCRC;
+            ESP_LOGI(TAG, "Validate CRC State:  %d \n", u8MBStatus);
+        }
+    }
+
+    // disassemble ADU into words
+    if (!u8MBStatus)
+    {
+        // evaluate returned Modbus function code
+        if (u8ModbusADU[1] == ku8MBReadCoils)
+        {
+        }
+        else if (u8ModbusADU[1] == ku8MBReadDiscreteInputs)
+        {
+        }
+        else if (u8ModbusADU[1] == ku8MBReadInputRegisters)
+        {
+            data_rd[0] = u8ModbusADU[5];
+            data_rd[1] = u8ModbusADU[6];
+            ESP_LOGI(TAG, "DATA Modbus: %x - %x \n", data_rd[0], data_rd[1]);
+        }
+        else if (u8ModbusADU[1] == ku8MBReadHoldingRegisters)
+        {
+        }
+    }
+
+    memset(u8ModbusADU, 0, sizeof(u8ModbusADU));
+}

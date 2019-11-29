@@ -23,7 +23,7 @@
 #include <freertos/task.h>
 
 #include "ZDU0210RJX.h"
-#include "software_i2c.h"
+#include "i2c.h"
 
 #include "esp_log.h"
 
@@ -71,7 +71,7 @@ void begin_ZDU0210RJX(uint8_t gpio, uint8_t mode)
     uint8_t  baudUart1[2];
     Read_Actual_baud_Rate_ZDU0210RJX(baudUart1,0);
     value = baudUart1[0] << 8 | baudUart1[1];
-    printf("Baudrate UART1: %d\n", value);
+    printf("Baudrate UART0: %d\n", value);
 
     Enable_Uart_ZDU0210RJX(EnableUartData, 0);
     Enable_Uart_ZDU0210RJX(EnableUartData, 1);
@@ -85,12 +85,12 @@ void begin_ZDU0210RJX(uint8_t gpio, uint8_t mode)
 
 bool gpio_write_ZDU0210RJX(uint8_t gpio, uint8_t state)
 {
-    return i2c_gpio_write(ZDU0210RJX_address, gpio, state);
+    return i2c_gpio_write(I2C_NUM_0, ZDU0210RJX_address, gpio, state);
 }
 
 uint8_t gpio_read_ZDU0210RJX()
 {
-    return i2c_gpio_read(ZDU0210RJX_address);
+    return i2c_gpio_read(I2C_NUM_0, ZDU0210RJX_address);
 }
 
 //FUNCTION UART Command Detail
@@ -102,7 +102,7 @@ bool Read_UART_STATUS_REGISTER_ZDU0210RJX(uint8_t uart, uint8_t *dataRead)
         uart = UART0_ReadStatusRegister;
     else
         uart = UART1_ReadStatusRegister;
-    return i2c_uart_read_ZDU0210RJX(ZDU0210RJX_address, &dataRead, 1, uart);
+    return i2c_uart_read_ZDU0210RJX(I2C_NUM_0, ZDU0210RJX_address, &dataRead, 1, uart);
 }
 
 bool Enable_Interrupts_ZDU0210RJX(uint8_t data, uint8_t uart)
@@ -112,16 +112,17 @@ bool Enable_Interrupts_ZDU0210RJX(uint8_t data, uint8_t uart)
     else
         uart = Uart1_EnableInterrupts;
 
-    return i2c_uart_enable_ZDU0210RJX(ZDU0210RJX_address, data, uart);
+    return i2c_uart_enable_ZDU0210RJX(I2C_NUM_0, ZDU0210RJX_address, data, uart);
 }
 
 bool Interrupt_Status_Register_ZDU0210RJX(uint8_t uart, uint8_t *dataRead)
 {
+    uint8_t data = 0;
     if (uart == 0)
         uart = Uart0_InterruptStatusRegister;
     else
         uart = Uart1_InterruptStatusRegister;
-    return i2c_uart_read_ZDU0210RJX(ZDU0210RJX_address, &dataRead, 1, uart);
+    return i2c_uart_read_ZDU0210RJX(I2C_NUM_0, ZDU0210RJX_address, &dataRead, 1, uart);
 }
 
 /*
@@ -138,7 +139,7 @@ bool Write_Data_TX_FIFO_ZDU0210RJX(uint8_t data, uint8_t uart)
         uart = UART1_WriteDataTXFIFO;
 
     //printf("Write_Data_TX_FIFO_ZDU0210RJX: %x \n", data);
-    return i2c_uart_write_ZDU0210RJX_8(ZDU0210RJX_address, data, uart);
+    return i2c_uart_write_ZDU0210RJX_8(I2C_NUM_0, ZDU0210RJX_address, data, uart);
 }
 
 bool Write_Multiple_Data_TX_FIFO_ZDU0210RJX(uint8_t *data, int count, uint8_t uart)
@@ -149,7 +150,7 @@ bool Write_Multiple_Data_TX_FIFO_ZDU0210RJX(uint8_t *data, int count, uint8_t ua
         uart = UART1_WriteDataTXFIFO;
 
     //printf("Write_Data_TX_FIFO_ZDU0210RJX: %x \n", data);
-    return i2c_uart_write_ZDU0210RJX(ZDU0210RJX_address, data, count, uart);
+    return i2c_uart_write_ZDU0210RJX(I2C_NUM_0, ZDU0210RJX_address, data, count, uart);
 }
 
 bool Write_Read_Data_TX_FIFO_ZDU0210RJX(uint8_t *dataWrite, int countWrite, uint8_t *dataRead, int countRead, uint8_t uart)
@@ -159,7 +160,7 @@ bool Write_Read_Data_TX_FIFO_ZDU0210RJX(uint8_t *dataWrite, int countWrite, uint
     else
         uart = UART1_WriteDataTXFIFO;
 
-    return i2c_uart_write_read_ZDU0210RJX(ZDU0210RJX_address, dataWrite, countWrite, uart, dataRead, countRead);
+    return i2c_uart_write_read_ZDU0210RJX(I2C_NUM_0, ZDU0210RJX_address, dataWrite, countWrite, uart, dataRead, countRead);
 }
 
 /*
@@ -174,7 +175,7 @@ uint8_t Read_Data_RX_FIFO_ZDU0210RJX(uint8_t uart, uint8_t *data, int count)
     else
         uart = UART1_ReadDataRXFIFO;
     
-    return i2c_uart_read_ZDU0210RJX(ZDU0210RJX_address, data, count, uart);
+    return i2c_uart_read_ZDU0210RJX(I2C_NUM_0, ZDU0210RJX_address, data, count, uart);
 }
 
 /*
@@ -187,7 +188,7 @@ bool Write_Baud_Rate_Register_ZDU0210RJX(uint8_t *data, uint8_t uart)
     else
         uart = UART1_WriteBaudRateRegister;
 
-    return i2c_uart_write_ZDU0210RJX(ZDU0210RJX_address, data, sizeof(UART0_BaudrateData), uart);
+    return i2c_uart_write_ZDU0210RJX(I2C_NUM_0, ZDU0210RJX_address, data, sizeof(UART0_BaudrateData), uart);
 }
 
 /*
@@ -200,7 +201,7 @@ uint8_t Read_Actual_baud_Rate_ZDU0210RJX(uint8_t *data, uint8_t uart)
     else
         uart = UART1_ReadActualBaudRateRegister;
 
-    return i2c_uart_read_16_ZDU0210RJX(ZDU0210RJX_address, data, uart);
+    return i2c_uart_read_16_ZDU0210RJX(I2C_NUM_0, ZDU0210RJX_address, data, uart);
 }
 
 /*
@@ -217,7 +218,7 @@ bool Write_Configuration_ZDU0210RJX(uint8_t *data, uint8_t uart)
     else
         uart = UART1_WriteConfiguration;
 
-    return i2c_uart_write_ZDU0210RJX(ZDU0210RJX_address, data, sizeof(UART0_ConfigurationData), uart);
+    return i2c_uart_write_ZDU0210RJX(I2C_NUM_0, ZDU0210RJX_address, data, sizeof(UART0_ConfigurationData), uart);
 }
 
 /*
@@ -230,7 +231,7 @@ uint8_t Read_Configuration_ZDU0210RJX(uint8_t *data, uint8_t uart)
     else
         uart = UART1_ReadConfiguration;
 
-    return i2c_uart_read_16_ZDU0210RJX(ZDU0210RJX_address, data, uart);
+    return i2c_uart_read_16_ZDU0210RJX(I2C_NUM_0, ZDU0210RJX_address, data, uart);
 }
 
 /*
@@ -246,7 +247,7 @@ bool Write_Transmit_Watermark_Register_ZDU0210RJX(uint8_t *data, uint8_t uart)
     else
         uart = UART1_WriteTransmitWatermarkRegister;
 
-    return i2c_uart_write_ZDU0210RJX(ZDU0210RJX_address, data, sizeof(data), uart);
+    return i2c_uart_write_ZDU0210RJX(I2C_NUM_0, ZDU0210RJX_address, data, sizeof(data), uart);
 }
 
 /*
@@ -260,7 +261,7 @@ uint8_t Read_Transmit_Watermark_Register_ZDU0210RJX(uint8_t uart)
     else
         uart = UART1_ReadTransmitWatermarkRegister;
 
-    i2c_uart_read_16_ZDU0210RJX(ZDU0210RJX_address, &data, uart);
+    i2c_uart_read_16_ZDU0210RJX(I2C_NUM_0, ZDU0210RJX_address, &data, uart);
     return data;
 }
 
@@ -271,7 +272,7 @@ bool Write_Receive_Watermark_Register_ZDU0210RJX(uint8_t *data, uint8_t uart)
     else
         uart = UART1_WriteReceiveWatermarkRegister;
 
-    return i2c_uart_write_ZDU0210RJX(ZDU0210RJX_address, data, sizeof(data), uart);
+    return i2c_uart_write_ZDU0210RJX(I2C_NUM_0, ZDU0210RJX_address, data, sizeof(data), uart);
 }
 
 /*
@@ -285,7 +286,7 @@ uint8_t Read_Receive_Watermark_Register_ZDU0210RJX(uint8_t uart)
     else
         uart = UART1_ReadReceiveWatermarkRegister;
 
-    i2c_uart_read_16_ZDU0210RJX(ZDU0210RJX_address, &data, uart);
+    i2c_uart_read_16_ZDU0210RJX(I2C_NUM_0, ZDU0210RJX_address, &data, uart);
     return data;
 }
 
@@ -303,7 +304,7 @@ bool Enable_Uart_ZDU0210RJX(uint8_t data, uint8_t uart)
     {
         uart = UART1_EnableUart;
     }
-    return i2c_uart_enable_ZDU0210RJX(ZDU0210RJX_address, data, uart);
+    return i2c_uart_enable_ZDU0210RJX(I2C_NUM_0, ZDU0210RJX_address, data, uart);
 }
 
 /*
@@ -321,7 +322,7 @@ uint8_t Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(uint8_t uart, uint
         uart = UART1_ReadReceiveTransmitFIFOLevelRegisters;
 
     uint8_t data[2];
-    i2c_uart_read_16_ZDU0210RJX(ZDU0210RJX_address, data, uart);
+    i2c_uart_read_16_ZDU0210RJX(I2C_NUM_0, ZDU0210RJX_address, data, uart);
 
     if (RxTx == 0)
         dataout = data[0];
@@ -338,7 +339,7 @@ bool uart_reset_FIFO_ZDU0210RJX(uint8_t uart)
     else
         uart = UART1_WriteConfiguration;
 
-    return i2c_uart_write_ZDU0210RJX(ZDU0210RJX_address, UART_RESET_FIFO, sizeof(UART_RESET_FIFO), uart);
+    return i2c_uart_write_ZDU0210RJX(I2C_NUM_0, ZDU0210RJX_address, UART_RESET_FIFO, sizeof(UART_RESET_FIFO), uart);
 }
 
 //---------------------------------

@@ -234,8 +234,3 @@ uint8_t ModbusMasterTransactionOLD(uint8_t u8MBFunction);
 
 
 void responseModbus(uint8_t u8MBFunction, uint8_t *data_rd);
-
-uint16_t lowWord(uint32_t ww);
-uint8_t lowByte(uint16_t ww);
-uint16_t highWord(uint32_t ww);
-uint8_t highByte(uint16_t ww);

@@ -66,62 +66,15 @@ uint8_t ReadInputRegisters = 0x04;   ///< Modbus function 0x04 Read Input Regist
 
 void begin_phoenixcontact()
 {
-    //ESP_LOGI(TAG, "begin_Phoenix OK");
-    //ESP_LOGI(TAG, "year_Phoenix");
-    // Year_manufacture();
-    // Date_manufacture();
-    // Hardware_version();
-    // Firmware_version();
-    // //
-    // switch_S1();
-    // switch_S2();
+    ESP_LOGI(TAG, "begin_Phoenix OK");
+    ESP_LOGI(TAG, "year_Phoenix");
+    Year_manufacture();
+    GetDataPhoenix();
 }
 
-void start_charging()
-{
-    ESP_LOGI(TAG, "Start charging INIT Register\n");
-    if (phoenixcontact_Get_EnableChargingConfig() != 3) //Config register 4000 for com via modbus
-    {
-        ESP_LOGI(TAG, "No ModBus- config to modbus\n");
-        phoenixcontact_Set_EnableChargingConfig(3);
-    }
-    phoenixcontact_Set_Enable_charging_process(1); //Enabling the charging process
-    ESP_LOGI(TAG, "Start charging END Register\n");
-}
-
-void stop_charging()
-{
-    if (phoenixcontact_Get_EnableChargingConfig() != 3) //Config register 4000 for com via modbus
-    {
-        phoenixcontact_Set_EnableChargingConfig(3);
-    }
-    phoenixcontact_Set_Enable_charging_process(0); //Enabling the charging process
-}
-
-void Charging_connector(int state)
-{
-
-    if (phoenixcontact_Get_LockingConfig() != 3)
-    {
-        phoenixcontact_Set_LockingConfig(3);
-    }
-    phoenixcontact_Set_Controlling_Locking_Actuator(state);
-}
-
-
-void GetDataPhoenix()
-{
-    phoenixcontact_Get_EnableChargingConfig();
-    phoenixcontact_Get_ExternalReleaseConfig();
-    phoenixcontact_Get_LockingConfig();
-}
-
-
-//Register MODBUS TYPE: INPUT = ReadInputRegisters 0x04
-//-------------------------------------------//
 void Year_manufacture()
 {
-    readInputRegisters(YearManufacture, 1);
+    readInputRegisters(YearManufacture, 2);
     uint8_t dateyear[2];
     responseModbus(ReadInputRegisters, dateyear);
     uint8_t yh = (dateyear[0] << 4 | dateyear[0] >> 4);
@@ -130,57 +83,21 @@ void Year_manufacture()
     ESP_LOGI(TAG, "Phoenix Age: %x %x - %x", yh, yl, value);
 }
 
-void Date_manufacture()
-{
-    readInputRegisters(ManufacturingDate, 2);
-    uint8_t dateyear[2];
-    responseModbus(ReadInputRegisters, dateyear);
-    uint8_t yh = (dateyear[0] << 4 | dateyear[0] >> 4);
-    uint8_t yl = (dateyear[1] << 4 | dateyear[1] >> 4);
-    uint16_t value = yh | yl;
-    ESP_LOGI(TAG, "Phoenix date: %x %x - %x", yh, yl, value);
-}
-
 void Hardware_version()
 {
     readInputRegisters(HardwareVersion, 2);
     uint8_t dataVersion[2];
     responseModbus(ReadInputRegisters, dataVersion);
     uint16_t value = (dataVersion[0] << 4 | dataVersion[0] >> 4) | (dataVersion[1] << 4 | dataVersion[1] >> 4);
-    ESP_LOGI(TAG, "Phoenix Version HW: %x", value);
+    ESP_LOGI(TAG, "Phoenix Version: %x", value);
 }
 
-void Firmware_version()
+void GetDataPhoenix()
 {
-    readInputRegisters(FirmwareVNumber, 2);
-    uint8_t dataVersion[2];
-    responseModbus(ReadInputRegisters, dataVersion);
-    uint16_t value = (dataVersion[0] << 4 | dataVersion[0] >> 4) | (dataVersion[1] << 4 | dataVersion[1] >> 4);
-    ESP_LOGI(TAG, "Phoenix Version FW: %x", value);
+    phoenixcontact_Get_EnableChargingConfig();
+    phoenixcontact_Get_ExternalReleaseConfig();
+    phoenixcontact_Get_LockingConfig();
 }
-//-------------------------------------------//
-
-
-//Register MODBUS TYPE: HOLDING = ReadHoldingRegisters 0x03
-//-------------------------------------------//
-void switch_S1()
-{
-    readHoldingRegisters(ConfigurationSwitchS1, 1);
-    uint8_t s1[2];
-    responseModbus(ReadHoldingRegisters, s1);
-    //responseModbus(ReadHoldingRegisters, s1);
-    ESP_LOGI(TAG, "Phoenix S1: %x %x ", s1[0], s1[1]);
-}
-
-void switch_S2()
-{
-    readHoldingRegisters(ConfigurationSwitchS2, 1);
-    uint8_t s2[2];
-    responseModbus(ReadHoldingRegisters, s2);
-    ESP_LOGI(TAG, "Phoenix S2: %x %x ", s2[0], s2[1]);
-}
-//-------------------------------------------//
-
 
 /*
 Charging enabled via Modbus
@@ -209,19 +126,15 @@ OFF) if value 0 is written to register 20000.
 
 uint16_t phoenixcontact_Set_EnableChargingConfig(int state)
 {
-    ESP_LOGI(TAG, "phoenixcontact_Set_EnableChargingConfig");
     writeSingleRegister(EnableChargingConfig, state);
     return phoenixcontact_Get_EnableChargingConfig();
 }
 
 uint16_t phoenixcontact_Get_EnableChargingConfig()
 {
-    ESP_LOGI(TAG, "phoenixcontact_Get_EnableChargingConfig");
-    readHoldingRegisters(EnableChargingConfig, 1);
-    //readHoldingRegisters(EnableChargingConfig, 2);
-    
+    readInputRegisters(EnableChargingConfig, 2);
     uint8_t data[2];
-    responseModbus(ReadHoldingRegisters, data);
+    responseModbus(ReadInputRegisters, data);
     uint16_t value = (data[0] << 4 | data[0] >> 4) | (data[1] << 4 | data[1] >> 4);
     ESP_LOGI(TAG, "Get_EnableChargingConfig: %x", value);
     return value;
@@ -253,7 +166,7 @@ uint16_t phoenixcontact_Get_ExternalReleaseConfig()
 {
     readInputRegisters(ExternalReleaseConfig, 2);
     uint8_t data[2];
-    responseModbus(ReadHoldingRegisters, data);
+    responseModbus(ReadInputRegisters, data);
     uint16_t value = (data[0] << 4 | data[0] >> 4) | (data[1] << 4 | data[1] >> 4);
     ESP_LOGI(TAG, "Get_ExternalReleaseConfig: %x", value);
     return value;
@@ -288,7 +201,7 @@ uint16_t phoenixcontact_Get_LockingConfig()
 {
     readInputRegisters(LockingConfig, 2);
     uint8_t data[2];
-    responseModbus(ReadHoldingRegisters, data);
+    responseModbus(ReadInputRegisters, data);
     uint16_t value = (data[0] << 4 | data[0] >> 4) | (data[1] << 4 | data[1] >> 4);
     ESP_LOGI(TAG, "Get_LockingConfig: %x", value);
     return value;

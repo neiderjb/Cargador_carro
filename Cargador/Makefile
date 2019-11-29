@@ -3,7 +3,7 @@
 # project subdirectory.
 #
 
-PROJECT_NAME := Cargador
+PROJECT_NAME := main_cargador_coche
 
 include $(IDF_PATH)/make/project.mk
 
