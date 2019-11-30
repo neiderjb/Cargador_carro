@@ -16,6 +16,7 @@
         "functionscc.h": "c",
         "epld.h": "c",
         "lvgl.h": "c",
-        "cargador.h": "c"
+        "cargador.h": "c",
+        "phoenixcontact.h": "c"
     }
 }

@@ -62,7 +62,7 @@ bool my_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
         {
             getRegisterInfo(registers);
             nr_of_touches = getTouchPositions(coordinates, registers);
-            printf("X%d=%d,Y%d=%d  X%d=%d,Y%d=%d  X%d=%d,Y%d=%d  X%d=%d,Y%d=%d  X%d=%d,Y%d=%d \n", 0, coordinates[0], 0, coordinates[1], 0, coordinates[2], 0, coordinates[3], 0, coordinates[4], 0, coordinates[5], 0, coordinates[6], 0, coordinates[7], 0, coordinates[8], 0, coordinates[9]);
+            //printf("X%d=%d,Y%d=%d  X%d=%d,Y%d=%d  X%d=%d,Y%d=%d  X%d=%d,Y%d=%d  X%d=%d,Y%d=%d \n", 0, coordinates[0], 0, coordinates[1], 0, coordinates[2], 0, coordinates[3], 0, coordinates[4], 0, coordinates[5], 0, coordinates[6], 0, coordinates[7], 0, coordinates[8], 0, coordinates[9]);
 
             x = coordinates[0];
             y = coordinates[1];
@@ -86,7 +86,7 @@ bool my_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
     }
     else
     {
-        printf("No TOUCH ");
+        //printf("No TOUCH ");
         x = last_x;
         y = last_y;
         valid = false;

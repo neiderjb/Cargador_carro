@@ -54,8 +54,8 @@ volatile bool newTouch = false;
 
 void IRAM_ATTR touch_interrupt()
 {
-    cambio = !cambio;
-    if (cambio)
+    cambio_touch_interrupt = !cambio_touch_interrupt;
+    if (cambio_touch_interrupt)
     {
         gpio_set_intr_type(GPIO_INPUT_IO_1, GPIO_INTR_LOW_LEVEL);
     }
@@ -64,7 +64,7 @@ void IRAM_ATTR touch_interrupt()
         gpio_set_intr_type(GPIO_INPUT_IO_1, GPIO_INTR_HIGH_LEVEL);
     }
     //printf("Interrupción");
-    if (cambio && finish_print)
+    if (cambio_touch_interrupt && finish_print)
     {
         xSemaphoreGive(Semaphore_control_touch);
         newTouch = true;
@@ -93,7 +93,7 @@ void begin_FT5206()
 {
 
     printf("Trying to initialize FT5x06 by I2C\n");
-
+    cambio_touch_interrupt = false;
     printf("INIT config ISR \n");
     gpio_config_t io_conf;
     //disable interrupt

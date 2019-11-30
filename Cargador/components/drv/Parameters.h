@@ -29,46 +29,44 @@
 #define UPDATE_JSON_URL		"https://esp32tutorial.netsons.org/https_ota/firmwarex.json"
 
 #define NUMBER_COMMANDS_QUEUE 32
-#define NUMBER_COMMANDS 32
 
 #define WIFI_SSID	"CEMUSA"
 #define WIFI_PASS	"Ofiled@8031"
 #define BT_NAME		"CC-AIRIS-01"
 
-
 #define DISP_BUF_SIZE (LV_HOR_RES_MAX * 10)
 
-//InterruptValue
+
+//Touch screen
 #define GPIO_INPUT_IO_1     13	//14 // 15
-//#define CTP_INT 3
 #define GPIO_INPUT_PIN_SEL_1  (1ULL<<GPIO_INPUT_IO_1)
-//#define GPIO_INPUT_PIN_SEL_CTP_INT  (1ULL<<CTP_INT)
 #define ESP_INTR_FLAG_DEFAULT 1
+bool cambio_touch_interrupt;
+xSemaphoreHandle Semaphore_control_touch;
 
 //I2c pins
 // #define PIN_SDA 21
 // #define PIN_SCL 22
 #define PIN_SDA 0
 #define PIN_SCL 4
-bool cambio;
 
-xSemaphoreHandle Semaphore_control_touch;
-xSemaphoreHandle Semaphore_control_screen;
+
 bool finish_print;
-bool autocs;
-
-uint64_t milis;
-
-//Define for MONOPHASE -- comment for TriPhase
-// #define MONOPHASE 
 
 
 //Network Analizer
+bool MONOPHASE;
 unsigned short LineFreq;
 unsigned short PGAGain;
 unsigned short VoltageGain;
 unsigned short CurrentGain;
+double frequencyValue;
 bool lecturaCorrecta;
+int contador_faseA;
+int contador_faseB;
+int contador_faseC;
+
+
 
 //SPI
 //External ESP32
@@ -93,8 +91,6 @@ bool FinishTrans;
 #define WRITE false
 #define READ true
 
-
-double frequencyValue;
 bool ready;
 bool read_time;
 
@@ -131,36 +127,6 @@ struct Timer_control control_timer;
 struct Config ConfigurationObject;
 
 
-TaskHandle_t task_http_server;
-TaskHandle_t task_wifi_manager;
-
-//timer Control
-
-// esp_timer_handle_t Timer_Control_Pulse1;
-// esp_timer_handle_t Timer_Control_Pulse2;
-
-esp_timer_handle_t FaseA_Timer_Handle_FirstCut;
-esp_timer_handle_t FaseA_Timer_Handle_FirstWidth;
-esp_timer_handle_t FaseA_Timer_Handle_SecondWidth;
-esp_timer_handle_t FaseB_Timer_Handle_FirstCut;
-esp_timer_handle_t FaseB_Timer_Handle_FirstWidth;
-esp_timer_handle_t FaseB_Timer_Handle_SecondWidth;
-esp_timer_handle_t FaseC_Timer_Handle_FirstCut;
-esp_timer_handle_t FaseC_Timer_Handle_FirstWidth;
-esp_timer_handle_t FaseC_Timer_Handle_SecondWidth;
-esp_timer_handle_t timer_control_window_handle;
-xSemaphoreHandle Semaphore_control_timer_FaseA;
-xSemaphoreHandle Semaphore_control_timer_FaseB;
-xSemaphoreHandle Semaphore_control_timer_FaseC;
-xSemaphoreHandle Semaphore_control_Second_FaseA;
-xSemaphoreHandle Semaphore_control_Second_FaseB;
-xSemaphoreHandle Semaphore_control_Second_FaseC;
-
-//CONTROL UCORTES
-xSemaphoreHandle Semaphore_Ucortes_FaseA;
-xSemaphoreHandle Semaphore_Ucortes_FaseB;
-xSemaphoreHandle Semaphore_Ucortes_FaseC;
-
 //9200-1000-7400-1000 --- 60
 //10700-1000-9000-1000 --- 50
 //Frequency Detection
@@ -172,56 +138,4 @@ bool salida;/// = false;
 bool check;// = false;
 bool state;// = false;
 
-int64_t usecondsA;// = 0;
-int64_t usecondsB;// = 0;
-int64_t usecondsC;// = 0;
-int64_t comp_timer_count_A;// = 0;
-int64_t comp_timer_count_B;// = 0;
-int64_t comp_timer_count_C;// = 0;
 
-//microcut
-bool microcut;// = false; //send data to AC
-bool cutFaseA;// = false;	  //MicroCut
-bool cutFaseB;
-bool cutFaseC;
-xSemaphoreHandle Semaphore_control_microCutFaseA;
-xSemaphoreHandle Semaphore_control_microCutFaseB;
-xSemaphoreHandle Semaphore_control_microCutFaseC;
-int sizeCommand;
-bool FaseAMicroCutControl;
-bool FaseBMicroCutControl;
-bool FaseCMicroCutControl;
-bool MICROCORTES;
-
-bool cambio;
-bool cambioA;
-bool cambioB;
-bool cambioC;
-
-xSemaphoreHandle Semaphore_control_FaseABC;
-xSemaphoreHandle Semaphore_control_FaseA;
-xSemaphoreHandle Semaphore_control_FaseB;
-xSemaphoreHandle Semaphore_control_FaseC;
-xQueueHandle Queue_control_FaseA;
-xQueueHandle Queue_control_FaseB;
-xQueueHandle Queue_control_FaseC;
-
-//macrocut
-bool macrocut;
-bool macrocutControl;
-xSemaphoreHandle Semaphore_macrocut_control;
-esp_timer_handle_t timer_control_stop_handle;
-
-
-int control_send_faseA;
-int control_send_faseB;
-int control_send_faseC;
-
-//Control Variables
-bool CommandEnd;
-
-int contador_faseA;
-int contador_faseB;
-int contador_faseC;
-
-bool MONOPHASE;

@@ -1,4 +1,8 @@
 
+#include <stdio.h>
+#include <stddef.h>
+#include <string.h>
+#include "driver/spi_master.h"
 
 void preTransferCallback(spi_transaction_t *t);
 void postTransferCallback(spi_transaction_t *t);
