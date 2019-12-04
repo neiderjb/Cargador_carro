@@ -295,18 +295,18 @@ int16_t applyRotationY(int16_t y)
 bool waitPoll(uint8_t regname, uint8_t waitflag)
 {
   /* Wait for the command to finish */
-  printf("enter waitPoll");
+  //printf("enter waitPoll");
   while (1)
   {
     uint8_t temp = readRegRA(regname);
     if (!(temp & waitflag))
     {
-      printf("waitpoll temp: %d", temp);
+      //printf("waitpoll temp: %d", temp);
       return true;
     }
 
     vTaskDelay(10 / portTICK_RATE_MS);
-    printf("waitpoll temp: %d", temp);
+    //printf("waitpoll temp: %d", temp);
   }
   return false; // MEMEFIX: yeah i know, unreached! - add timeout?
                 // vTaskDelay(100 / portTICK_RATE_MS);
@@ -315,7 +315,7 @@ bool waitPoll(uint8_t regname, uint8_t waitflag)
 
 void rectHelper(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color, bool filled)
 {
-  printf("Enter fillScreen");
+  //printf("Enter fillScreen");
   x = applyRotationX(x);
   y = applyRotationY(y);
   w = applyRotationX(w);

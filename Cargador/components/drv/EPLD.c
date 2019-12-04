@@ -27,7 +27,9 @@ void begin_maxV()
     gpio_begin(RW, 0);
     gpio_begin(CS, 0);
 
- 
+    led_state_maxV(1,1);
+	led_state_maxV(2,1);
+	led_state_maxV(3,1);
     ESP_LOGI(TAG, "begin_maxV OK");
 }
 

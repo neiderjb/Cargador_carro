@@ -69,6 +69,7 @@
 #define EVRCMFunctionTest 0x4E23            //20003        //Read/Write
 #define RestartingChargingController 0x5208    //21000     //Read/Write
 
+
 //Holding Register 16bits
 #define ResettingDefaultSettings 0x526C     //21100
 #define SettingMaximumPermissibleChargingCurrent 0x55F0     //22000
@@ -76,7 +77,11 @@
 #define SettingDigitalOutputRegisterOutputERR 0x59D9        //23001
 #define SettingDigitalOutputRegisterOutputCHG 0x59DA        //23002
 #define SettingDigitalOutputRegisterOutputCON 0x59DB        //23003
-#define ErrorStatus 0x5DD9  // 24025
+#define SystemStatus 0x5DC0                                 //24000
+#define ChargingCurrentSpecificationCP 0x5DC2               //24002 
+#define MinutesCounterSecondsStatusC 0x5DD1                 //24017
+#define HoursCounterStatusC 0x5DD2                          //24018
+#define ErrorStatus 0x5DD9                                  //24025
 /*
 Function assignment of output registers
 The digital inputs can be assigned different functions by entering values according to
@@ -148,7 +153,7 @@ void Firmware_version();
 uint8_t switch_S1();
 uint8_t switch_S2();
 //-------------------------------------------//
-uint16_t phoenixcontact_error_status();
+
 
 
 uint16_t phoenixcontact_Set_EnableChargingConfig(int state);
@@ -159,6 +164,16 @@ uint16_t phoenixcontact_Get_ExternalReleaseConfig();
 
 uint16_t phoenixcontact_Set_LockingConfig(int state);
 uint16_t phoenixcontact_Get_LockingConfig();
+
+uint16_t phoenixcontact_Set_SettingMaximumPermissibleChargingCurrent(int state);
+uint16_t phoenixcontact_Get_SettingMaximumPermissibleChargingCurrent();
+
+uint16_t phoenixcontact_MinutesCounterSecondsStatusC();
+uint16_t phoenixcontact_HoursCounterStatusC();
+
+uint16_t phoenixcontact_SystemStatus();
+uint16_t phoenixcontact_ChargingCurrentSpecificationCP();
+uint16_t phoenixcontact_error_status();
 
 void phoenixcontact_WeldedContactDetectionConfig();
 void phoenixcontact_WeldedContactDetectionDelayConfig();

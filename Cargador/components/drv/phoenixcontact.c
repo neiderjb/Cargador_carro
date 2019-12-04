@@ -7,6 +7,7 @@
 #include "ZDU0210RJX.h"
 #include "modbusMaster.h"
 
+#include "Parameters.h"
 /****************************************************************************/
 //  Function: file for PhoenixContact
 //  Hardware: AIRIS - RTC
@@ -50,7 +51,6 @@ Coils                 |  1 bit     | Read/write
 
 //https://www.phoenixcontact.com/online/portal/es/pxc/product_detail_page/!ut/p/z1/5VdbU6MwGP0rfenTTpoA4dJHjKxWrdalauGFCSGwcbkJ2Fp__QbszlqntjPrdF9gMkNu53x8J_mYOdCHC-jndCkS2ogip6kce74RqGcKUs6xMj2zJga6vbUdHc1V5CAT3kMf-jVPOWt4RGjDk6JaQ8--umoXGhpCT2l7JWO_oDcD6hggDJAKUDedirCiLYDXvO72iUgiDFXFutaOi3hGyOUOZCOalEPPFXXDMzqI-IAVeVMVadelVUIHNhmAgXMPCAE2UcBUA-SEANf5AWbkRC79CfOwL8npzID-fg3e8OiTx0aH8J7Em59usHTo7pTqr7gVZ1wseSWZWgmrInpmzSlvqEjriZRnsq3pp8f1UfwyirMi4hvaohbtrdgKIsdz_tJs5nafsWRJaZ4806RlOpCs2aNkb3CfkjX6lGyfavamTzWL-1SzuE81i_tUs5e9usZ9-kFdKn1KVpPJehPoVcm300cbXkBfhNloxbIRGpUvbLSJG0RddkHZkkpPIx6fnnwb-q1laL9n0Yo0RCseDlFGRT5EG6CcTKXD6ICyb5OA_ZTeQuRJsLEbKa_qYCuJITKwxRRmIhBFDAOMTR2MrVADY0VX1Qhp8TiMpWvw9xmDznd0G_YYC5fXgeMGswVx3P1STa8N-LAUfAXv8qLKpLVz386gPUOdqSqlsQ6MOEQA61gDVOUx0KyxqWA-jkIzhufoUAT9ixEO0JtHpf9-XPr7o4rjIHxc-q9-_cXeq26qXylKynYXZfkPRVlmmaVtGrhbvM55-Pq-xe_W31pwfa0vtxqg2xgeWkj7ANPL5QfYfw1lrTX0iL2L5Wo1jzMSWtuv9eo3nngE_g!!/p0/IZ7_2G101H41MG8I60QQAE50T20E46=CZ6_2G101H41MG8I60QQAE50T20E07=LA0=EdownloadId!2848262=action!downloadFile==/#Z7_2G101H41MG8I60QQAE50T20E46
 
-
 static const char *TAG = "phoenixcontact";
 
 uint8_t ReadCoils = 0x01;
@@ -61,19 +61,69 @@ uint8_t ReadInputRegisters = 0x04;   ///< Modbus function 0x04 Read Input Regist
 void begin_phoenixcontact()
 {
     begin_modbusMaster(3);
+    ESP_LOGI(TAG, "-----------------\n");
+    phoenixcontact_resetBuffRx();
+    phoenixcontact_error_status();
+    Year_manufacture();
+    Date_manufacture();
+    Hardware_version();
+    Firmware_version();
     ESP_LOGI(TAG, "begin_Phoenix OK");
 }
 
 void start_charging()
 {
+    ESP_LOGI(TAG, "----------------------------\n");
     ESP_LOGI(TAG, "Start charging INIT Register\n");
-    if (phoenixcontact_Get_EnableChargingConfig() != 3) //Config register 4000 for com via modbus
+
+    //Config register 4000 for com via modbus
+    if (phoenixcontact_Get_EnableChargingConfig() != 3)
     {
         ESP_LOGI(TAG, "No ModBus- config to modbus\n");
         phoenixcontact_Set_EnableChargingConfig(3);
     }
-    phoenixcontact_Set_Enable_charging_process(1); //Enabling the charging process
+    //Config register 4002 for com via modbus
+    if (phoenixcontact_Get_LockingConfig() != 3)
+    {
+        ESP_LOGI(TAG, "Activating the locking function Charging connector\n");
+        phoenixcontact_Set_LockingConfig(3);
+    }
+    //Validate register 24000 for com via modbus
+    //En este paso hacen que se tenga que tener la pistola por fuera desconectada
+    uint16_t PStatus = phoenixcontact_SystemStatus();
+    ESP_LOGI(TAG, "Status Phoenix Charger: %x \n", PStatus);
+    if (PStatus == 0x4131)
+    {
+        ESP_LOGI(TAG, "A1- Socket libre desconectado\n");
+    }
+    else if (PStatus == 0x4231 || PStatus == 0x4232)
+    {
+        ESP_LOGI(TAG, "B1 o B2- Socket conectado pero no cargando\n");
+    }
+    else if (PStatus == 0x4332)
+    {
+        ESP_LOGI(TAG, "C1- Cargando\n");
+    }
+    //Validate register 24025 for com via modbus
+    phoenixcontact_error_status();
+
+    //Credenciales del ticket Aca
+
+    while (phoenixcontact_SystemStatus() != (0x4231) || phoenixcontact_SystemStatus() != (0x4232))
+    {
+        vTaskDelay(10);
+    }
+    ESP_LOGI(TAG, "B1 o B2- Socket conectado \n");
+    //Se bloquea la pistola
+    phoenixcontact_Set_Controlling_Locking_Actuator(1);
+    //Enabling the charging process
+    phoenixcontact_Set_Enable_charging_process(1);
+
+    PStatus = phoenixcontact_SystemStatus();
+    ESP_LOGI(TAG, "Status Phoenix Charger: %x \n", PStatus);
+
     ESP_LOGI(TAG, "Start charging END Register\n");
+    ESP_LOGI(TAG, "----------------------------\n");
 }
 
 void stop_charging()
@@ -95,25 +145,40 @@ void Charging_connector(int state)
     phoenixcontact_Set_Controlling_Locking_Actuator(state);
 }
 
-
 void GetDataPhoenix()
 {
     phoenixcontact_Get_EnableChargingConfig();
     phoenixcontact_Get_ExternalReleaseConfig();
     phoenixcontact_Get_LockingConfig();
 }
-
-
-
+bool charging = false;
 void phoenix_task(void *arg)
 {
-	ESP_LOGI(TAG, "Initiation phoenix_task");
+    ESP_LOGI(TAG, "Initiation phoenix_task");
 
-	for (;;)
-	{
-        phoenixcontact_error_status();
-        vTaskDelay(100/portTICK_RATE_MS);
-        phoenixcontact_Get_EnableChargingConfig();
+    for (;;)
+    {
+        if (xSemaphoreTake(Semaphore_Out_Phoenix, 10))
+        {
+            phoenixcontact_Digital_OutputBehaviorOut0(2);
+        }
+
+        if (xSemaphoreTake(Semaphore_Start_Charging, 10))
+        {
+            phoenixcontact_Digital_OutputBehaviorOut1(1);
+            start_charging();
+            charging = true;
+        }
+
+        if (charging)
+        {
+            phoenixcontact_error_status();
+            phoenixcontact_Get_SettingMaximumPermissibleChargingCurrent();
+            phoenixcontact_MinutesCounterSecondsStatusC();
+            phoenixcontact_HoursCounterStatusC();
+        }
+
+        vTaskDelay(1000);
     }
 }
 
@@ -123,9 +188,9 @@ void Year_manufacture()
 {
     readInputRegisters(YearManufacture, 1);
     uint8_t dateyear[2];
-    responseModbus(ReadInputRegisters, dateyear);
+    responseModbus(ReadInputRegisters, dateyear, false);
 
-    uint16_t value = dateyear[0] | dateyear[1];
+    uint16_t value = ((uint16_t)dateyear[0] << 8 | dateyear[1]);
     ESP_LOGI(TAG, "Phoenix Age: %x ", value);
 }
 
@@ -133,8 +198,8 @@ void Date_manufacture()
 {
     readInputRegisters(ManufacturingDate, 1);
     uint8_t dateyear[2];
-    responseModbus(ReadInputRegisters, dateyear);
-    uint16_t value = dateyear[0] |dateyear[1];
+    responseModbus(ReadInputRegisters, dateyear, false);
+    uint16_t value = ((uint16_t)dateyear[0] << 8 | dateyear[1]);
     ESP_LOGI(TAG, "Phoenix date: %x", value);
 }
 
@@ -142,8 +207,8 @@ void Hardware_version()
 {
     readInputRegisters(HardwareVersion, 1);
     uint8_t dataVersion[2];
-    responseModbus(ReadInputRegisters, dataVersion);
-    uint16_t value = (dataVersion[0] | dataVersion[1]);
+    responseModbus(ReadInputRegisters, dataVersion, false);
+    uint16_t value = ((uint16_t)dataVersion[0] << 8 | dataVersion[1]);
     ESP_LOGI(TAG, "Phoenix Version HW: %x", value);
 }
 
@@ -151,12 +216,11 @@ void Firmware_version()
 {
     readInputRegisters(FirmwareVNumber, 1);
     uint8_t dataVersion[2];
-    responseModbus(ReadInputRegisters, dataVersion);
-    uint16_t value = (dataVersion[0]  | dataVersion[1] );
+    responseModbus(ReadInputRegisters, dataVersion, false);
+    uint16_t value = ((uint16_t)dataVersion[0] << 8 | dataVersion[1]);
     ESP_LOGI(TAG, "Phoenix Version FW: %x", value);
 }
 //-------------------------------------------//
-
 
 //Register MODBUS TYPE: HOLDING = ReadHoldingRegisters 0x03
 //-------------------------------------------//
@@ -164,7 +228,7 @@ uint8_t switch_S1()
 {
     readHoldingRegisters(ConfigurationSwitchS1, 1);
     uint8_t s1[2];
-    responseModbus(ReadHoldingRegisters, s1);
+    responseModbus(ReadHoldingRegisters, s1, false);
     ESP_LOGI(TAG, "Phoenix S1: %x %x ", s1[0], s1[1]);
     return s1[1];
 }
@@ -173,12 +237,11 @@ uint8_t switch_S2()
 {
     readHoldingRegisters(ConfigurationSwitchS2, 1);
     uint8_t s2[2];
-    responseModbus(ReadHoldingRegisters, s2);
+    responseModbus(ReadHoldingRegisters, s2, false);
     ESP_LOGI(TAG, "Phoenix S2: %x %x ", s2[0], s2[1]);
     return s2[1];
 }
 //-------------------------------------------//
-
 
 /*
 Charging enabled via Modbus
@@ -215,10 +278,10 @@ uint16_t phoenixcontact_Set_EnableChargingConfig(int state)
 uint16_t phoenixcontact_Get_EnableChargingConfig()
 {
     ESP_LOGI(TAG, "phoenixcontact_Get_EnableChargingConfig");
-    readHoldingRegisters(EnableChargingConfig, 1);  
+    readHoldingRegisters(EnableChargingConfig, 1);
     uint8_t data[2];
-    responseModbus(ReadHoldingRegisters, data);
-    uint16_t value = (data[0]) | (data[1]);
+    responseModbus(ReadHoldingRegisters, data, false);
+    uint16_t value = ((uint16_t)data[0] << 8 | data[1]);
     ESP_LOGI(TAG, "Get_EnableChargingConfig: %x", value);
     return value;
 }
@@ -249,8 +312,8 @@ uint16_t phoenixcontact_Get_ExternalReleaseConfig()
 {
     readHoldingRegisters(ExternalReleaseConfig, 1);
     uint8_t data[2];
-    responseModbus(ReadHoldingRegisters, data);
-    uint16_t value = (data[0] << 4 | data[0] >> 4) | (data[1] << 4 | data[1] >> 4);
+    responseModbus(ReadHoldingRegisters, data, false);
+    uint16_t value = ((uint16_t)data[0] << 8 | data[1]);
     ESP_LOGI(TAG, "Get_ExternalReleaseConfig: %x", value);
     return value;
 }
@@ -276,7 +339,7 @@ value 0 is written.
 */
 uint16_t phoenixcontact_Set_LockingConfig(int state)
 {
-    writeSingleRegister(ExternalReleaseConfig, state);
+    writeSingleRegister(LockingConfig, state);
     return phoenixcontact_Get_LockingConfig();
 }
 
@@ -284,9 +347,68 @@ uint16_t phoenixcontact_Get_LockingConfig()
 {
     readHoldingRegisters(LockingConfig, 1);
     uint8_t data[2];
-    responseModbus(ReadHoldingRegisters, data);
-    uint16_t value = (data[0]  | data[1]);
+    responseModbus(ReadHoldingRegisters, data, false);
+    uint16_t value = ((uint16_t)data[0] << 8 | data[1]);
     ESP_LOGI(TAG, "Get_LockingConfig: %x", value);
+    return value;
+}
+
+
+
+//
+uint16_t phoenixcontact_Set_SettingMaximumPermissibleChargingCurrent(int state)
+{
+    writeSingleRegister(SettingMaximumPermissibleChargingCurrent, state);
+    return phoenixcontact_Get_LockingConfig();
+}
+
+uint16_t phoenixcontact_Get_SettingMaximumPermissibleChargingCurrent()
+{
+    readHoldingRegisters(SettingMaximumPermissibleChargingCurrent, 1);
+    uint8_t data[2];
+    responseModbus(ReadHoldingRegisters, data, false);
+    uint16_t value = ((uint16_t)data[0] << 8 | data[1]);
+    ESP_LOGI(TAG, "Get_SettingMaximumPermissibleChargingCurrent: %x", value);
+    return value;
+}
+
+uint16_t phoenixcontact_MinutesCounterSecondsStatusC()
+{
+    readHoldingRegisters(MinutesCounterSecondsStatusC, 1);
+    uint8_t data[2];
+    responseModbus(ReadHoldingRegisters, data, false);
+    uint16_t value = ((uint16_t)data[0] << 8 | data[1]);
+    ESP_LOGI(TAG, "phoenixcontact_MinutesCounterSecondsStatusC: %x", value);
+    return value;
+}
+
+uint16_t phoenixcontact_HoursCounterStatusC()
+{
+    readHoldingRegisters(HoursCounterStatusC, 1);
+    uint8_t data[2];
+    responseModbus(ReadHoldingRegisters, data, false);
+    uint16_t value = ((uint16_t)data[0] << 8 | data[1]);
+    ESP_LOGI(TAG, "phoenixcontact_HoursCounterStatusC: %x", value);
+    return value;
+}
+
+uint16_t phoenixcontact_SystemStatus()
+{
+    readHoldingRegisters(SystemStatus, 1);
+    uint8_t data[2];
+    responseModbus(ReadHoldingRegisters, data, false);
+    uint16_t value = ((uint16_t)data[0] << 8 | data[1]);
+    ESP_LOGI(TAG, "phoenixcontact_SystemStatus: %x", value);
+    return value;
+}
+
+uint16_t phoenixcontact_ChargingCurrentSpecificationCP()
+{
+    readHoldingRegisters(ChargingCurrentSpecificationCP, 1);
+    uint8_t data[2];
+    responseModbus(ReadHoldingRegisters, data, false);
+    uint16_t value = ((uint16_t)data[0] << 8 | data[1]);
+    ESP_LOGI(TAG, "phoenixcontact_ChargingCurrentSpecificationCP: %x", value);
     return value;
 }
 
@@ -294,49 +416,10 @@ uint16_t phoenixcontact_error_status()
 {
     readHoldingRegisters(ErrorStatus, 1);
     uint8_t data[2];
-    responseModbus(ReadHoldingRegisters, data);
-    uint16_t value = (data[0] | data[1]);
+    responseModbus(ReadHoldingRegisters, data, false);
+    uint16_t value = ((uint16_t)data[0] << 8 | data[1]);
     ESP_LOGI(TAG, "phoenixcontact_error_status: %x", value);
     return value;
-    // switch (value)
-    // {
-    // case 0x0100 /* bit 9 */:
-    //     ESP_LOGI(TAG, "phoenixcontact_error_status: NO ERROR", 9);
-    //     return 9;
-    //     break;
-    // case 0x0200 /* bit 10 */:
-    //     ESP_LOGI(TAG, "phoenixcontact_error_status: NO ERROR", 10);
-    //     return 10;
-    //     break;
-    // case 0x0400 /* bit 11 */:
-    //     ESP_LOGI(TAG, "phoenixcontact_error_status: Satus D, vehicle rejected", 11);
-    //     return 11;
-    //     break;
-    // case 0x0800 /* bit 12 */:
-    //     ESP_LOGI(TAG, "phoenixcontact_error_status: Charging contactor error", 12);
-    //     return 12;
-    //     break;
-    // case 0x1000 /* bit 13 */:
-    //     ESP_LOGI(TAG, "phoenixcontact_error_status: NO diode in the control pilot circuit in the vehicle", 13);
-    //     return 13;
-    //     break;
-    // case 0x2000 /* bit 14 */:
-    //     ESP_LOGI(TAG, "phoenixcontact_error_status: NO ERROR", 14);
-    //     return 14;
-    //     break;
-    // case 0x4000 /* bit 15 */:
-    //     ESP_LOGI(TAG, "phoenixcontact_error_status: EV-RCM Residual current detection triggeres Error", 15);
-    //     return 15;
-    //     break;
-    // case 0x8000 /* bit 16 */:
-    //     ESP_LOGI(TAG, "phoenixcontact_error_status: EV-RCM Selftest Error", 16);
-    //     return 16;
-    //     break;
-
-    // default:
-    //     return 00;
-    //     break;
-    // }
 }
 
 void phoenixcontact_WeldedContactDetectionConfig()
@@ -495,8 +578,6 @@ void phoenixcontact_Digital_OutputBehaviorOut3(int state)
     vTaskDelay(5);
 }
 
-
-
 //COILS REGISTER
 ////////////////////////////////////////////////////////////////////////
 /*
@@ -516,9 +597,9 @@ uint8_t phoenixcontact_Set_Enable_charging_process(int state)
 uint8_t phoenixcontact_Get_Enable_charging_process()
 {
     printf("ReadingleCoil_Enable_charging_process");
-    readCoils(EnablingChargingProcess, 1);
-    uint8_t data[1];
-    responseModbus(ReadCoils, data);
+    readCoils(EnablingChargingProcess, 2);
+    uint8_t data[2];
+    responseModbus(ReadCoils, data, true);
     uint16_t value = data[0];
     ESP_LOGI(TAG, "GetEnable_charging_process: %x", value);
     return value;
@@ -541,9 +622,9 @@ uint8_t phoenixcontact_Set_Setting_System_StateF(int state)
 uint8_t phoenixcontact_Get_Setting_System_StateF()
 {
     printf("ReadSingleCoil_Setting_System_StateF");
-    readCoils(SettingSystemState, 1);
-    uint8_t data[1];
-    responseModbus(ReadCoils, data);
+    readCoils(SettingSystemState, 2);
+    uint8_t data[2];
+    responseModbus(ReadCoils, data, true);
     uint16_t value = data[0];
     ESP_LOGI(TAG, "Get_Setting_System_StateF: %x", value);
     return value;
@@ -564,9 +645,9 @@ uint8_t phoenixcontact_Set_Controlling_Locking_Actuator(int state)
 uint8_t phoenixcontact_Get_Controlling_Locking_Actuator()
 {
     printf("ReadSingleCoil_Setting_System_StateF");
-    readCoils(ControllingLockingSctuator, 1);
-    uint8_t data[1];
-    responseModbus(ReadCoils, data);
+    readCoils(ControllingLockingSctuator, 2);
+    uint8_t data[2];
+    responseModbus(ReadCoils, data, true);
     uint16_t value = data[0];
     ESP_LOGI(TAG, "Get_Setting_System_StateF: %x", value);
     return value;
@@ -584,9 +665,9 @@ uint8_t phoenixcontact_Set_EV_RCM(int state)
 uint8_t phoenixcontact_Get_EV_RCM()
 {
     printf("ReadSingleCoil_phoenixcontact_Get_EV_RCMF");
-    readCoils(EVRCMFunctionTest, 1);
-    uint8_t data[1];
-    responseModbus(ReadCoils, data);
+    readCoils(EVRCMFunctionTest, 2);
+    uint8_t data[2];
+    responseModbus(ReadCoils, data, true);
     uint16_t value = data[0];
     ESP_LOGI(TAG, "phoenixcontact_Get_EV_RCM: %x", value);
     return value;
@@ -606,14 +687,12 @@ uint8_t phoenixcontact_Set_Reset(int state)
 uint8_t phoenixcontact_Get_Reset()
 {
     printf("ReadCoils_GetReset");
-    return readCoils(RestartingChargingController, 1);
+    return readCoils(RestartingChargingController, 2);
 }
 
 ////////////////////////////////////////////////////////////////////////
 
-
-
-
-void phoenixcontact_resetBuffRx(){
+void phoenixcontact_resetBuffRx()
+{
     resetBufferTx();
 }

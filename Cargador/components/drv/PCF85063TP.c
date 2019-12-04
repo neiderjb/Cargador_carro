@@ -61,7 +61,7 @@ void stopClock(void) // set the ClockHalt bit high to stop the rtc
 }
 /****************************************************************/
 /*Function: Read time and date from RTC  */
-void getTime()
+void getTime(uint8_t *data)
 {
     // Reset the register pointer
     uint8_t datos[7];
@@ -75,6 +75,14 @@ void getTime()
     dayOfWeek = bcdToDec(datos[4]);     //bcdToDec(Wire.read());
     month = bcdToDec(datos[5]);         //bcdToDec(Wire.read());
     year = bcdToDec(datos[6]);          //bcdToDec(Wire.read());
+
+    data[0] = second;
+    data[1] = minute;
+    data[2] = hour;
+    data[3] = dayOfMonth;
+    data[4] = dayOfWeek;
+    data[5] = month;
+    data[6] = year;
 }
 /*******************************************************************/
 /*Frunction: Write the time that includes the date to the RTC chip */
@@ -189,11 +197,11 @@ void Time_Task_Control(void *p)
     for (;;)
     {
         if(read_time){
-            getTime();
-            printf("\033[0;32m");
-            printf("System Time: %d:%d:%d \n", hour, minute, second);
-            printf("\033[0m");
-            //print_time();
+            // getTime();
+            // printf("\033[0;32m");
+            // printf("System Time: %d:%d:%d \n", hour, minute, second);
+            // printf("\033[0m");
+            
         }        
         vTaskDelay(1000);
     }

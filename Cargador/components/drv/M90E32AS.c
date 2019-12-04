@@ -63,8 +63,10 @@
 
 #include "M90E32AS.h"
 #include "SC18IS602B.h"
+#include "PCF85063TP.h"
 #include "Parameters.h"
-#include "RA8875.h"
+
+#include "little.h"
 
 static const char *TAG = "M90E32AS";
 /* 
@@ -781,8 +783,8 @@ void grid_analyzer_task(void *arg)
 		unsigned short en0 = GetMeterStatus0(); //EMMIntState0
 		unsigned short en1 = GetMeterStatus1(); //EMMIntState1
 
-		printf("Sys Status: S0:0x %d, S1:0x %d \n", sys0, sys1);
-		printf("Meter Status: E0:0x %d, E1:0x %d \n", en0, en1);
+		//printf("Sys Status: S0:0x %d, S1:0x %d \n", sys0, sys1);
+		//printf("Meter Status: E0:0x %d, E1:0x %d \n", en0, en1);
 		vTaskDelay(5);
 
 		//if true the MCU is not getting data from the energy meter
@@ -812,8 +814,14 @@ void grid_analyzer_task(void *arg)
 			powerAppA = GetApparentPowerA();
 			freq = GetFrequency();
 			totalWattsA = (voltageA * currentA);
-            //print_screen(voltageA,currentA,temperature,powerAppA,freq);
 
+            uint8_t dataTime[6];
+            getTime(dataTime);
+            #ifdef DEBUG
+            printf("\033[0;32m");
+            printf("System Time: %d:%d:%d \n", dataTime[2], dataTime[1], dataTime[0]);
+            printf("\033[0m");
+    
 			printf("============================== \n");
 			printf("Voltage A: %.2f [V] \n", voltageA);
 			printf("Current A: %.2f [A] \n", currentA);
@@ -825,6 +833,9 @@ void grid_analyzer_task(void *arg)
 			printf("Power total A MAT : %.2f [W] \n", totalWattsA);
 			printf("Frequency: %.2f [Hz] \n", freq);
 			printf("============================== \n");
+            #endif
+            
+            //UpdateLabelsScreen(voltageA,currentA,temperature,powerAppA,freq, dataTime);
 
 		}        
 		

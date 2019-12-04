@@ -48,7 +48,7 @@ void begin_PCF85063TP();
 void startClock(void);
 void stopClock(void);
 void setTime(void);
-void getTime(void);
+void getTime(uint8_t *data);
 void setcalibration(int mode, float Fmeas);
 uint8_t calibratBySeconds(int mode, float offset_sec);
 uint8_t readCalibrationReg(void);

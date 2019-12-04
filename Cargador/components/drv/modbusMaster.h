@@ -222,7 +222,7 @@ uint8_t ModbusMasterTransactionOLD(uint8_t u8MBFunction);
 // void (*_postTransmission)(void);
 
 
-void responseModbus(uint8_t u8MBFunction, uint8_t *data_rd);
+void responseModbus(uint8_t u8MBFunction, uint8_t *data_rd, bool coil);
 
 uint16_t lowWord(uint32_t ww);
 uint8_t lowByte(uint16_t ww);

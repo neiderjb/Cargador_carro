@@ -24,6 +24,7 @@
 #include "driver/spi_master.h"
 #include <math.h>
 
+#include "lvgl.h"
 
 #define FIRMWARE_VERSION	0.1
 #define UPDATE_JSON_URL		"https://esp32tutorial.netsons.org/https_ota/firmwarex.json"
@@ -34,7 +35,7 @@
 #define WIFI_PASS	"Ofiled@8031"
 #define BT_NAME		"CC-AIRIS-01"
 
-#define DISP_BUF_SIZE (LV_HOR_RES_MAX * 10)
+
 
 
 //Touch screen
@@ -137,5 +138,19 @@ int64_t timer_register[10];
 bool salida;/// = false;
 bool check;// = false;
 bool state;// = false;
+
+//Phoenix Contact
+xSemaphoreHandle Semaphore_Start_Charging;
+xSemaphoreHandle Semaphore_Stop_Charging;
+xSemaphoreHandle Semaphore_Out_Phoenix;
+
+
+//LittleVgl 
+#define DISP_BUF_SIZE (LV_HOR_RES_MAX * 1)
+lv_obj_t *labelVol;
+lv_obj_t *labelCur;
+lv_obj_t *labelPow;
+lv_obj_t *labelCon;
+lv_obj_t *labelTime;
 
 

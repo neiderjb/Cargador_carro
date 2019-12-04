@@ -29,7 +29,7 @@
 #include "drv/little.h"
 //library LittleVgl
 #include "../components/lvgl/lvgl.h"
-#include "lv_cargador/cargador/cargador.h"
+#include "lv_examples/lv_cargador/cargador/cargador.h"
 
 static void IRAM_ATTR lv_tick_task(void);
 
@@ -63,6 +63,10 @@ void app_main()
 {
 
 	Semaphore_control_touch = xSemaphoreCreateBinary();
+	Semaphore_Start_Charging = xSemaphoreCreateBinary();
+	Semaphore_Stop_Charging = xSemaphoreCreateBinary();
+	Semaphore_Out_Phoenix = xSemaphoreCreateBinary();
+
 
 	//I2C config
 	sw_i2c_init(PIN_SDA, PIN_SCL);
@@ -72,28 +76,7 @@ void app_main()
 	begin_ZDU0210RJX(0xFF, 0xFF);
 	//MODBUS-phoenixcontact
 	begin_phoenixcontact();
-	ESP_LOGI(TAG, "-----------------\n");
-	phoenixcontact_resetBuffRx();
-	phoenixcontact_error_status();
-	ESP_LOGI(TAG, "Phoenix Read Coil\n");
-	phoenixcontact_Get_Enable_charging_process();
-	phoenixcontact_Get_Setting_System_StateF();
-	phoenixcontact_Get_Controlling_Locking_Actuator();
-	phoenixcontact_Get_EV_RCM();
-	phoenixcontact_Get_Reset();
-	vTaskDelay(100);
-	ESP_LOGI(TAG, "Phoenix Read Holding S1 y S2\n");
-	switch_S1();
-	switch_S2();
-	phoenixcontact_Get_EnableChargingConfig();
-	phoenixcontact_Get_ExternalReleaseConfig();
-	phoenixcontact_Get_LockingConfig();
-	vTaskDelay(100);
-	ESP_LOGI(TAG, "Phoenix Read Input\n");
-	Year_manufacture();
-	Date_manufacture();
-	Hardware_version();
-	Firmware_version();
+	
 	
 	//Touch Screen Init
 	gpio_begin(TOUCH_RESET, 0);
@@ -123,15 +106,7 @@ void app_main()
 
 	//EPLD
 	begin_maxV();
-	rele_state_maxV(1, 0);
-	vTaskDelay(100 / portTICK_RATE_MS);
-	rele_state_maxV(1, 1);
-	vTaskDelay(100 / portTICK_RATE_MS);
-	rele_state_maxV(1, 2);
-	vTaskDelay(100 / portTICK_RATE_MS);
-	rele_state_maxV(1, 0);
-	vTaskDelay(100 / portTICK_RATE_MS);
-	led_state_maxV(2, 2);
+
 
 	//I2C-SPI
 	begin_SC18IS602B();
@@ -156,7 +131,7 @@ void app_main()
 
 	xTaskCreate(grid_analyzer_task, "grid_analyzer_task", 4096, NULL, 5, NULL);
 	xTaskCreate(phoenix_task, "phoenix_task", 4096, NULL,5, NULL);
-	xTaskCreate(Time_Task_Control, "Time_Task_Control", 2048, NULL, 1, NULL);
+	//xTaskCreate(Time_Task_Control, "Time_Task_Control", 2048, NULL, 1, NULL);
 	xTaskCreatePinnedToCore(Network_Control, "Network_Control", 4096, NULL, 3, NULL, 1);
 
 	//LittleVgl Init
@@ -164,7 +139,8 @@ void app_main()
 	static lv_disp_buf_t disp_buf;
 	uint16_t *buf1;
 	buf1 = heap_caps_malloc(60001, MALLOC_CAP_DMA);
-	lv_disp_buf_init(&disp_buf, buf1, NULL, 800);
+	//lv_disp_buf_init(&disp_buf, buf1, NULL, 800);
+	lv_disp_buf_init(&disp_buf, buf1, NULL, DISP_BUF_SIZE);
 	//screen LittleVgl
 	lv_disp_drv_t disp_drv;
 	lv_disp_drv_init(&disp_drv);
