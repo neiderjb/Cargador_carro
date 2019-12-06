@@ -185,7 +185,7 @@ void lv_ex_mbox_1(void)
 /**********************
  *   STATIC FUNCTIONS
  **********************/
-
+bool statechar = false;
 static void btn_event_cb(lv_obj_t *obj, lv_event_t event)
 {
 	if (event == LV_EVENT_CLICKED)
@@ -199,7 +199,14 @@ static void btn_event_cb(lv_obj_t *obj, lv_event_t event)
 		}
 		else if (obj == btn2)
 		{
-			xSemaphoreGive(Semaphore_Start_Charging);
+			if(!statechar){
+				statechar = true;
+				xSemaphoreGive(Semaphore_Start_Charging);
+			}
+			else{
+				statechar = false;
+				xSemaphoreGive(Semaphore_Stop_Charging);
+			}
 		}
 		else if (obj == btn3)
 		{

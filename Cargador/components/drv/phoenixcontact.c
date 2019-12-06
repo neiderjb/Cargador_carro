@@ -6,6 +6,7 @@
 #include "phoenixcontact.h"
 #include "ZDU0210RJX.h"
 #include "modbusMaster.h"
+#include "EPLD.h"
 
 #include "Parameters.h"
 /****************************************************************************/
@@ -108,31 +109,50 @@ void start_charging()
     phoenixcontact_error_status();
 
     //Credenciales del ticket Aca
-
+    int cont = 0;
     while (phoenixcontact_SystemStatus() != (0x4231) || phoenixcontact_SystemStatus() != (0x4232))
     {
-        vTaskDelay(10);
+        // cont++;
+        
+        // if (cont>3){
+        //     break;
+        // }
+        vTaskDelay(100);
     }
+    
+
     ESP_LOGI(TAG, "B1 o B2- Socket conectado \n");
     //Se bloquea la pistola
     phoenixcontact_Set_Controlling_Locking_Actuator(1);
     //Enabling the charging process
     phoenixcontact_Set_Enable_charging_process(1);
 
+    rele_state_maxV(1,2); //Close rele
+    rele_state_maxV(1,0); ////Open rele signal security
+
+    vTaskDelay(100);
     PStatus = phoenixcontact_SystemStatus();
     ESP_LOGI(TAG, "Status Phoenix Charger: %x \n", PStatus);
+    if (PStatus == 0x4332)
+    {
+        ESP_LOGI(TAG, "C1- Cargando!!!!!!!!!!!!!!!!!!!!!!!\n");
+    }
 
+    //phoenixcontact_Set_Reset(1);
     ESP_LOGI(TAG, "Start charging END Register\n");
     ESP_LOGI(TAG, "----------------------------\n");
 }
 
 void stop_charging()
 {
+    rele_state_maxV(1,1); //Open rele
+    rele_state_maxV(1,0); ////Open rele signal security
     if (phoenixcontact_Get_EnableChargingConfig() != 3) //Config register 4000 for com via modbus
     {
         phoenixcontact_Set_EnableChargingConfig(3);
     }
     phoenixcontact_Set_Enable_charging_process(0); //Enabling the charging process
+    phoenixcontact_Set_Controlling_Locking_Actuator(0);
 }
 
 void Charging_connector(int state)
@@ -169,6 +189,13 @@ void phoenix_task(void *arg)
             start_charging();
             charging = true;
         }
+        if (xSemaphoreTake(Semaphore_Stop_Charging, 10))
+        {
+            phoenixcontact_Digital_OutputBehaviorOut1(0);
+            stop_charging();
+            charging = false;
+        }
+
 
         if (charging)
         {
@@ -590,18 +617,18 @@ Only takes effect if register 4000 is configured for this function.
 */
 uint8_t phoenixcontact_Set_Enable_charging_process(int state)
 {
-    printf("WriteSingleCoil_Enable_charging_process");
+    printf("WriteSingleCoil_Enable_charging_process \n");
     return writeSingleCoil(EnablingChargingProcess, state);
 }
 //OK-Read-Ok-Response
 uint8_t phoenixcontact_Get_Enable_charging_process()
 {
-    printf("ReadingleCoil_Enable_charging_process");
+    printf("ReadingleCoil_Enable_charging_process \n");
     readCoils(EnablingChargingProcess, 2);
     uint8_t data[2];
     responseModbus(ReadCoils, data, true);
     uint16_t value = data[0];
-    ESP_LOGI(TAG, "GetEnable_charging_process: %x", value);
+    ESP_LOGI(TAG, "GetEnable_charging_process: %x \n", value);
     return value;
 }
 
@@ -616,17 +643,17 @@ status F
 */
 uint8_t phoenixcontact_Set_Setting_System_StateF(int state)
 {
-    printf("WriteSingleCoil_Setting_System_StateF");
+    printf("WriteSingleCoil_Setting_System_StateF \n");
     return writeSingleCoil(SettingSystemState, state);
 }
 uint8_t phoenixcontact_Get_Setting_System_StateF()
 {
-    printf("ReadSingleCoil_Setting_System_StateF");
+    printf("ReadSingleCoil_Setting_System_StateF \n");
     readCoils(SettingSystemState, 2);
     uint8_t data[2];
     responseModbus(ReadCoils, data, true);
     uint16_t value = data[0];
-    ESP_LOGI(TAG, "Get_Setting_System_StateF: %x", value);
+    ESP_LOGI(TAG, "Get_Setting_System_StateF: %x \n", value);
     return value;
 }
 
@@ -639,17 +666,17 @@ uint8_t phoenixcontact_Get_Setting_System_StateF()
 */
 uint8_t phoenixcontact_Set_Controlling_Locking_Actuator(int state)
 {
-    printf("WriteSingleCoil_Controlling_Locking_Actuator");
+    printf("WriteSingleCoil_Controlling_Locking_Actuator \n");
     return writeSingleCoil(ControllingLockingSctuator, state);
 }
 uint8_t phoenixcontact_Get_Controlling_Locking_Actuator()
 {
-    printf("ReadSingleCoil_Setting_System_StateF");
+    printf("ReadSingleCoil_Setting_System_StateF \n");
     readCoils(ControllingLockingSctuator, 2);
     uint8_t data[2];
     responseModbus(ReadCoils, data, true);
     uint16_t value = data[0];
-    ESP_LOGI(TAG, "Get_Setting_System_StateF: %x", value);
+    ESP_LOGI(TAG, "Get_Setting_System_StateF: %x \n", value);
     return value;
 }
 
@@ -659,17 +686,17 @@ uint8_t phoenixcontact_Get_Controlling_Locking_Actuator()
 */
 uint8_t phoenixcontact_Set_EV_RCM(int state)
 {
-    printf("WriteSingleCoil_CEV_RCM");
+    printf("WriteSingleCoil_CEV_RCM \n");
     return writeSingleCoil(EVRCMFunctionTest, state);
 }
 uint8_t phoenixcontact_Get_EV_RCM()
 {
-    printf("ReadSingleCoil_phoenixcontact_Get_EV_RCMF");
+    printf("ReadSingleCoil_phoenixcontact_Get_EV_RCMF \n");
     readCoils(EVRCMFunctionTest, 2);
     uint8_t data[2];
     responseModbus(ReadCoils, data, true);
     uint16_t value = data[0];
-    ESP_LOGI(TAG, "phoenixcontact_Get_EV_RCM: %x", value);
+    ESP_LOGI(TAG, "phoenixcontact_Get_EV_RCM: %x \n", value);
     return value;
 }
 
@@ -680,13 +707,13 @@ Restart if value 1 is written.
 */
 uint8_t phoenixcontact_Set_Reset(int state)
 {
-    printf("WriteSingleCoil_SetReset");
+    printf("WriteSingleCoil_SetReset\n");
     return writeSingleCoil(RestartingChargingController, state);
 }
 
 uint8_t phoenixcontact_Get_Reset()
 {
-    printf("ReadCoils_GetReset");
+    printf("ReadCoils_GetReset\n");
     return readCoils(RestartingChargingController, 2);
 }
 

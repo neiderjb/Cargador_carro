@@ -19,6 +19,8 @@ void gpio_begin(int number, int IO) {
 	else if (IO == 0)
 	{
 		gpio_set_direction(number, GPIO_MODE_OUTPUT);
+		//gpio_set_pull_mode(number,GPIO_PULLUP_ONLY);
+
 	}
 	else if (IO == 3)
 	{

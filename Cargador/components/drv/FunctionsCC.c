@@ -553,6 +553,7 @@ void begin_calibration_analizer()
 		printf("\033[1;31m");
 		printf("FrequencyValue = %f\n", frequencyValue);
 		printf("\033[0m");
+		vTaskDelay(200);
 	}
 	printf("FrequencyValue = %f\n", frequencyValue);
 

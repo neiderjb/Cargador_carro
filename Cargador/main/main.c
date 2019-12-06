@@ -61,21 +61,26 @@ void Network_Control(void *p)
 
 void app_main()
 {
+	printf("Wait Initialize");
+	vTaskDelay(5000 / portTICK_RATE_MS);
 
 	Semaphore_control_touch = xSemaphoreCreateBinary();
 	Semaphore_Start_Charging = xSemaphoreCreateBinary();
 	Semaphore_Stop_Charging = xSemaphoreCreateBinary();
 	Semaphore_Out_Phoenix = xSemaphoreCreateBinary();
 
-
 	//I2C config
 	sw_i2c_init(PIN_SDA, PIN_SCL);
 	sw_i2c_master_scan();
+
+	//EPLD
+	begin_maxV();
 	
 	//I2C-UART
 	begin_ZDU0210RJX(0xFF, 0xFF);
 	//MODBUS-phoenixcontact
 	begin_phoenixcontact();
+	
 	
 	
 	//Touch Screen Init
@@ -104,9 +109,7 @@ void app_main()
 	vTaskDelay(100 / portTICK_RATE_MS);
 	fillScreen(RA8875_WHITE);
 
-	//EPLD
-	begin_maxV();
-
+	
 
 	//I2C-SPI
 	begin_SC18IS602B();
