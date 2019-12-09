@@ -59,6 +59,8 @@ uint8_t ReadDiscreteInputs = 0x02;   ///< Modbus function 0x02 Read Discrete Inp
 uint8_t ReadHoldingRegisters = 0x03; ///< Modbus function 0x03 Read Holding Registers
 uint8_t ReadInputRegisters = 0x04;   ///< Modbus function 0x04 Read Input Registers
 
+
+
 void begin_phoenixcontact()
 {
     begin_modbusMaster(3);
@@ -74,6 +76,8 @@ void begin_phoenixcontact()
 
 void start_charging()
 {
+    charging = true;
+    phoenixcontact_Digital_OutputBehaviorOut1(1);
     ESP_LOGI(TAG, "----------------------------\n");
     ESP_LOGI(TAG, "Start charging INIT Register\n");
 
@@ -91,7 +95,7 @@ void start_charging()
     }
     //Validate register 24000 for com via modbus
     //En este paso hacen que se tenga que tener la pistola por fuera desconectada
-    uint16_t PStatus = phoenixcontact_SystemStatus();
+    PStatus = phoenixcontact_SystemStatus();
     ESP_LOGI(TAG, "Status Phoenix Charger: %x \n", PStatus);
     if (PStatus == 0x4131)
     {
@@ -101,7 +105,7 @@ void start_charging()
     {
         ESP_LOGI(TAG, "B1 o B2- Socket conectado pero no cargando\n");
     }
-    else if (PStatus == 0x4332)
+    else if (PStatus == 0x4331)
     {
         ESP_LOGI(TAG, "C1- Cargando\n");
     }
@@ -109,44 +113,58 @@ void start_charging()
     phoenixcontact_error_status();
 
     //Credenciales del ticket Aca
-    int cont = 0;
-    while (phoenixcontact_SystemStatus() != (0x4231) || phoenixcontact_SystemStatus() != (0x4232))
-    {
-        // cont++;
-        
-        // if (cont>3){
-        //     break;
-        // }
-        vTaskDelay(100);
-    }
-    
 
-    ESP_LOGI(TAG, "B1 o B2- Socket conectado \n");
+    while (1)
+    {
+        PStatus = phoenixcontact_SystemStatus();
+
+        if (PStatus == 0x4231 || PStatus == 0x4232)
+        {
+            ESP_LOGI(TAG, "B1 o B2- Socket conectado pero no cargando\n");
+            break;
+        }
+        else if (PStatus == 0x4331)
+        {
+            ESP_LOGI(TAG, "C1- Cargando\n");
+            break;
+        }
+
+        vTaskDelay(100 / portTICK_RATE_MS);
+    }
+
     //Se bloquea la pistola
     phoenixcontact_Set_Controlling_Locking_Actuator(1);
     //Enabling the charging process
     phoenixcontact_Set_Enable_charging_process(1);
+    vTaskDelay(500 / portTICK_RATE_MS);
+    rele_state_maxV(1, 2); //Close rele
+    rele_state_maxV(1, 0); ////Open rele signal security
 
-    rele_state_maxV(1,2); //Close rele
-    rele_state_maxV(1,0); ////Open rele signal security
-
-    vTaskDelay(100);
+    vTaskDelay(100 / portTICK_RATE_MS);
     PStatus = phoenixcontact_SystemStatus();
     ESP_LOGI(TAG, "Status Phoenix Charger: %x \n", PStatus);
-    if (PStatus == 0x4332)
+    if (PStatus == 0x4231 || PStatus == 0x4232)
+    {
+        ESP_LOGI(TAG, "B1 o B2- Socket conectado pero no cargando\n");
+    }
+    else if (PStatus == 0x4331)
     {
         ESP_LOGI(TAG, "C1- Cargando!!!!!!!!!!!!!!!!!!!!!!!\n");
     }
 
-    //phoenixcontact_Set_Reset(1);
+    phoenixcontact_Digital_OutputBehaviorOut1(2);
+
     ESP_LOGI(TAG, "Start charging END Register\n");
     ESP_LOGI(TAG, "----------------------------\n");
 }
 
 void stop_charging()
 {
-    rele_state_maxV(1,1); //Open rele
-    rele_state_maxV(1,0); ////Open rele signal security
+    charging = false;
+    phoenixcontact_Digital_OutputBehaviorOut1(0);
+    rele_state_maxV(1, 1); //Open rele
+    rele_state_maxV(1, 0); ////Open rele signal security
+
     if (phoenixcontact_Get_EnableChargingConfig() != 3) //Config register 4000 for com via modbus
     {
         phoenixcontact_Set_EnableChargingConfig(3);
@@ -171,10 +189,12 @@ void GetDataPhoenix()
     phoenixcontact_Get_ExternalReleaseConfig();
     phoenixcontact_Get_LockingConfig();
 }
-bool charging = false;
+
 void phoenix_task(void *arg)
 {
     ESP_LOGI(TAG, "Initiation phoenix_task");
+    //MODBUS-phoenixcontact
+   
 
     for (;;)
     {
@@ -185,27 +205,39 @@ void phoenix_task(void *arg)
 
         if (xSemaphoreTake(Semaphore_Start_Charging, 10))
         {
-            phoenixcontact_Digital_OutputBehaviorOut1(1);
             start_charging();
-            charging = true;
         }
         if (xSemaphoreTake(Semaphore_Stop_Charging, 10))
         {
-            phoenixcontact_Digital_OutputBehaviorOut1(0);
             stop_charging();
-            charging = false;
         }
-
 
         if (charging)
         {
-            phoenixcontact_error_status();
+            EStatus = phoenixcontact_error_status();
+            if (EStatus != 0)
+            {
+                ESP_LOGI(TAG, "Status Error Phoenix: %x \n", EStatus);
+                //stop_charging();
+            }
+            PStatus = phoenixcontact_SystemStatus();
+            ESP_LOGI(TAG, "Status Phoenix Charger: %x \n", PStatus);
+            if (PStatus == 0x4231 || PStatus == 0x4232)
+            {
+                ESP_LOGI(TAG, "B1 o B2- Carga finalizada\n");
+                //stop_charging();
+            }
+            else if (PStatus == 0x4331 || PStatus == 0x4332)
+            {
+                //ESP_LOGI(TAG, "C1- Cargando!!!!!!!!!!!!!!!!!!!!!!!\n");
+                PHour = (uint8_t)phoenixcontact_HoursCounterStatusC();
+                PMinute = (uint8_t) phoenixcontact_MinutesCounterSecondsStatusC() >> 8;
+                PSecond = (uint8_t)phoenixcontact_MinutesCounterSecondsStatusC();
+               
+            }
             phoenixcontact_Get_SettingMaximumPermissibleChargingCurrent();
-            phoenixcontact_MinutesCounterSecondsStatusC();
-            phoenixcontact_HoursCounterStatusC();
         }
-
-        vTaskDelay(1000);
+        vTaskDelay(10 / portTICK_RATE_MS);
     }
 }
 
@@ -379,8 +411,6 @@ uint16_t phoenixcontact_Get_LockingConfig()
     ESP_LOGI(TAG, "Get_LockingConfig: %x", value);
     return value;
 }
-
-
 
 //
 uint16_t phoenixcontact_Set_SettingMaximumPermissibleChargingCurrent(int state)

@@ -11,6 +11,7 @@ static const char *TAG = "EPLD";
 /*Bus configuration, set all esp's inputs and esp's outputs*/
 void begin_maxV()
 {
+    ESP_LOGI(TAG, "begin_maxV Initialize");
     //GPIO bidirectional, R/W Bus
     gpio_begin(AD0, 3);
     gpio_begin(AD1, 3);
@@ -26,24 +27,33 @@ void begin_maxV()
     gpio_begin(ALE, 0);
     gpio_begin(RW, 0);
     gpio_begin(CS, 0);
+    
+    // ESP_LOGI(TAG, "begin_maxV Set Ouput 0");
+    // gpio_write(RW, 0);
+    // gpio_write(CS, 0);
+    // gpio_write(ALE, 0);
+    // gpio_write(AD0, 0);
+    // gpio_write(AD1, 0);
+    // gpio_write(AD2, 0);
+    // gpio_write(AD3, 0);
+    // gpio_write(ALE, 0);
+    // vTaskDelay(10 / portTICK_RATE_MS);
 
-    led_state_maxV(1,1);
-	led_state_maxV(2,1);
-	led_state_maxV(3,1);
-    rele_state_maxV(1,1); //Open rele
-   
-    vTaskDelay(500/ portTICK_RATE_MS);
-    led_state_maxV(1,2);
-	led_state_maxV(2,2);
-	led_state_maxV(3,2);
+    led_state_maxV(1, 1);
+    led_state_maxV(2, 1);
+    //led_state_maxV(3, 1);
+    rele_state_maxV(1, 1); //Open rele
+    rele_state_maxV(1, 0); //Open rele signal security
 
-    vTaskDelay(500/ portTICK_RATE_MS);
-    led_state_maxV(1,0);
-	led_state_maxV(2,0);
-	led_state_maxV(3,0);
-    rele_state_maxV(1,0);  //Open rele signal security
-    vTaskDelay(500/ portTICK_RATE_MS);
+    vTaskDelay(200 / portTICK_RATE_MS);
+    led_state_maxV(1, 2);
+    led_state_maxV(2, 2);
+    //led_state_maxV(3, 2);
 
+    vTaskDelay(200 / portTICK_RATE_MS);
+    led_state_maxV(1, 0);
+    led_state_maxV(2, 0);
+    //led_state_maxV(3, 0);
     ESP_LOGI(TAG, "begin_maxV OK");
 }
 
@@ -66,7 +76,7 @@ void led_state_maxV(int number, int state)
         gpio_write(AD2, 0);
         gpio_write(AD3, 0);
         gpio_write(ALE, 0);
-        vTaskDelay(10/ portTICK_RATE_MS);
+        vTaskDelay(10 / portTICK_RATE_MS);
 
         if (state == 1)
         {
@@ -88,10 +98,10 @@ void led_state_maxV(int number, int state)
                 gpio_write(AD2, 0);
                 gpio_write(AD3, 1);
             }
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
         }
@@ -115,10 +125,10 @@ void led_state_maxV(int number, int state)
                 gpio_write(AD2, 0);
                 gpio_write(AD3, 1);
             }
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
         }
@@ -142,10 +152,10 @@ void led_state_maxV(int number, int state)
                 gpio_write(AD2, 0);
                 gpio_write(AD3, 1);
             }
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
         }
@@ -161,7 +171,7 @@ void led_state_maxV(int number, int state)
         gpio_write(AD2, 0);
         gpio_write(AD3, 0);
         gpio_write(ALE, 0);
-        vTaskDelay(10/ portTICK_RATE_MS);
+        vTaskDelay(10 / portTICK_RATE_MS);
 
         if (state == 1)
         {
@@ -183,10 +193,10 @@ void led_state_maxV(int number, int state)
             }
             gpio_write(AD2, 1);
             gpio_write(AD3, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
         }
@@ -210,10 +220,10 @@ void led_state_maxV(int number, int state)
             }
             gpio_write(AD2, 0);
             gpio_write(AD3, 1);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
         }
@@ -237,10 +247,10 @@ void led_state_maxV(int number, int state)
             }
             gpio_write(AD2, 0);
             gpio_write(AD3, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
         }
@@ -256,7 +266,7 @@ void led_state_maxV(int number, int state)
         gpio_write(AD2, 0);
         gpio_write(AD3, 0);
         gpio_write(ALE, 0);
-        vTaskDelay(10/ portTICK_RATE_MS);
+        vTaskDelay(10 / portTICK_RATE_MS);
 
         if (state == 1)
         {
@@ -264,10 +274,10 @@ void led_state_maxV(int number, int state)
             gpio_write(AD1, 0);
             gpio_write(AD2, 0);
             gpio_write(AD3, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
         }
@@ -277,10 +287,10 @@ void led_state_maxV(int number, int state)
             gpio_write(AD1, 1);
             gpio_write(AD2, 0);
             gpio_write(AD3, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
         }
@@ -290,10 +300,10 @@ void led_state_maxV(int number, int state)
             gpio_write(AD1, 0);
             gpio_write(AD2, 0);
             gpio_write(AD3, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
         }
@@ -309,7 +319,7 @@ void led_state_maxV(int number, int state)
         gpio_write(AD2, 0);
         gpio_write(AD3, 0);
         gpio_write(ALE, 0);
-        vTaskDelay(10/ portTICK_RATE_MS);
+        vTaskDelay(10 / portTICK_RATE_MS);
 
         if (state == 1)
         {
@@ -317,13 +327,13 @@ void led_state_maxV(int number, int state)
             gpio_write(AD1, 0);
             gpio_write(AD2, 1);
             gpio_write(AD3, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
 
             gpio_write(ALE, 1);
             gpio_write(AD0, 1);
@@ -331,13 +341,13 @@ void led_state_maxV(int number, int state)
             gpio_write(AD2, 0);
             gpio_write(AD3, 0);
             gpio_write(ALE, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(AD0, 1);
             gpio_write(AD1, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
         }
@@ -347,13 +357,13 @@ void led_state_maxV(int number, int state)
             gpio_write(AD1, 1);
             gpio_write(AD2, 0);
             gpio_write(AD3, 1);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
 
             gpio_write(ALE, 1);
             gpio_write(AD0, 1);
@@ -361,13 +371,13 @@ void led_state_maxV(int number, int state)
             gpio_write(AD2, 0);
             gpio_write(AD3, 0);
             gpio_write(ALE, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(AD0, 0);
             gpio_write(AD1, 1);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(CS, 0);
             gpio_write(RW, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
         }
@@ -377,13 +387,13 @@ void led_state_maxV(int number, int state)
             gpio_write(AD1, 0);
             gpio_write(AD2, 0);
             gpio_write(AD3, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
 
             gpio_write(ALE, 1);
             gpio_write(AD0, 1);
@@ -391,13 +401,13 @@ void led_state_maxV(int number, int state)
             gpio_write(AD2, 0);
             gpio_write(AD3, 0);
             gpio_write(ALE, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(AD0, 0);
             gpio_write(AD1, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
         }
@@ -423,25 +433,25 @@ void esp_out_maxV(int number, int state)
         gpio_write(AD2, 0);
         gpio_write(AD3, 0);
         gpio_write(ALE, 0);
-        vTaskDelay(1/ portTICK_RATE_MS);
+        vTaskDelay(1 / portTICK_RATE_MS);
 
         if (state == 1)
         {
             gpio_write(AD0, 1);
-            vTaskDelay(1/ portTICK_RATE_MS);
+            vTaskDelay(1 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(1/ portTICK_RATE_MS);
+            vTaskDelay(1 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
         }
         else
         {
             gpio_write(AD0, 0);
-            vTaskDelay(1/ portTICK_RATE_MS);
+            vTaskDelay(1 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(1/ portTICK_RATE_MS);
+            vTaskDelay(1 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
         }
@@ -543,20 +553,20 @@ void rele_state_maxV(int number, int state)
         gpio_write(AD2, 0);
         gpio_write(AD3, 0);
         gpio_write(ALE, 0);
-        vTaskDelay(10/ portTICK_RATE_MS);
+        vTaskDelay(10 / portTICK_RATE_MS);
 
         if (state == 0)
         {
             state_relepower = 0;
             gpio_write(AD0, 0);
             gpio_write(AD1, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
-            vTaskDelay(1000/ portTICK_RATE_MS);
+            vTaskDelay(800 / portTICK_RATE_MS);
         }
 
         else if (state == 1)
@@ -564,46 +574,46 @@ void rele_state_maxV(int number, int state)
             state_relepower = 1;
             gpio_write(AD0, 1);
             gpio_write(AD1, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
-            vTaskDelay(1000/ portTICK_RATE_MS);
+            vTaskDelay(800 / portTICK_RATE_MS);
 
             gpio_write(AD0, 0);
             gpio_write(AD1, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
         }
         else if (state == 2)
         {
             state_relepower = 2;
             gpio_write(AD0, 0);
             gpio_write(AD1, 1);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
-            vTaskDelay(1000/ portTICK_RATE_MS);
+            vTaskDelay(800 / portTICK_RATE_MS);
 
             gpio_write(AD0, 0);
             gpio_write(AD1, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
         }
     }
     else if (number == 2) //RELE Optocoplado 1
@@ -617,17 +627,17 @@ void rele_state_maxV(int number, int state)
         gpio_write(AD2, 0);
         gpio_write(AD3, 0);
         gpio_write(ALE, 0);
-        vTaskDelay(10/ portTICK_RATE_MS);
+        vTaskDelay(10 / portTICK_RATE_MS);
 
         if (state == 1)
         {
             state_rele1 = 1;
             gpio_write(AD2, 1);
             gpio_write(AD3, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
         }
@@ -636,10 +646,10 @@ void rele_state_maxV(int number, int state)
             state_rele1 = 0;
             gpio_write(AD2, 0);
             gpio_write(AD3, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
         }
@@ -655,17 +665,17 @@ void rele_state_maxV(int number, int state)
         gpio_write(AD2, 0);
         gpio_write(AD3, 0);
         gpio_write(ALE, 0);
-        vTaskDelay(10/ portTICK_RATE_MS);
+        vTaskDelay(10 / portTICK_RATE_MS);
 
         if (state == 1)
         {
             state_rele2 = 1;
             gpio_write(AD2, 0);
             gpio_write(AD3, 1);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
         }
@@ -674,10 +684,10 @@ void rele_state_maxV(int number, int state)
             state_rele2 = 0;
             gpio_write(AD2, 0);
             gpio_write(AD3, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
         }
@@ -693,16 +703,16 @@ void rele_state_maxV(int number, int state)
         gpio_write(AD2, 0);
         gpio_write(AD3, 0);
         gpio_write(ALE, 0);
-        vTaskDelay(10/ portTICK_RATE_MS);
+        vTaskDelay(10 / portTICK_RATE_MS);
 
         if (state == 1)
         {
             gpio_write(AD2, 1);
             gpio_write(AD3, 1);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
         }
@@ -710,13 +720,12 @@ void rele_state_maxV(int number, int state)
         {
             gpio_write(AD2, 0);
             gpio_write(AD3, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 0);
             gpio_write(CS, 0);
-            vTaskDelay(10/ portTICK_RATE_MS);
+            vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
         }
     }
 }
-

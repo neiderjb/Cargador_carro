@@ -425,7 +425,7 @@ uint8_t ModbusMasterTransaction(uint8_t u8MBFunction)
 
 void responseModbus(uint8_t u8MBFunction, uint8_t *data_rd, bool coil)
 {
-    vTaskDelay(300 / portTICK_RATE_MS);
+    vTaskDelay(150 / portTICK_RATE_MS);
     uint8_t u8ModbusADU[64];
     uint8_t u8MBStatus = ku8MBSuccess;
     uint8_t u8ModbusADUSize = 0;
@@ -444,16 +444,16 @@ void responseModbus(uint8_t u8MBFunction, uint8_t *data_rd, bool coil)
     if (u8ModbusADUSize > 0)
     {
         Read_Data_RX_FIFO_ZDU0210RJX(0, u8ModbusADU, u8ModbusADUSize);
-        printf("----------------------------------\n");
-        printf("Response Phoenix: \n");
-        for (int i = 0; i < u8ModbusADUSize; i++)
-        {
-            printf("%x \n", u8ModbusADU[i]);
-        }
-        printf("\n");
+        //printf("----------------------------------\n");
+        //printf("Response Phoenix: \n");
+        //for (int i = 0; i < u8ModbusADUSize; i++)
+        //{
+        //    printf("%x \n", u8ModbusADU[i]);
+        //}
+        //printf("\n");
 
         // evaluate slave ID, function code once enough bytes have been read
-        if (u8ModbusADUSize >= 5)
+        if (u8ModbusADUSize >= 8)
         {
             // verify response is for correct Modbus slave
             if (u8ModbusADU[u8ModbusADUSize - size] != _u8MBSlave)

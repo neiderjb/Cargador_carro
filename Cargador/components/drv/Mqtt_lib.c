@@ -57,13 +57,13 @@ esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 		ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
 		msg_id = esp_mqtt_client_publish(client, "/topic/qos0", "data", 0, 0,
 										 0);
-		ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
+		//ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
 		break;
 	case MQTT_EVENT_UNSUBSCRIBED:
 		ESP_LOGI(TAG, "MQTT_EVENT_UNSUBSCRIBED, msg_id=%d", event->msg_id);
 		break;
 	case MQTT_EVENT_PUBLISHED:
-		ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
+		//ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
 		break;
 	case MQTT_EVENT_DATA:
 		ESP_LOGI(TAG, "MQTT_EVENT_DATA");		
@@ -83,7 +83,7 @@ esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 void sendMessage(char *data, char *topic)
 {
 	int msg_id = esp_mqtt_client_publish(client, topic, data, 0, 1, 0);
-	ESP_LOGI(TAG, "sent publish successful");
+	//ESP_LOGI(TAG, "sent publish successful");
 }
 
 

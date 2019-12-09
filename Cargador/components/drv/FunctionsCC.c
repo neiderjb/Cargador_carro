@@ -56,62 +56,61 @@ void decodeCommand(char *s)
 	// root = cJSON_Parse(s);
 	// printf("Command: %s\n", cJSON_PrintUnformatted(root));
 	// dataarray = cJSON_GetObjectItem(root, "command");
-	
-		// if (MONOPHASE)
-		// {
-		// 	//Control FaseA
 
-		// 	for (int i = 0; i < cJSON_GetArraySize(dataarray); i++)
-		// 	{
-		// 		values[i] = (cJSON_GetArrayItem(dataarray, i)->valueint);
-		// 		printf("Send to Queue %d: %d\n", i, values[i]);
-		// 		if (!xQueueSend(Queue_control_FaseA, &values[i], 100 / portTICK_PERIOD_MS))
-		// 		{
-		// 			printf("Error Send Queue!!\n");
-		// 		}
-		// 	}
-		// }
-		// else
-		// {
-		// 	//----------------------------------------------------------------------------
-		// 	printf("Send to Queue Fase A ");
-		// 	for (int i = 0; i < cJSON_GetArraySize(dataarray); i++)
-		// 	{
-		// 		values[i] = (cJSON_GetArrayItem(dataarray, i)->valueint);
-		// 		printf("%d ", values[i]);
-		// 		if (!xQueueSend(Queue_control_FaseA, &values[i], 100 / portTICK_PERIOD_MS))
-		// 		{
-		// 			printf("Error Send Queue!!\n");
-		// 		}
-		// 	}
+	// if (MONOPHASE)
+	// {
+	// 	//Control FaseA
 
-		// 	//----------------------------------------------------------------------------
-		// 	printf("\nSend to Queue Fase B ");
-		// 	for (int i = 0; i < cJSON_GetArraySize(dataarray); i++)
-		// 	{
-		// 		values[i] = (cJSON_GetArrayItem(dataarray, i)->valueint);
-		// 		printf("%d ", values[i]);
-		// 		if (!xQueueSend(Queue_control_FaseB, &values[i], 100 / portTICK_PERIOD_MS))
-		// 		{
-		// 			printf("Error Send Queue!!\n");
-		// 		}
-		// 	}
+	// 	for (int i = 0; i < cJSON_GetArraySize(dataarray); i++)
+	// 	{
+	// 		values[i] = (cJSON_GetArrayItem(dataarray, i)->valueint);
+	// 		printf("Send to Queue %d: %d\n", i, values[i]);
+	// 		if (!xQueueSend(Queue_control_FaseA, &values[i], 100 / portTICK_PERIOD_MS))
+	// 		{
+	// 			printf("Error Send Queue!!\n");
+	// 		}
+	// 	}
+	// }
+	// else
+	// {
+	// 	//----------------------------------------------------------------------------
+	// 	printf("Send to Queue Fase A ");
+	// 	for (int i = 0; i < cJSON_GetArraySize(dataarray); i++)
+	// 	{
+	// 		values[i] = (cJSON_GetArrayItem(dataarray, i)->valueint);
+	// 		printf("%d ", values[i]);
+	// 		if (!xQueueSend(Queue_control_FaseA, &values[i], 100 / portTICK_PERIOD_MS))
+	// 		{
+	// 			printf("Error Send Queue!!\n");
+	// 		}
+	// 	}
 
-		// 	//----------------------------------------------------------------------------
-		// 	printf("\nSend to Queue Fase C ");
-		// 	for (int i = 0; i < cJSON_GetArraySize(dataarray); i++)
-		// 	{
-		// 		values[i] = (cJSON_GetArrayItem(dataarray, i)->valueint);
-		// 		printf("%d ", values[i]);
-		// 		if (!xQueueSend(Queue_control_FaseC, &values[i], 100 / portTICK_PERIOD_MS))
-		// 		{
-		// 			printf("Error Send Queue!!\n");
-		// 		}
-		// 	}
-		// 	printf("\n");
-		// }
-		// sizeCommand = 6 + (values[2] >> 2 & 0x0F);
-	
+	// 	//----------------------------------------------------------------------------
+	// 	printf("\nSend to Queue Fase B ");
+	// 	for (int i = 0; i < cJSON_GetArraySize(dataarray); i++)
+	// 	{
+	// 		values[i] = (cJSON_GetArrayItem(dataarray, i)->valueint);
+	// 		printf("%d ", values[i]);
+	// 		if (!xQueueSend(Queue_control_FaseB, &values[i], 100 / portTICK_PERIOD_MS))
+	// 		{
+	// 			printf("Error Send Queue!!\n");
+	// 		}
+	// 	}
+
+	// 	//----------------------------------------------------------------------------
+	// 	printf("\nSend to Queue Fase C ");
+	// 	for (int i = 0; i < cJSON_GetArraySize(dataarray); i++)
+	// 	{
+	// 		values[i] = (cJSON_GetArrayItem(dataarray, i)->valueint);
+	// 		printf("%d ", values[i]);
+	// 		if (!xQueueSend(Queue_control_FaseC, &values[i], 100 / portTICK_PERIOD_MS))
+	// 		{
+	// 			printf("Error Send Queue!!\n");
+	// 		}
+	// 	}
+	// 	printf("\n");
+	// }
+	// sizeCommand = 6 + (values[2] >> 2 & 0x0F);
 }
 
 void SearchCommand(uint8_t *data)
@@ -163,7 +162,7 @@ void SearchCommand(uint8_t *data)
  *  \param potenApp   Math Power phase A.
  *  \param temp       temperture.
  */
-char *createjsonFaseA(double volA, double currA, double factor, double potenA, double potenR, double potenApp, double potenMat, double temp)
+char *createjsonFaseA(double volA, double currA, double factor, double potenA, double potenR, double potenApp, double potenMat, double temp, uint16_t Psta, uint16_t Esta, uint8_t phour, uint8_t pminute, uint8_t psecond)
 {
 
 	cJSON *root;
@@ -188,13 +187,15 @@ char *createjsonFaseA(double volA, double currA, double factor, double potenA, d
 	cJSON_AddItemToObject(root, "F1", cJSON_CreateNumber(_factor));
 	cJSON_AddItemToObject(root, "PM1", cJSON_CreateNumber(_potenMat));
 	cJSON_AddItemToObject(root, "TEM", cJSON_CreateNumber(_temp));
+	cJSON_AddItemToObject(root, "PST", cJSON_CreateNumber(Psta));
+	cJSON_AddItemToObject(root, "EST", cJSON_CreateNumber(Esta));
 
 	datatoreturn = cJSON_PrintUnformatted(root);
 	return datatoreturn;
 	//sendMessage(datatoreturn, "airis/1155/power_analizer");
 }
 
-char *createjsonFaseB(double volB, double currB, double factor, double potenB, double potenR, double potenApp, double potenMat, double temp)
+char *createjsonFaseB(double volB, double currB, double factor, double potenB, double potenR, double potenApp, double potenMat, double temp, uint16_t Psta, uint16_t Esta, uint8_t phour, uint8_t pminute, uint8_t psecond)
 {
 
 	cJSON *root;
@@ -219,12 +220,14 @@ char *createjsonFaseB(double volB, double currB, double factor, double potenB, d
 	cJSON_AddItemToObject(root, "F2", cJSON_CreateNumber(_factor));
 	cJSON_AddItemToObject(root, "PM2", cJSON_CreateNumber(_potenMat));
 	cJSON_AddItemToObject(root, "TEM", cJSON_CreateNumber(_temp));
+	cJSON_AddItemToObject(root, "PST", cJSON_CreateNumber(Psta));
+	cJSON_AddItemToObject(root, "EST", cJSON_CreateNumber(Esta));
 
 	datatoreturn = cJSON_PrintUnformatted(root);
 	return datatoreturn;
 }
 
-char *createjsonFaseC(double volC, double currC, double factor, double potenC, double potenR, double potenApp, double potenMat, double temp)
+char *createjsonFaseC(double volC, double currC, double factor, double potenC, double potenR, double potenApp, double potenMat, double temp, uint16_t Psta, uint16_t Esta, uint8_t phour, uint8_t pminute, uint8_t psecond)
 {
 
 	cJSON *root;
@@ -249,6 +252,8 @@ char *createjsonFaseC(double volC, double currC, double factor, double potenC, d
 	cJSON_AddItemToObject(root, "F3", cJSON_CreateNumber(_factor));
 	cJSON_AddItemToObject(root, "PM3", cJSON_CreateNumber(_potenMat));
 	cJSON_AddItemToObject(root, "TEM", cJSON_CreateNumber(_temp));
+	cJSON_AddItemToObject(root, "PST", cJSON_CreateNumber(Psta));
+	cJSON_AddItemToObject(root, "EST", cJSON_CreateNumber(Esta));
 
 	datatoreturn = cJSON_PrintUnformatted(root);
 	return datatoreturn;
@@ -260,7 +265,7 @@ char *createjsonFaseC(double volC, double currC, double factor, double potenC, d
  */
 void ReadInformation()
 {
-	ready = false;
+	ready_information = false;
 	double voltageA = GetLineVoltageA();
 	while (!FinishTrans)
 	{
@@ -337,7 +342,7 @@ void ReadInformation()
 	while (!FinishTrans)
 	{
 	}
-
+#ifdef DEBUGANALIZER
 	printf("=============FASE A=============== \n");
 	printf("Voltage 1: %.1f [V] \n", voltageA);
 	printf("Current 1: %.1f [A] \n", currentA);
@@ -361,91 +366,32 @@ void ReadInformation()
 	printf("PowerApp 3: %.1f [VA] \n", powerAppC);
 	printf("============================== \n");
 	printf("Temperature: %.1f [C] \n", temperature);
+	printf("Phonix Charger State: %x", PStatus);
+	printf("Phonix Error State: %x", EStatus);
+#endif
 	uint8_t topic[] = "airis/1155/power_analizer";
 
-	if (MONOPHASE)
+	char *dataMQTTA = createjsonFaseA(voltageA, currentA, powerfactorA, powerA, powerReacA, powerAppA, (voltageA * currentA), temperature, PStatus, EStatus, PHour, PMinute, PSecond);
+	char *dataMQTTB = createjsonFaseB(voltageB, currentB, powerfactorB, powerB, powerReacB, powerAppB, (voltageB * currentB), temperature, PStatus, EStatus, PHour, PMinute, PSecond);
+	char *dataMQTTC = createjsonFaseC(voltageC, currentC, powerfactorC, powerC, powerReacC, powerAppC, (voltageC * currentC), temperature, PStatus, EStatus, PHour, PMinute, PSecond);
+
+	if ((voltageA > 0 || voltageA < 90 || voltageA > 235) || !Isconnected())
 	{
-		// char *dataMQTTA = createjsonFaseA(voltageA, currentA, powerfactorA, powerA, powerReacA, powerAppA, (voltageA * currentA), temperature);
-		// printf("Value to send faseA: %s\n", dataMQTTA);
-		// sendMessage(dataMQTTA,(char *)topic);
+		printf("\033[1;31m");
+		printf("Lectura Erronea ReadInformation\n");
+		printf("\033[0m");
 	}
 	else
 	{
-		char *dataMQTTA = createjsonFaseA(voltageA, currentA, powerfactorA, powerA, powerReacA, powerAppA, (voltageA * currentA), temperature);
-		char *dataMQTTB = createjsonFaseB(voltageB, currentB, powerfactorB, powerB, powerReacB, powerAppB, (voltageB * currentB), temperature);
-		char *dataMQTTC = createjsonFaseC(voltageC, currentC, powerfactorC, powerC, powerReacC, powerAppC, (voltageC * currentC), temperature);
+		// sendMessage(dataMQTTA, (char *)topic);
+		// sendMessage(dataMQTTB, (char *)topic);
+		// sendMessage(dataMQTTC, (char *)topic);
+	}
+	sendMessage(dataMQTTA, (char *)topic);
+	sendMessage(dataMQTTB, (char *)topic);
+	sendMessage(dataMQTTC, (char *)topic);
 
-		if (voltageA < 90 || voltageA > 235 || !Isconnected())
-		{
-			printf("\033[1;31m");
-			printf("Lectura Erronea\n");
-			printf("\033[0m");
-		}
-		else
-		{
-			sendMessage(dataMQTTA, (char *)topic);
-			sendMessage(dataMQTTB, (char *)topic);
-			sendMessage(dataMQTTC, (char *)topic);
-		}
-	}
-
-	if (voltageA < 100)
-	{
-		contador_faseA++;
-	}
-	else
-	{
-		if(contador_faseA > 0)
-		{
-			contador_faseA--;
-		}
-	}
-
-	if (voltageB < 100)
-	{
-		contador_faseB++;
-	}
-	else
-	{
-		if(contador_faseB > 0)
-		{
-			contador_faseB--;
-		}
-	}
-
-	if (voltageC < 100)
-	{
-		contador_faseC++;
-	}
-	else
-	{
-		if(contador_faseC> 0)
-		{
-			contador_faseC--;
-		}
-	}
-
-	if (contador_faseB >= 6 || contador_faseC >= 6)
-	{
-		if (contador_faseA < 6)
-		{
-			MONOPHASE = true;
-			contador_faseB = 6;
-			contador_faseC = 6;
-		}
-	}
-	else
-	{
-		if (contador_faseB < 6 && contador_faseC < 6)
-		{
-			if (contador_faseA < 6)
-			{
-				MONOPHASE = false;
-			}
-		}
-	}
-
-	ready = true;
+	ready_information = true;
 }
 
 double ReadFrequency()
@@ -542,10 +488,16 @@ void begin_analizer()
 
 void begin_calibration_analizer()
 {
-	vTaskDelay(200);
+	vTaskDelay(500 / portTICK_RATE_MS);
 	frequencyValue = ReadFrequency();
+	int contfrequency = 0;
 	while (frequencyValue < 49 || frequencyValue > 61)
 	{
+		contfrequency++;
+		if (contfrequency > 3)
+		{
+			break;
+		}
 		frequencyValue = ReadFrequency();
 		while (!FinishTrans)
 		{
@@ -553,9 +505,14 @@ void begin_calibration_analizer()
 		printf("\033[1;31m");
 		printf("FrequencyValue = %f\n", frequencyValue);
 		printf("\033[0m");
-		vTaskDelay(200);
+		vTaskDelay(500 / portTICK_RATE_MS);
 	}
-	printf("FrequencyValue = %f\n", frequencyValue);
+	//printf("FrequencyValue = %f\n", frequencyValue);
+
+	if (frequencyValue > 61)
+	{
+		ESP_LOGI("Network Analizer", "Calibration FAIL");
+	}
 
 	if (frequencyValue > 49 && frequencyValue < 51)
 	{
@@ -563,6 +520,8 @@ void begin_calibration_analizer()
 		PGAGain = 0x002A;
 		VoltageGain = 50597;
 		CurrentGain = 53685;
+		begin_M90E32AS(LineFreq, PGAGain, VoltageGain, CurrentGain, CurrentGain, CurrentGain); //
+		ESP_LOGI("Network Analizer", "Calibration OK 50Hz");
 	}
 	else
 	{
@@ -570,44 +529,7 @@ void begin_calibration_analizer()
 		PGAGain = 0x002A;
 		VoltageGain = 50391;
 		CurrentGain = 51571;
+		begin_M90E32AS(LineFreq, PGAGain, VoltageGain, CurrentGain, CurrentGain, CurrentGain); //
+		ESP_LOGI("Network Analizer", "Calibration OK 60Hz");
 	}
-	
-	begin_M90E32AS(LineFreq, PGAGain, VoltageGain, CurrentGain, CurrentGain, CurrentGain); //
-	ESP_LOGI("Network Analizer", "Calibration OK");
-}
-
-void set_PhaseControl()
-{
-	double VoltageA = GetLineVoltageA();
-	while (!FinishTrans)
-	{
-	}
-
-	while (VoltageA < 110 || VoltageA > 300)
-	{
-		VoltageA = GetLineVoltageA();
-		while (!FinishTrans)
-		{
-		}
-	}
-
-	double VoltageB = GetLineVoltageA();
-	while (!FinishTrans)
-	{
-	}
-	double VoltageC = GetLineVoltageC();
-
-	printf("=====CALIBRATION===== \n");
-
-	if (VoltageB < 100 || VoltageC < 100)
-	{
-		MONOPHASE = true;
-		printf("======MONOPHASE====== \n");
-	}
-	else
-	{
-		MONOPHASE = false;
-		printf("=== THREE PHASE ==== \n");
-	}
-	printf("===================== \n");
 }

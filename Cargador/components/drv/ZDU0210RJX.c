@@ -24,6 +24,7 @@
 
 #include "ZDU0210RJX.h"
 #include "software_i2c.h"
+#include "Parameters.h"
 
 #include "esp_log.h"
 

@@ -17,6 +17,11 @@
         "epld.h": "c",
         "lvgl.h": "c",
         "cargador.h": "c",
-        "phoenixcontact.h": "c"
+        "phoenixcontact.h": "c",
+        "array": "c",
+        "vector": "c",
+        "xstring": "c",
+        "xutility": "c",
+        "string": "c"
     }
 }

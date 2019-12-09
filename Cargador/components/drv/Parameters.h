@@ -35,7 +35,9 @@
 #define WIFI_PASS	"Ofiled@8031"
 #define BT_NAME		"CC-AIRIS-01"
 
-
+/* address of the module */
+uint8_t ZDU0210RJX_address; 	//0x5c     //58    //59  //5c  //5b   //5f
+uint8_t ZDU0210RJX_address1; 	//0x54    //50    //51  //54  //53   //57
 
 
 //Touch screen
@@ -52,11 +54,18 @@ xSemaphoreHandle Semaphore_control_touch;
 #define PIN_SCL 4
 
 
+bool detectAnalizer;
+bool detectTouch;
+bool detectRtc;
+bool detectModbus;
+
+
+
 bool finish_print;
 
 
 //Network Analizer
-bool MONOPHASE;
+
 unsigned short LineFreq;
 unsigned short PGAGain;
 unsigned short VoltageGain;
@@ -92,7 +101,7 @@ bool FinishTrans;
 #define WRITE false
 #define READ true
 
-bool ready;
+bool ready_information;
 bool read_time;
 
 
@@ -143,6 +152,13 @@ bool state;// = false;
 xSemaphoreHandle Semaphore_Start_Charging;
 xSemaphoreHandle Semaphore_Stop_Charging;
 xSemaphoreHandle Semaphore_Out_Phoenix;
+
+uint16_t PStatus;
+uint16_t EStatus;
+uint8_t PHour;
+uint8_t PMinute;
+uint8_t PSecond;
+bool charging;
 
 
 //LittleVgl 

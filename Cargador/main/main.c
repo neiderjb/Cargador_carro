@@ -54,6 +54,10 @@ void Network_Control(void *p)
 				mqtt_init("mqtt://platform.agrum.co", "airis/cc/01", "airis/cc/report");
 				network_signal = true;
 			}
+			if(ready_information){
+				ReadInformation();
+				vTaskDelay(3000 / portTICK_RATE_MS);
+			}
 		}
 		vTaskDelay(100 / portTICK_RATE_MS);
 	}
@@ -61,34 +65,35 @@ void Network_Control(void *p)
 
 void app_main()
 {
-	printf("Wait Initialize");
-	vTaskDelay(5000 / portTICK_RATE_MS);
-
+	printf("----------Wait Initialize----------\n");
+	vTaskDelay(2000 / portTICK_RATE_MS);
+	detectAnalizer = false;
+ 	detectTouch = false;
+ 	detectRtc = false;
+ 	detectModbus = false;
+	charging = false;
+	
 	Semaphore_control_touch = xSemaphoreCreateBinary();
 	Semaphore_Start_Charging = xSemaphoreCreateBinary();
 	Semaphore_Stop_Charging = xSemaphoreCreateBinary();
 	Semaphore_Out_Phoenix = xSemaphoreCreateBinary();
 
+	//EPLD
+	begin_maxV();
+
 	//I2C config
 	sw_i2c_init(PIN_SDA, PIN_SCL);
 	sw_i2c_master_scan();
 
-	//EPLD
-	begin_maxV();
-	
-	//I2C-UART
-	begin_ZDU0210RJX(0xFF, 0xFF);
-	//MODBUS-phoenixcontact
-	begin_phoenixcontact();
-	
-	
-	
 	//Touch Screen Init
-	gpio_begin(TOUCH_RESET, 0);
-	gpio_write(TOUCH_RESET, 0);
-	vTaskDelay(10 / portTICK_RATE_MS);
-	gpio_write(TOUCH_RESET, 1);
-	begin_FT5206();
+	if (detectTouch)
+	{
+		gpio_begin(TOUCH_RESET, 0);
+		gpio_write(TOUCH_RESET, 0);
+		vTaskDelay(10 / portTICK_RATE_MS);
+		gpio_write(TOUCH_RESET, 1);
+		begin_FT5206();
+	}
 	finish_print = true;
 
 	//SPI
@@ -109,20 +114,24 @@ void app_main()
 	vTaskDelay(100 / portTICK_RATE_MS);
 	fillScreen(RA8875_WHITE);
 
-	
+	//I2C-UART
+	begin_ZDU0210RJX(0xFF, 0xFF);
 
 	//I2C-SPI
-	begin_SC18IS602B();
-	
+	if (detectAnalizer)
+	{
+		begin_SC18IS602B();
+		//configuration analizer
+		begin_analizer();
+		begin_calibration_analizer(LineFreq, PGAGain, VoltageGain, CurrentGain, 60853, 63853);
+	}
 
 	//RTC
-	begin_PCF85063TP();
-	calibratBySeconds(0, -0.000041);
-
-	//configuration analizer
-	begin_analizer();
-	begin_calibration_analizer(LineFreq, PGAGain, VoltageGain, CurrentGain, 60853, 63853);
-	set_PhaseControl();
+	if (detectRtc)
+	{
+		begin_PCF85063TP();
+		calibratBySeconds(0, -0.000041);
+	}
 
 	//initialize flash memory
 	nvs_flash_init();
@@ -131,9 +140,15 @@ void app_main()
 	// wifi_begin(ConfigurationObject.ssid, ConfigurationObject.password);
 	//pwifi_begin("CEMUSA", "Ofiled@8031");
 	wifi_begin("DeepSea Developments", "hexaverse"); //ISSUE cuando no tiene red falla
-
-	xTaskCreate(grid_analyzer_task, "grid_analyzer_task", 4096, NULL, 5, NULL);
-	xTaskCreate(phoenix_task, "phoenix_task", 4096, NULL,5, NULL);
+	if (detectAnalizer)
+	{
+		xTaskCreate(grid_analyzer_task, "grid_analyzer_task", 4096, NULL, 5, NULL);
+	}
+	if (detectModbus)
+	{
+		begin_phoenixcontact();
+		xTaskCreate(phoenix_task, "phoenix_task", 4096, NULL, 5, NULL);
+	}
 	//xTaskCreate(Time_Task_Control, "Time_Task_Control", 2048, NULL, 1, NULL);
 	xTaskCreatePinnedToCore(Network_Control, "Network_Control", 4096, NULL, 3, NULL, 1);
 
@@ -153,22 +168,24 @@ void app_main()
 	disp_drv.ver_res = 480;
 	lv_disp_drv_register(&disp_drv);
 	//Touch LittleVgl
-	lv_indev_drv_t indev_drv;
-	lv_indev_drv_init(&indev_drv);
-	indev_drv.read_cb = my_input_read;
-	indev_drv.type = LV_INDEV_TYPE_POINTER;
-	lv_indev_drv_register(&indev_drv);
+	if (detectTouch)
+	{
+		lv_indev_drv_t indev_drv;
+		lv_indev_drv_init(&indev_drv);
+		indev_drv.read_cb = my_input_read;
+		indev_drv.type = LV_INDEV_TYPE_POINTER;
+		lv_indev_drv_register(&indev_drv);
+	}
 	//Screen
 	esp_register_freertos_tick_hook(lv_tick_task);
 	cargador_create();
+	ready_information = true;
 	//Screen
 	while (1)
 	{
 		vTaskDelay(1 / portTICK_RATE_MS);
 		lv_task_handler();
 	}
-
-
 }
 
 //Screen

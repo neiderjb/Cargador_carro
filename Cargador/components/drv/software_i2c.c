@@ -29,6 +29,7 @@ SOFTWARE.
 #include <esp_err.h>
 #include <esp_log.h>
 #include "software_i2c.h"
+#include "Parameters.h"
 
 static bool g_i2c_started;
 static uint8_t g_i2c_sda;
@@ -320,46 +321,88 @@ void sw_i2c_master_scan()
 {
     ESP_LOGD(TAG, "Scanning I2C bus.");
 
-	uint8_t address;
-	esp_err_t result;
+    uint8_t address;
+    esp_err_t result;
 
-	printf("     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f\n");
-	printf("00:         ");
-	for (address = 3; address < 0x78; address++) {
-		result = i2c_master_probe(address);
+    printf("     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f\n");
+    printf("00:         ");
+    for (address = 3; address < 0x78; address++)
+    {
+        result = i2c_master_probe(address);
 
-		if (address % 16 == 0) {
-			printf("\n%.2x:", address);
-		}
-		if (ESP_OK == result) {
-			printf(" %.2x", address);
-		} else {
-			printf(" --");
-		}
-	}
+        if (address % 16 == 0)
+        {
+            printf("\n%.2x:", address);
+        }
+        if (ESP_OK == result)
+        {
+            printf(" %.2x", address);
+            
+            if (address == 0x2b)
+            {
+                detectAnalizer = true;
+            }
+            if (address == 0x38)
+            {
+                detectTouch = true;
+            }
+            if (address == 0x51)
+            {
+                detectRtc = true;
+            }
+            if (address == 0x50)
+            {
+                ZDU0210RJX_address1 = 0x50;
+                ZDU0210RJX_address = 0x58;
+                detectModbus = true;
+            }
+            else if (address == 0x53)
+            {
+                ZDU0210RJX_address1 = 0x53;
+                ZDU0210RJX_address = 0x5b;
+                detectModbus = true;
+            }
+            else if (address == 0x54)
+            {
+                ZDU0210RJX_address1 = 0x54;
+                ZDU0210RJX_address = 0x5c;
+                detectModbus = true;
+            }
+            else if (address == 0x57)
+            {
+                ZDU0210RJX_address1 = 0x57;
+                ZDU0210RJX_address = 0x5f;
+                detectModbus = true;
+            }
+        }
+        else
+        {
+            printf(" --");
+        }
+    }
     printf("\n");
+    printf("ZDT Address %u %u", ZDU0210RJX_address, ZDU0210RJX_address1);
 }
-
 
 //I2C device ZDU0210RJX
 
 //Write 1 Byte
 esp_err_t i2c_uart_write_ZDU0210RJX_8(uint8_t DEVICE_ADDR, uint8_t data, uint8_t reg)
 {
-	int ret;
+    int ret;
     sw_i2c_master_start();
     ret = sw_i2c_master_write_byte((DEVICE_ADDR << 1) | I2C_MASTER_WRITE);
     sw_i2c_master_write_byte(reg);
     sw_i2c_master_write_byte(data);
     sw_i2c_master_stop();
-	return ret;
+    return ret;
 }
 
 //Write multiple Bytes
 esp_err_t i2c_uart_write_ZDU0210RJX(uint8_t DEVICE_ADDR, uint8_t *data, int count, uint8_t reg)
 {
-	int ret;
-	//printf("WRITE ZDU0210RJX I2c Data 0: %x , count : %x \n", data[0], count);
+    int ret;
+    //printf("WRITE ZDU0210RJX I2c Data 0: %x , count : %x \n", data[0], count);
     sw_i2c_master_start();
     ret = sw_i2c_master_write_byte((DEVICE_ADDR << 1) | I2C_MASTER_WRITE);
     sw_i2c_master_write_byte(reg);
@@ -368,12 +411,12 @@ esp_err_t i2c_uart_write_ZDU0210RJX(uint8_t DEVICE_ADDR, uint8_t *data, int coun
         sw_i2c_master_write_byte(data[i]);
     }
     sw_i2c_master_stop();
-	return ret;
+    return ret;
 }
-	
-esp_err_t i2c_uart_read_ZDU0210RJX(uint8_t DEVICE_ADDR, uint8_t *data_rd, int  count, uint8_t reg)
+
+esp_err_t i2c_uart_read_ZDU0210RJX(uint8_t DEVICE_ADDR, uint8_t *data_rd, int count, uint8_t reg)
 {
-	int ret;
+    int ret;
     sw_i2c_master_start();
     ret = sw_i2c_master_write_byte((DEVICE_ADDR << 1) | I2C_MASTER_WRITE);
     sw_i2c_master_write_byte(reg);
@@ -386,14 +429,13 @@ esp_err_t i2c_uart_read_ZDU0210RJX(uint8_t DEVICE_ADDR, uint8_t *data_rd, int  c
     sw_i2c_master_read_byte((uint8_t *)data_rd + count - 1, NAK);
     sw_i2c_master_stop();
 
-	
-	return ret;
+    return ret;
 }
 
 //Write multiple Bytes
 esp_err_t i2c_uart_write_read_ZDU0210RJX(uint8_t DEVICE_ADDR, uint8_t *dataWrite, int countWrite, uint8_t reg, uint8_t *dataRead, int countRead)
 {
-	int ret;
+    int ret;
     sw_i2c_master_start();
     ret = sw_i2c_master_write_byte((DEVICE_ADDR << 1) | I2C_MASTER_WRITE);
     sw_i2c_master_write_byte(reg);
@@ -402,12 +444,10 @@ esp_err_t i2c_uart_write_read_ZDU0210RJX(uint8_t DEVICE_ADDR, uint8_t *dataWrite
         sw_i2c_master_write_byte(dataWrite[i]);
     }
     sw_i2c_master_stop();
-    i2c_uart_read_ZDU0210RJX(DEVICE_ADDR,dataRead,countRead,(reg+1));
+    i2c_uart_read_ZDU0210RJX(DEVICE_ADDR, dataRead, countRead, (reg + 1));
 
-	return ret;
+    return ret;
 }
-
-
 
 esp_err_t i2c_uart_read_16_ZDU0210RJX(uint8_t DEVICE_ADDR, uint8_t *data_rd, uint8_t reg)
 {
@@ -420,7 +460,7 @@ esp_err_t i2c_uart_read_16_ZDU0210RJX(uint8_t DEVICE_ADDR, uint8_t *data_rd, uin
     sw_i2c_master_read_byte((uint8_t *)data_rd, ACK);
     sw_i2c_master_read_byte((uint8_t *)data_rd + 1, NAK);
     sw_i2c_master_stop();
-	return ret;
+    return ret;
 }
 
 esp_err_t i2c_uart_enable_ZDU0210RJX(int8_t DEVICE_ADDR, uint8_t data, uint8_t reg)
@@ -431,7 +471,7 @@ esp_err_t i2c_uart_enable_ZDU0210RJX(int8_t DEVICE_ADDR, uint8_t data, uint8_t r
     sw_i2c_master_write_byte(reg);
     sw_i2c_master_write_byte(data);
     sw_i2c_master_stop();
-	return ret;
+    return ret;
 }
 
 /*
@@ -443,9 +483,9 @@ to define it as output
 
 esp_err_t i2c_gpio_configuration(uint8_t DEVICE_ADDR, uint8_t gpio, uint8_t mode)
 {
-	int ret;
-	int count = 2;
-	uint8_t data[] = {gpio, mode};
+    int ret;
+    int count = 2;
+    uint8_t data[] = {gpio, mode};
     sw_i2c_master_start();
     ret = sw_i2c_master_write_byte((DEVICE_ADDR << 1) | I2C_MASTER_WRITE);
     sw_i2c_master_write_byte(0x08);
@@ -455,7 +495,7 @@ esp_err_t i2c_gpio_configuration(uint8_t DEVICE_ADDR, uint8_t gpio, uint8_t mode
         sw_i2c_master_write_byte(data[i]);
     }
     sw_i2c_master_stop();
-	return ret;
+    return ret;
 }
 
 /*
@@ -466,9 +506,9 @@ GPIO - STATUS
 
 esp_err_t i2c_gpio_write(uint8_t DEVICE_ADDR, uint8_t number_gpio, uint8_t status)
 {
-	int ret;
-	int count = 2;
-	uint8_t data[] = {number_gpio, status};
+    int ret;
+    int count = 2;
+    uint8_t data[] = {number_gpio, status};
     sw_i2c_master_start();
     ret = sw_i2c_master_write_byte((DEVICE_ADDR << 1) | I2C_MASTER_WRITE);
     sw_i2c_master_write_byte(0x06);
@@ -477,15 +517,15 @@ esp_err_t i2c_gpio_write(uint8_t DEVICE_ADDR, uint8_t number_gpio, uint8_t statu
         sw_i2c_master_write_byte(data[i]);
     }
     sw_i2c_master_stop();
-	return ret;
+    return ret;
 }
 
 uint8_t i2c_gpio_read(uint8_t DEVICE_ADDR)
 {
-	uint8_t data = 0;
-	
+    uint8_t data = 0;
 
-    sw_i2c_master_start();sw_i2c_master_write_byte((DEVICE_ADDR << 1) | I2C_MASTER_WRITE);
+    sw_i2c_master_start();
+    sw_i2c_master_write_byte((DEVICE_ADDR << 1) | I2C_MASTER_WRITE);
     sw_i2c_master_write_byte(0x07);
     sw_i2c_master_start();
     sw_i2c_master_write_byte((DEVICE_ADDR << 1) | I2C_MASTER_READ);
@@ -493,5 +533,3 @@ uint8_t i2c_gpio_read(uint8_t DEVICE_ADDR)
     sw_i2c_master_stop();
     return data;
 }
-
-
