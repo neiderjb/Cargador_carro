@@ -82,26 +82,26 @@ unsigned short CommEnergyIC(bool RW, uint8_t address, unsigned short val)
     unsigned char *data = (unsigned char *)&val;
     unsigned char *adata = (unsigned char *)&address;
     unsigned short output = 0;
-    uint8_t datos[4] = {0x80,0x00,0x00,0x00};
+    uint8_t datos[4] = {0x80, 0x00, 0x00, 0x00};
 
     if (RW) //READ DATA
     {
         uint8_t dataRead[10];
         datos[1] = address;
         i2c_write_SC18IS602B(0x01, datos, sizeof(datos));
-        vTaskDelay (10 / portTICK_RATE_MS);
+        vTaskDelay(10 / portTICK_RATE_MS);
         i2c_read_SC18IS602B(dataRead, sizeof(dataRead));
-        output = dataRead[2]<< 8 | dataRead[3];
+        output = dataRead[2] << 8 | dataRead[3];
     }
     else
     {
         datos[0] = 0x00;
         datos[1] = address;
         datos[2] = data[1];
-        datos[3] =  data[0];
+        datos[3] = data[0];
         //printf("WRITE  Data 0: %x , Data 1: %x \n", datos[2], datos[3]);
         i2c_write_SC18IS602B(0x01, datos, sizeof(datos));
-        vTaskDelay (10 / portTICK_RATE_MS);
+        vTaskDelay(10 / portTICK_RATE_MS);
     }
 
     return output;
@@ -117,7 +117,6 @@ double GetRegister(uint8_t addr)
     unsigned short registerRead = CommEnergyIC(READ, addr, 0xFFFF);
     return (double)registerRead;
 }
-
 
 int Read32Register(signed short regh_addr, signed short regl_addr)
 {
@@ -155,12 +154,12 @@ uint16_t CalculateVIOffset(unsigned short regh_addr, unsigned short regl_addr /*
     val_l = CommEnergyIC(READ, regl_addr, 0xFFFF);
     val = CommEnergyIC(READ, regh_addr, 0xFFFF);
 
-    val = val_h << 16;      //move high register up 16 bits
-    val |= val_l;           //concatenate the 2 registers to make 1 32 bit number
-    val = val >> 7;         //right shift 7 bits - lowest 7 get ignored
-    val = (~val) + 1;       //2s compliment
+    val = val_h << 16; //move high register up 16 bits
+    val |= val_l;      //concatenate the 2 registers to make 1 32 bit number
+    val = val >> 7;    //right shift 7 bits - lowest 7 get ignored
+    val = (~val) + 1;  //2s compliment
 
-    offset = val;           //keep lower 16 bits
+    offset = val; //keep lower 16 bits
     //CommEnergyIC(WRITE, offset_reg, (signed short)val);
     return offset;
 }
@@ -177,7 +176,7 @@ uint16_t CalculateVIOffset(unsigned short regh_addr, unsigned short regl_addr /*
  */
 uint16_t CalculatePowerOffset(unsigned short regh_addr, unsigned short regl_addr /*, unsigned short offset_reg*/)
 {
-    
+
     uint32_t val, val_h, val_l;
     uint16_t offset;
     val_h = CommEnergyIC(READ, regh_addr, 0xFFFF);
@@ -247,7 +246,7 @@ uint16_t CalibrateVI(unsigned short reg, unsigned short actualVal)
     m = ((m * gain) / val);
     gain = m;
 
-    printf("Calibrate gain_old: %d, gain_new: %d \n", gain_old , gain);
+    printf("Calibrate gain_old: %d, gain_new: %d \n", gain_old, gain);
     //write new value to gain register
     CommEnergyIC(WRITE, CfgRegAccEn, 0x55AA); // enable register config access
     CommEnergyIC(WRITE, gainReg, gain);
@@ -256,17 +255,16 @@ uint16_t CalibrateVI(unsigned short reg, unsigned short actualVal)
     return (gain);
 }
 
-
 /*! \brief This function get Voltage Line A.
  *
  *  \return double          Voltage Line A.
  */
 double GetLineVoltageA()
 {
-    double voltage = (double) CommEnergyIC(READ, UrmsA, 0xFFFF);
+    double voltage = (double)CommEnergyIC(READ, UrmsA, 0xFFFF);
     unsigned short voltageLSB = CommEnergyIC(READ, UrmsALSB, 0xFFFF);
     voltageLSB = voltageLSB << 8 | voltageLSB >> 8;
-    double voltageRMS = (voltage*0.01)+(((double)voltageLSB*0.01)/256);
+    double voltageRMS = (voltage * 0.01) + (((double)voltageLSB * 0.01) / 256);
     return voltageRMS;
 }
 
@@ -279,7 +277,7 @@ double GetLineVoltageB()
     unsigned short voltage = CommEnergyIC(READ, UrmsB, 0xFFFF);
     unsigned short voltageLSB = CommEnergyIC(READ, UrmsBLSB, 0xFFFF);
     voltageLSB = voltageLSB << 8 | voltageLSB >> 8;
-    unsigned short voltageRMS = (voltage*0.01)+((voltageLSB*0.01)/256);
+    unsigned short voltageRMS = (voltage * 0.01) + ((voltageLSB * 0.01) / 256);
     return (double)voltageRMS;
 }
 
@@ -292,7 +290,7 @@ double GetLineVoltageC()
     unsigned short voltage = CommEnergyIC(READ, UrmsC, 0xFFFF);
     unsigned short voltageLSB = CommEnergyIC(READ, UrmsCLSB, 0xFFFF);
     voltageLSB = voltageLSB << 8 | voltageLSB >> 8;
-    unsigned short voltageRMS = (voltage*0.01)+((voltageLSB*0.01)/256);
+    unsigned short voltageRMS = (voltage * 0.01) + ((voltageLSB * 0.01) / 256);
     return (double)voltageRMS;
 }
 
@@ -305,7 +303,7 @@ double GetLineCurrentA()
     unsigned short current = CommEnergyIC(READ, IrmsA, 0xFFFF);
     unsigned short currentLSB = CommEnergyIC(READ, IrmsALSB, 0xFFFF);
     currentLSB = currentLSB << 8 | currentLSB >> 8;
-    double currentRMS = (current*0.001)+((currentLSB*0.001)/256);
+    double currentRMS = (current * 0.001) + ((currentLSB * 0.001) / 256);
     return currentRMS;
 }
 
@@ -318,7 +316,7 @@ double GetLineCurrentB()
     unsigned short current = CommEnergyIC(READ, IrmsB, 0xFFFF);
     unsigned short currentLSB = CommEnergyIC(READ, IrmsBLSB, 0xFFFF);
     currentLSB = currentLSB << 8 | currentLSB >> 8;
-    double currentRMS = (current*0.001)+((currentLSB*0.001)/256);
+    double currentRMS = (current * 0.001) + ((currentLSB * 0.001) / 256);
     return currentRMS;
 }
 
@@ -331,7 +329,7 @@ double GetLineCurrentC()
     unsigned short current = CommEnergyIC(READ, IrmsC, 0xFFFF);
     unsigned short currentLSB = CommEnergyIC(READ, IrmsCLSB, 0xFFFF);
     currentLSB = currentLSB << 8 | currentLSB >> 8;
-    double currentRMS = (current*0.001)+((currentLSB*0.001)/256);
+    double currentRMS = (current * 0.001) + ((currentLSB * 0.001) / 256);
     return currentRMS;
 }
 
@@ -342,7 +340,7 @@ double GetLineCurrentC()
 double GetLineCurrentN()
 {
     unsigned short current = CommEnergyIC(READ, IrmsN, 0xFFFF);
-    unsigned short currentRMS = (current*0.001);
+    unsigned short currentRMS = (current * 0.001);
     return (double)currentRMS;
 }
 
@@ -350,33 +348,37 @@ double GetLineCurrentN()
 double GetActivePowerA()
 {
     int val = Read32Register(PmeanA, PmeanALSB);
-     if ((val & 0x80000000) != 0) { 
-		val = (~val) + 1; //2s compliment
-     }
+    if ((val & 0x80000000) != 0)
+    {
+        val = (~val) + 1; //2s compliment
+    }
     return (double)val * 0.00032;
 }
 double GetActivePowerB()
 {
     int val = Read32Register(PmeanB, PmeanBLSB);
-     if ((val & 0x80000000) != 0) { 
-		val = (~val) + 1; //2s compliment
-     }
+    if ((val & 0x80000000) != 0)
+    {
+        val = (~val) + 1; //2s compliment
+    }
     return (double)val * 0.00032;
 }
 double GetActivePowerC()
 {
     int val = Read32Register(PmeanC, PmeanCLSB);
-     if ((val & 0x80000000) != 0) { 
-		val = (~val) + 1; //2s compliment
-     }
+    if ((val & 0x80000000) != 0)
+    {
+        val = (~val) + 1; //2s compliment
+    }
     return (double)val * 0.00032;
 }
 double GetTotalActivePower()
 {
     int val = Read32Register(PmeanT, PmeanTLSB);
-     if ((val & 0x80000000) != 0) { 
-		val = (~val) + 1; //2s compliment
-     }
+    if ((val & 0x80000000) != 0)
+    {
+        val = (~val) + 1; //2s compliment
+    }
     return (double)val * 0.00032;
 }
 
@@ -420,33 +422,37 @@ double GetTotalReactivePower()
 double GetApparentPowerA()
 {
     int val = Read32Register(SmeanA, SmeanALSB);
-     if ((val & 0x80000000) != 0) { 
-		val = (~val) + 1; //2s compliment
-     }
+    if ((val & 0x80000000) != 0)
+    {
+        val = (~val) + 1; //2s compliment
+    }
     return (double)val * 0.00032;
 }
 double GetApparentPowerB()
 {
     int val = Read32Register(SmeanB, SmeanBLSB);
-     if ((val & 0x80000000) != 0) { 
-		val = (~val) + 1; //2s compliment
-     }
+    if ((val & 0x80000000) != 0)
+    {
+        val = (~val) + 1; //2s compliment
+    }
     return (double)val * 0.00032;
 }
 double GetApparentPowerC()
 {
     int val = Read32Register(SmeanC, SmeanCLSB);
-     if ((val & 0x80000000) != 0) { 
-		val = (~val) + 1; //2s compliment
-     }
+    if ((val & 0x80000000) != 0)
+    {
+        val = (~val) + 1; //2s compliment
+    }
     return (double)val * 0.00032;
 }
 double GetTotalApparentPower()
 {
     int val = Read32Register(SmeanT, SAmeanTLSB);
-     if ((val & 0x80000000) != 0) { 
-		val = (~val) + 1; //2s compliment
-     }
+    if ((val & 0x80000000) != 0)
+    {
+        val = (~val) + 1; //2s compliment
+    }
     return (double)val * 0.00032;
 }
 
@@ -657,7 +663,7 @@ bool calibrationError()
  */
 void begin_M90E32AS(unsigned short lineFreq, unsigned short pgagain, unsigned short ugain, unsigned short igainA, unsigned short igainB, unsigned short igainC)
 {
-                         
+
     unsigned short _lineFreq = lineFreq; //frequency of power
     unsigned short _pgagain = pgagain;   //PGA Gain for current channels
     unsigned short _ugain = ugain;       //voltage rms gain
@@ -750,12 +756,12 @@ void begin_M90E32AS(unsigned short lineFreq, unsigned short pgagain, unsigned sh
     CommEnergyIC(WRITE, IgainA, _igainA);  // A line current gain
     CommEnergyIC(WRITE, UoffsetA, 0x0000); // 0x1D4C A Voltage offset
     CommEnergyIC(WRITE, IoffsetA, 0x0000); // 0xFC60 A line current offset
-    
+
     CommEnergyIC(WRITE, UgainB, _ugain);   // B Voltage rms gain
     CommEnergyIC(WRITE, IgainB, _igainB);  // B line current gain
     CommEnergyIC(WRITE, UoffsetB, 0x0000); // 0x1D4C B Voltage offset
     CommEnergyIC(WRITE, IoffsetB, 0x0000); // 0xFC60B line current offset
-    
+
     CommEnergyIC(WRITE, UgainC, _ugain);   // C Voltage rms gain
     CommEnergyIC(WRITE, IgainC, _igainC);  // C line current gain
     CommEnergyIC(WRITE, UoffsetC, 0x0000); // 0x1D4CC Voltage offset
@@ -763,83 +769,163 @@ void begin_M90E32AS(unsigned short lineFreq, unsigned short pgagain, unsigned sh
 
     CommEnergyIC(WRITE, CfgRegAccEn, 0x0000); // end configuration
 
-	ESP_LOGI(TAG, "begin_M90E32AS OK");
-
+    ESP_LOGI(TAG, "begin_M90E32AS OK");
 }
 
+uint8_t secondCharger, minuteCharger, hourCharger, secondChargerOld, minuteChargerOld, hourChargerOld;
+uint8_t hourstamp, minutestamp, secondstamp;
+bool timestamp = true;
 
 void grid_analyzer_task(void *arg)
 {
-	ESP_LOGI(TAG, "Initiation grid_analyzer_task");
+    ESP_LOGI(TAG, "Initiation grid_analyzer_task");
+    vTaskDelay(5000 / portTICK_RATE_MS);
+    // float voltageA, currentA, powerfactorA, powerA, powerReacA, powerAppA,
+    // 	voltageB, currentB, powerfactorB, powerB, powerReacB, powerAppB,
+    // 	voltageC, currentC, powerfactorC, powerC, powerReacC, powerAppC,
+    // 	temperature;
 
-	float voltageA, currentA, temperature, powerFactorA, powerA, powerReacA,
-		powerAppA, freq, totalWattsA;
-
-	for (;;)
-	{
+    for (;;)
+    {
         read_time = false;
-		unsigned short sys0 = GetSysStatus0();  //EMMState0
-		unsigned short sys1 = GetSysStatus1();  //EMMState1
-		unsigned short en0 = GetMeterStatus0(); //EMMIntState0
-		unsigned short en1 = GetMeterStatus1(); //EMMIntState1
+        unsigned short sys0 = GetSysStatus0();  //EMMState0
+        unsigned short sys1 = GetSysStatus1();  //EMMState1
+        unsigned short en0 = GetMeterStatus0(); //EMMIntState0
+        unsigned short en1 = GetMeterStatus1(); //EMMIntState1
 
-		//printf("Sys Status: S0:0x %d, S1:0x %d \n", sys0, sys1);
-		//printf("Meter Status: E0:0x %d, E1:0x %d \n", en0, en1);
-		vTaskDelay(5);
+        //printf("Sys Status: S0:0x %d, S1:0x %d \n", sys0, sys1);
+        //printf("Meter Status: E0:0x %d, E1:0x %d \n", en0, en1);
+        vTaskDelay(10 / portTICK_RATE_MS);
 
-		//if true the MCU is not getting data from the energy meter
-		if (sys0 == 65535 || sys0 == 0)
-		{
-			// led_state_maxV(2, 2);
-			ESP_LOGI(TAG, "Error: Not receiving data from energy meter - check your connections \n");
-			voltageA = 0;
-			currentA = 0;
-			temperature = 0;
-			powerFactorA = 0;
-			powerA = 0;
-			powerReacA = 0;
-			powerAppA = 0;
-			freq = 0;
-			totalWattsA = (voltageA * currentA);
-			//begin_M90E32AS(0, LineFreq, PGAGain, VoltageGain, CurrentGain, CurrentGain, CurrentGain);	//
-		}
-		else
-		{
-			voltageA = GetLineVoltageA();
-			currentA = GetLineCurrentA();
-			temperature = GetTemperature();
-			powerFactorA = GetTotalPowerFactor();
-			powerA = GetActivePowerA();
-			powerReacA = GetReactivePowerA();
-			powerAppA = GetApparentPowerA();
-			freq = GetFrequency();
-			totalWattsA = (voltageA * currentA);
+        //if true the MCU is not getting data from the energy meter
+        if (sys0 == 65535 || sys0 == 0)
+        {
+            // led_state_maxV(2, 2);
+            ESP_LOGI(TAG, "Error: Not receiving data from energy meter - check your connections \n");
+            voltageA = 0;
+            currentA = 0;
+            powerfactorA = 0;
+            powerA = 0;
+            powerReacA = 0;
+            powerAppA = 0;
+            voltageB = 0;
+            currentB = 0;
+            powerfactorB = 0;
+            powerB = 0;
+            powerReacB = 0;
+            powerAppB = 0;
+            voltageC = 0;
+            currentC = 0;
+            powerfactorC = 0;
+            powerC = 0;
+            powerReacC = 0;
+            powerAppC = 0;
+            temperature = 0;
+        }
+        else
+        {
+            voltageA = GetLineVoltageA();
+            voltageB = GetLineVoltageB();
+            voltageC = GetLineVoltageC();
+            currentA = GetLineCurrentA();
+            currentB = GetLineCurrentB();
+            currentC = GetLineCurrentC();
+            temperature = GetTemperature();
+            powerfactorA = GetPowerFactorA();
+            powerfactorB = GetPowerFactorB();
+            powerfactorC = GetPowerFactorC();
+            powerA = GetActivePowerA();
+            powerB = GetActivePowerB();
+            powerC = GetActivePowerC();
+            powerReacA = GetReactivePowerA();
+            powerReacB = GetReactivePowerB();
+            powerReacC = GetReactivePowerC();
+            powerAppA = GetApparentPowerA();
+            powerAppB = GetApparentPowerB();
+            powerAppC = GetApparentPowerC();
 
             uint8_t dataTime[6];
             getTime(dataTime);
-            #ifdef DEBUG
+            if (charging)
+            {
+                if (timestamp)
+                {
+                    timestamp=false;
+                    printf("\033[0;32m");
+                    printf("Charger Time: %d:%d:%d \n", dataTime[2], dataTime[1], dataTime[0]);
+                    printf("\033[0m");
+                    secondChargerOld = dataTime[0];
+                    minuteChargerOld = dataTime[1];
+                    hourChargerOld = dataTime[2];
+                }
+
+                secondCharger = dataTime[0];
+                minuteCharger = dataTime[1];
+                hourCharger = dataTime[2];
+
+                PowerConsumeA = PowerConsumeA + powerA;
+                PowerConsumeB = PowerConsumeB + powerB;
+                PowerConsumeC = PowerConsumeC + powerC;
+
+                hourstamp = hourCharger - hourChargerOld;
+                minutestamp = minuteCharger - minuteChargerOld;
+                secondstamp = secondCharger - secondChargerOld;
+
+                if (hourCharger < 24 && minuteCharger < 60 && minutestamp <= -1)
+                {
+                    minutestamp = minutestamp + 60;
+                    hourstamp = hourstamp - 1;
+                }
+                if (hourCharger < 24 && secondCharger < 60 && secondstamp <= -1)
+                {
+                    secondstamp = secondstamp + 60;
+                    minutestamp = minutestamp - 1;
+                }
+                printf("Charger Time: %d:%d:%d \n", hourstamp, minutestamp, secondstamp);
+
+                if (minutestamp > minuteChargerOld + 1 && secondstamp >= secondChargerOld)
+                {
+                    timestamp =true;
+                    printf("Charger PowerConsumeA %.1f [W]\n",(PowerConsumeA/3600));
+                    printf("Charger PowerConsumeB %.1f [W]\n",(PowerConsumeB/3600));
+                    printf("Charger PowerConsumeB %.1f [W]\n",(PowerConsumeB/3600));
+                }
+            }
+            //UpdateLabelsScreen(voltageA,currentA,temperature,powerAppA,freq, dataTime);
+
+#ifdef DEBUG
             printf("\033[0;32m");
             printf("System Time: %d:%d:%d \n", dataTime[2], dataTime[1], dataTime[0]);
             printf("\033[0m");
-    
-			printf("============================== \n");
-			printf("Voltage A: %.2f [V] \n", voltageA);
-			printf("Current A: %.2f [A] \n", currentA);
-			printf("Chip Temp: %.2f [C] \n", temperature);
-			printf("Power Factor A: %.2f [W] \n", powerFactorA);
-			printf("Active Power A: %.2f [W] \n", powerA);
-			printf("Reactive Power A: %.2f [Var] \n", powerReacA);
-			printf("Apparent Power A: %.2f [VA] \n", powerAppA);
-			printf("Power total A MAT : %.2f [W] \n", totalWattsA);
-			printf("Frequency: %.2f [Hz] \n", freq);
-			printf("============================== \n");
-            #endif
-            
-            //UpdateLabelsScreen(voltageA,currentA,temperature,powerAppA,freq, dataTime);
 
-		}        
-		
+            printf("=============FASE A=============== \n");
+            printf("Voltage 1: %.1f [V] \n", voltageA);
+            printf("Current 1: %.1f [A] \n", currentA);
+            printf("Power 1: %.1f [W] \n", powerA);
+            printf("Factor 1: %.1f  \n", powerfactorA);
+            printf("PowerR 1: %.1f [VAR] \n", powerReacA);
+            printf("PowerApp 1: %.1f [VA] \n", powerAppA);
+            printf("=============FASE B=============== \n");
+            printf("Voltage 2: %.1f [V] \n", voltageB);
+            printf("Current 2: %.1f [A] \n", currentB);
+            printf("Power 2: %.1f [W] \n", powerB);
+            printf("Factor 2: %.1f [V] \n", powerfactorB);
+            printf("PowerR 2: %.1f [VAR] \n", powerReacB);
+            printf("PowerApp 2: %.1f [VA] \n", powerAppB);
+            printf("=============FASE C=============== \n");
+            printf("Voltage 3: %.1f [V] \n", voltageC);
+            printf("Current 3: %.1f [A] \n", currentC);
+            printf("Power 3: %.1f [W] \n", powerC);
+            printf("Factor 3: %.1f [V] \n", powerfactorC);
+            printf("PowerR 3: %.1f [VAR] \n", powerReacC);
+            printf("PowerApp 3: %.1f [VA] \n", powerAppC);
+            printf("============================== \n");
+            printf("Temperature: %.1f [C] \n", temperature);
+            printf("============================== \n");
+#endif
+        }
+
         read_time = true;
-        vTaskDelay(1000);
-	}
+        vTaskDelay(5000 / portTICK_RATE_MS);
+    }
 }

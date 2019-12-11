@@ -13,13 +13,41 @@ void set_pixel_RA(int32_t x, int32_t y, uint16_t color)
 }
 
 uint32_t mat;
+uint32_t size, sizex, sizey;
+uint32_t line_obj_y;
+uint8_t color_temp_size;
 void my_disp_flush(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map)
 {
     //printf("my_disp_flush\n");
-    mat = (uint32_t)(((area->x2) - (area->x1) + 1) * ((area->y2) - (area->y1) + 1));
-    printf("lvGL area to draw: %u-%u,%u-%u %u\n\r", area->x1, area->x2, area->y1, area->y2, mat);
+    sizex = (uint32_t)(((area->x2) - (area->x1)) + 1);
+    sizey = (uint32_t)((area->y2) - (area->y1));
+    line_obj_y = 0;
+    //color_temp_size = 0;
+
+    size = lv_area_get_width(area) * lv_area_get_height(area);
+    mat = (uint32_t)(sizex * (sizey + 1));
+    printf("lvGL area to draw: x1:%u-x2:%u,y1:%u-y2:%u size area %u size area%u sixex %u sixey %u linea y %u\n\r", area->x1, area->x2, area->y1, area->y2, mat, size, sizex,sizey, line_obj_y);
+
+    for (int i = 0; i <= sizey ; i++) //Recorre Y
+    {
+        // uint16_t color_temp[(area->x2 - area->x1) + 1]; //Reccore X
+        // for (int j = line_obj_y; j < (line_obj_y + (area->x2 - area->x1)); j++)
+        // {
+        //     color_temp[color_temp_size] = color_map[j].full;
+        //     color_temp_size++;
+        // }
+        //line_obj_y = line_obj_y + ((area->x2) - (area->x1) + 1);
+
+        printf("lvGL print to draw: linea %u color %u size %u x %u y %u \n\r", line_obj_y, color_map[line_obj_y].full, sizex, area->x1, ((area->y1) + i));
+        drawPixels((uint16_t *)&color_map[line_obj_y].full, sizex, area->x1, ((area->y1) + i));
+
+        line_obj_y = line_obj_y + sizex;
+        //drawPixels(color_temp, ((area->x2) - (area->x1) + 1), area->x1, ((area->y1) + i));
+        //color_temp_size = 0;
+    }
+
     //drawPixels((uint16_t *)&color_map->full, mat, 0, area->y1);
-    drawPixels((uint16_t *)&color_map->full, mat, area->x1, area->y1);
+    //drawPixels((uint16_t *)&color_map->full, mat, area->x1, area->y1);
     lv_disp_flush_ready(drv); /* Indicate you are ready with the flushing*/
 }
 

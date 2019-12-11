@@ -38,7 +38,7 @@ static const char *TAG = "Main";
 void Network_Control(void *p)
 {
 	ESP_LOGI(TAG, "Initiation Network task");
-	vTaskDelay(5000 /portTICK_RATE_MS);
+	vTaskDelay(5000 / portTICK_RATE_MS);
 	bool network_signal = false;
 	for (;;)
 	{
@@ -83,6 +83,22 @@ void app_main()
 
 	//EPLD
 	begin_maxV();
+
+	// ////Debug Analizer
+	// //I2C config
+	// sw_i2c_init(PIN_SDA, PIN_SCL);
+	// sw_i2c_master_scan();
+	
+	// begin_SC18IS602B();
+	// //configuration analizer
+	// begin_analizer();
+	// begin_calibration_analizer(LineFreq, PGAGain, VoltageGain, CurrentGain, 60853, 63853);
+	// xTaskCreate(grid_analyzer_task, "grid_analyzer_task", 4096, NULL, 5, NULL);
+	// while (1)
+	// {
+	// 	vTaskDelay(100);
+	// }
+	// //Debug Analizer
 
 	//I2C config
 	sw_i2c_init(PIN_SDA, PIN_SCL);
@@ -145,7 +161,7 @@ void app_main()
 	wifi_begin("DeepSea Developments", "hexaverse"); //ISSUE cuando no tiene red falla
 	if (detectAnalizer)
 	{
-		//xTaskCreate(grid_analyzer_task, "grid_analyzer_task", 4096, NULL, 5, NULL);
+		xTaskCreate(grid_analyzer_task, "grid_analyzer_task", 4096, NULL, 5, NULL);
 	}
 	if (detectModbus)
 	{

@@ -126,6 +126,8 @@ struct Config
 	char *time_zone;
 };
 
+
+
 struct Timer_control
 {
 	int TimerPulseControl;
@@ -136,6 +138,12 @@ struct Timer_control control_timer;
 
 struct Config ConfigurationObject;
 
+float voltageA, currentA, powerfactorA, powerA, powerReacA, powerAppA,
+		voltageB, currentB, powerfactorB, powerB, powerReacB, powerAppB,
+		voltageC, currentC, powerfactorC, powerC, powerReacC, powerAppC,
+		temperature;
+
+float PowerConsumeA, PowerConsumeB, PowerConsumeC;
 
 //9200-1000-7400-1000 --- 60
 //10700-1000-9000-1000 --- 50

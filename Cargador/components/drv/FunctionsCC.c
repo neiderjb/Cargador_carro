@@ -219,119 +219,22 @@ char *createjsonFaseC(double volC, double currC, double factor, double potenC, d
  */
 void ReadInformation()
 {
-
 	ready_information = false;
-
-	double voltageA, currentA, powerfactorA, powerA, powerReacA, powerAppA,
-		voltageB, currentB, powerfactorB, powerB, powerReacB, powerAppB,
-		voltageC, currentC, powerfactorC, powerC, powerReacC, powerAppC,
-		temperature;
-
-	unsigned short sys0 = GetSysStatus0();  //EMMState0
-	unsigned short sys1 = GetSysStatus1();  //EMMState1
-	unsigned short en0 = GetMeterStatus0(); //EMMIntState0
-	unsigned short en1 = GetMeterStatus1(); //EMMIntState1
-	
-	uint8_t dataTime[6];
-    getTime(dataTime);
-
-	if (sys0 == 65535 || sys0 == 0)
-	{
-		// led_state_maxV(2, 2);
-		ESP_LOGI(TAG, "Error: Not receiving data from energy meter - check your connections \n");
-		voltageA = 0;
-		currentA = 0;
-		powerfactorA = 0;
-		powerA = 0;
-		powerReacA = 0;
-		powerAppA = 0;
-		voltageB = 0;
-		currentB = 0;
-		powerfactorB = 0;
-		powerB = 0;
-		powerReacB = 0;
-		powerAppB = 0;
-		voltageC = 0;
-		currentC = 0;
-		powerfactorC = 0;
-		powerC = 0;
-		powerReacC = 0;
-		powerAppC = 0;
-		temperature = 0;
-	}
-	else
-	{
-		voltageA = GetLineVoltageA();
-		voltageB = GetLineVoltageB();
-		voltageC = GetLineVoltageC();
-		currentA = GetLineCurrentA();
-		currentB = GetLineCurrentB();
-		currentC = GetLineCurrentC();
-		temperature = GetTemperature();
-		powerfactorA = GetPowerFactorA();
-		powerfactorB = GetPowerFactorB();
-		powerfactorC = GetPowerFactorC();
-		powerA = GetActivePowerA();
-		powerB = GetActivePowerB();
-		powerC = GetActivePowerC();
-		powerReacA = GetReactivePowerA();
-		powerReacB = GetReactivePowerB();
-		powerReacC = GetReactivePowerC();
-		powerAppA = GetApparentPowerA();
-		powerAppB = GetApparentPowerB();
-		powerAppC = GetApparentPowerC();
-	}
-
-	printf("=============FASE A=============== \n");
-	printf("Voltage 1: %.1f [V] \n", voltageA);
-	printf("Current 1: %.1f [A] \n", currentA);
-	printf("Power 1: %.1f [W] \n", powerA);
-	printf("Factor 1: %.1f  \n", powerfactorA);
-	printf("PowerR 1: %.1f [VAR] \n", powerReacA);
-	printf("PowerApp 1: %.1f [VA] \n", powerAppA);
-	printf("=============FASE B=============== \n");
-	printf("Voltage 2: %.1f [V] \n", voltageB);
-	printf("Current 2: %.1f [A] \n", currentB);
-	printf("Power 2: %.1f [W] \n", powerB);
-	printf("Factor 2: %.1f [V] \n", powerfactorB);
-	printf("PowerR 2: %.1f [VAR] \n", powerReacB);
-	printf("PowerApp 2: %.1f [VA] \n", powerAppB);
-	printf("=============FASE C=============== \n");
-	printf("Voltage 3: %.1f [V] \n", voltageC);
-	printf("Current 3: %.1f [A] \n", currentC);
-	printf("Power 3: %.1f [W] \n", powerC);
-	printf("Factor 3: %.1f [V] \n", powerfactorC);
-	printf("PowerR 3: %.1f [VAR] \n", powerReacC);
-	printf("PowerApp 3: %.1f [VA] \n", powerAppC);
-	printf("============================== \n");
-	printf("Temperature: %.1f [C] \n", temperature);
 	printf("Phonix Charger State: %x \n", PStatus);
 	printf("Phonix Error State: %x \n", EStatus);
 	printf("Phonix Charger Time Charger- %x:%x:%x \n", PHour,PMinute,PSecond);
-
-
-	uint8_t topic[] = "airis/1155/power_analizer";
 
 	char *dataMQTTA = createjsonFaseA(voltageA, currentA, powerfactorA, powerA, powerReacA, powerAppA, (voltageA * currentA), temperature, PStatus, EStatus, PHour, PMinute, PSecond);
 	char *dataMQTTB = createjsonFaseB(voltageB, currentB, powerfactorB, powerB, powerReacB, powerAppB, (voltageB * currentB), temperature, PStatus, EStatus, PHour, PMinute, PSecond);
 	char *dataMQTTC = createjsonFaseC(voltageC, currentC, powerfactorC, powerC, powerReacC, powerAppC, (voltageC * currentC), temperature, PStatus, EStatus, PHour, PMinute, PSecond);
 
-	// if ((voltageA > 0 || voltageA < 90 || voltageA > 235) || !Isconnected())
-	// {
-	// 	printf("\033[1;31m");
-	// 	printf("Lectura Erronea ReadInformation\n");
-	// 	printf("\033[0m");
-	// }
-	// else
-	// {
-	// 	// sendMessage(dataMQTTA, (char *)topic);
-	// 	// sendMessage(dataMQTTB, (char *)topic);
-	// 	// sendMessage(dataMQTTC, (char *)topic);
-	// }
-	sendMessage(dataMQTTA, (char *)topic);
-	sendMessage(dataMQTTB, (char *)topic);
-	sendMessage(dataMQTTC, (char *)topic);
-
+	if (Isconnected()){
+		
+		uint8_t topic[] = "airis/1155/power_analizer";
+		sendMessage(dataMQTTA, (char *)topic);
+		sendMessage(dataMQTTB, (char *)topic);
+		sendMessage(dataMQTTC, (char *)topic);
+	}
 	ready_information = true;
 }
 

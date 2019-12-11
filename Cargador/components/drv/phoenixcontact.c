@@ -227,7 +227,7 @@ void phoenix_task(void *arg)
                 if (PStatus == 0x4231)
                 {
                     ESP_LOGI(TAG, "-------------B1 - Carga finalizada\n");
-                    stop_charging();
+                    //stop_charging();
                 }
                 else if (PStatus == 0x4331 || PStatus == 0x4332)
                 {
