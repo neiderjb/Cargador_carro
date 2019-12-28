@@ -50,6 +50,7 @@
 //#include "Sim800L.h"
 
 static const char *TAG = "FunctionsCC";
+static char topic[] = "airis/1155/power_analizer";
 
 void decodeCommand(char *s)
 {
@@ -120,7 +121,7 @@ char *createjsonFaseA(double volA, double currA, double factor, double potenA, d
 {
 
 	cJSON *root;
-	char *datatoreturn;
+	static char *datatoreturn;
 
 	root = cJSON_CreateObject();
 
@@ -145,6 +146,7 @@ char *createjsonFaseA(double volA, double currA, double factor, double potenA, d
 	cJSON_AddItemToObject(root, "EST", cJSON_CreateNumber(Esta));
 
 	datatoreturn = cJSON_PrintUnformatted(root);
+	cJSON_Delete(root);
 	return datatoreturn;
 	//sendMessage(datatoreturn, "airis/1155/power_analizer");
 }
@@ -153,7 +155,7 @@ char *createjsonFaseB(double volB, double currB, double factor, double potenB, d
 {
 
 	cJSON *root;
-	char *datatoreturn;
+	static char *datatoreturn;
 
 	root = cJSON_CreateObject();
 
@@ -178,6 +180,7 @@ char *createjsonFaseB(double volB, double currB, double factor, double potenB, d
 	cJSON_AddItemToObject(root, "EST", cJSON_CreateNumber(Esta));
 
 	datatoreturn = cJSON_PrintUnformatted(root);
+	cJSON_Delete(root);
 	return datatoreturn;
 }
 
@@ -185,7 +188,7 @@ char *createjsonFaseC(double volC, double currC, double factor, double potenC, d
 {
 
 	cJSON *root;
-	char *datatoreturn;
+	static char *datatoreturn;
 
 	root = cJSON_CreateObject();
 
@@ -210,6 +213,7 @@ char *createjsonFaseC(double volC, double currC, double factor, double potenC, d
 	cJSON_AddItemToObject(root, "EST", cJSON_CreateNumber(Esta));
 
 	datatoreturn = cJSON_PrintUnformatted(root);
+	cJSON_Delete(root);
 	return datatoreturn;
 }
 
@@ -229,12 +233,14 @@ void ReadInformation()
 	char *dataMQTTC = createjsonFaseC(voltageC, currentC, powerfactorC, powerC, powerReacC, powerAppC, (voltageC * currentC), temperature, PStatus, EStatus, PHour, PMinute, PSecond);
 
 	if (Isconnected()){
-		
-		uint8_t topic[] = "airis/1155/power_analizer";
-		sendMessage(dataMQTTA, (char *)topic);
-		sendMessage(dataMQTTB, (char *)topic);
-		sendMessage(dataMQTTC, (char *)topic);
+				
+		sendMessage(dataMQTTA, topic);
+		sendMessage(dataMQTTB, topic);
+		sendMessage(dataMQTTC, topic);
 	}
+	free(dataMQTTA);
+	free(dataMQTTB);
+	free(dataMQTTC);
 	ready_information = true;
 }
 

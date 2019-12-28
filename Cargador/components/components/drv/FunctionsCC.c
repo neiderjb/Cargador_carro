@@ -50,6 +50,7 @@
 //#include "Sim800L.h"
 
 static const char *TAG = "FunctionsCC";
+static char topic[] = "airis/cc/power_analizer";
 
 void decodeCommand(char *s)
 {
@@ -120,7 +121,7 @@ char *createjsonFaseA(double volA, double currA, double factor, double potenA, d
 {
 
 	cJSON *root;
-	char *datatoreturn;
+	static char *datatoreturn;
 
 	root = cJSON_CreateObject();
 
@@ -145,6 +146,7 @@ char *createjsonFaseA(double volA, double currA, double factor, double potenA, d
 	cJSON_AddItemToObject(root, "EST", cJSON_CreateNumber(Esta));
 
 	datatoreturn = cJSON_PrintUnformatted(root);
+	cJSON_Delete(root);
 	return datatoreturn;
 	//sendMessage(datatoreturn, "airis/1155/power_analizer");
 }
@@ -153,7 +155,7 @@ char *createjsonFaseB(double volB, double currB, double factor, double potenB, d
 {
 
 	cJSON *root;
-	char *datatoreturn;
+	static char *datatoreturn;
 
 	root = cJSON_CreateObject();
 
@@ -178,6 +180,7 @@ char *createjsonFaseB(double volB, double currB, double factor, double potenB, d
 	cJSON_AddItemToObject(root, "EST", cJSON_CreateNumber(Esta));
 
 	datatoreturn = cJSON_PrintUnformatted(root);
+	cJSON_Delete(root);
 	return datatoreturn;
 }
 
@@ -185,7 +188,7 @@ char *createjsonFaseC(double volC, double currC, double factor, double potenC, d
 {
 
 	cJSON *root;
-	char *datatoreturn;
+	static char *datatoreturn;
 
 	root = cJSON_CreateObject();
 
@@ -210,6 +213,7 @@ char *createjsonFaseC(double volC, double currC, double factor, double potenC, d
 	cJSON_AddItemToObject(root, "EST", cJSON_CreateNumber(Esta));
 
 	datatoreturn = cJSON_PrintUnformatted(root);
+	cJSON_Delete(root);
 	return datatoreturn;
 }
 
@@ -310,7 +314,7 @@ void ReadInformation()
 	printf("Phonix Charger Time Charger- %x:%x:%x \n", PHour,PMinute,PSecond);
 
 
-	uint8_t topic[] = "airis/1155/power_analizer";
+	
 
 	char *dataMQTTA = createjsonFaseA(voltageA, currentA, powerfactorA, powerA, powerReacA, powerAppA, (voltageA * currentA), temperature, PStatus, EStatus, PHour, PMinute, PSecond);
 	char *dataMQTTB = createjsonFaseB(voltageB, currentB, powerfactorB, powerB, powerReacB, powerAppB, (voltageB * currentB), temperature, PStatus, EStatus, PHour, PMinute, PSecond);
@@ -328,10 +332,12 @@ void ReadInformation()
 	// 	// sendMessage(dataMQTTB, (char *)topic);
 	// 	// sendMessage(dataMQTTC, (char *)topic);
 	// }
-	sendMessage(dataMQTTA, (char *)topic);
-	sendMessage(dataMQTTB, (char *)topic);
-	sendMessage(dataMQTTC, (char *)topic);
-
+	sendMessage(dataMQTTA, topic);
+	sendMessage(dataMQTTB, topic);
+	sendMessage(dataMQTTC, topic);
+	free(dataMQTTA);
+	free(dataMQTTB);
+	free(dataMQTTC);
 	ready_information = true;
 }
 
