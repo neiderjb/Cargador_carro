@@ -161,6 +161,9 @@ xSemaphoreHandle Semaphore_Start_Charging;
 xSemaphoreHandle Semaphore_Stop_Charging;
 xSemaphoreHandle Semaphore_Out_Phoenix;
 
+xSemaphoreHandle Semaphore_Out_Rele;
+xSemaphoreHandle Semaphore_Out_Led;
+
 uint16_t PStatus;
 uint16_t EStatus;
 uint8_t PHour;
@@ -176,5 +179,5 @@ lv_obj_t *labelCur;
 lv_obj_t *labelPow;
 lv_obj_t *labelCon;
 lv_obj_t *labelTime;
-
+lv_obj_t *labelPhoenix;
 

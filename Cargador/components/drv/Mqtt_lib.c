@@ -24,7 +24,9 @@
 #include "cJSON.h"
 #include "PCF85063TP.h"
 #include "wifi_lib.h"
-
+#include "FunctionsCC.h"
+#include "functions.h"
+#include "EPLD.h"
 
 static const char *TAG = "MQTT";
 char *input;
@@ -39,13 +41,13 @@ esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 	switch (event->event_id)
 	{
 	case MQTT_EVENT_CONNECTED:
-		
+
 		msg_id = esp_mqtt_client_subscribe(client, input, 0);
 		ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
 
-		/*msg_id = esp_mqtt_client_subscribe(client, "/topic/qos1", 1);
+		msg_id = esp_mqtt_client_subscribe(client, "airis/cc/start", 1);
 		ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
-
+		/* 
 		msg_id = esp_mqtt_client_unsubscribe(client, "/topic/qos1");
 		ESP_LOGI(TAG, "sent unsubscribe successful, msg_id=%d", msg_id);*/
 		break;
@@ -66,9 +68,25 @@ esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 		//ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
 		break;
 	case MQTT_EVENT_DATA:
-		ESP_LOGI(TAG, "MQTT_EVENT_DATA");		
-		char *s = event->data;
-		Set_Time_Reference(s);
+		ESP_LOGI(TAG, "MQTT_EVENT_DATA");
+		int _size = event->topic_len;
+		char *_topic = substring(event->topic, 0, _size + 1);
+
+		printf("%s\n", _topic);
+		if (strcmp(_topic, "airis/cc/start"))
+		{
+			contador_power_read = 0;
+			int _start = (int)event->data;					
+			Charge_Power_Control((bool)_start);
+
+		}
+		else
+		{
+			char *s = event->data;
+			Set_Time_Reference(s);
+			free(s);
+		}
+		free(_topic);
 		break;
 	case MQTT_EVENT_ERROR:
 		ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
@@ -86,8 +104,6 @@ void sendMessage(char *data, char *topic)
 	ESP_LOGI(TAG, "sent publish successful");
 	ESP_LOGW(TAG, "[APP] Free memory: %d bytes", esp_get_free_heap_size());
 }
-
-
 
 void SetValues(char *input_topic, char *output_topic)
 {

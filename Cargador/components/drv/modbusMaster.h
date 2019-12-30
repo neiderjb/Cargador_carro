@@ -221,8 +221,9 @@ uint8_t ModbusMasterTransactionOLD(uint8_t u8MBFunction);
 // // postTransmission callback function; gets called after a Modbus message has been sent
 // void (*_postTransmission)(void);
 
-
+void modbusResponse_task(void *arg);
 void responseModbus(uint8_t u8MBFunction, uint8_t *data_rd, bool coil);
+void responseModbusTask(uint8_t u8MBFunction, uint8_t *data_rd, bool coil, uint8_t u8ModbusADUSize);
 
 uint16_t lowWord(uint32_t ww);
 uint8_t lowByte(uint16_t ww);

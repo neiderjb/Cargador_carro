@@ -28,8 +28,7 @@
  **********************/
 static void mbox_event_cb(lv_obj_t *obj, lv_event_t evt);
 static void btn_event_cb(lv_obj_t *obj, lv_event_t event);
-static void kb_event_cb(lv_obj_t *event_kb, lv_event_t event);
-static void ta_event_cb(lv_obj_t *ta, lv_event_t event);
+
 
 lv_obj_t *scr1;
 lv_obj_t *win;
@@ -48,7 +47,7 @@ lv_obj_t *btn_airis;
 lv_obj_t *btn_close_alert;
 
 lv_obj_t *btn1, *btn2, *btn3, *btn4;
-lv_obj_t *labelCharger;
+lv_obj_t *labelCharger, *labelIndicatorPhoenix;
 
 lv_coord_t hres;
 lv_coord_t vres;
@@ -84,12 +83,9 @@ void cargador_create(void)
 {
 	hres = lv_disp_get_hor_res(NULL);
 	vres = lv_disp_get_ver_res(NULL);
-
 	scr1 = lv_page_create(NULL, NULL);
-
 	//scr1 = lv_obj_create(NULL, NULL);
 	lv_disp_load_scr(scr1);
-
 	screen_welcome();
 	printf("CargadorScreen GUI OK\n");
 }
@@ -120,8 +116,8 @@ void screen_welcome(void)
 	lv_obj_set_size(btn1, 200, 50);
 	lv_obj_set_event_cb(btn1, btn_event_cb);
 	lv_obj_align(btn1, NULL, LV_ALIGN_IN_TOP_MID, -150, 290);
-	label = lv_label_create(btn1, NULL);
-	lv_label_set_text(label, "Phoenix Indicador ON");
+	labelIndicatorPhoenix = lv_label_create(btn1, NULL);
+	lv_label_set_text(labelIndicatorPhoenix, "Phoenix Indicador ON");
 
 	btn2 = lv_btn_create(cont_screen_welcome, NULL);
 	lv_obj_set_size(btn2, 200, 50);
@@ -148,12 +144,12 @@ void screen_welcome(void)
 	labelTime = lv_label_create(cont_screen_welcome, NULL);
 	lv_label_set_recolor(labelTime, true);
 	lv_label_set_text(labelTime, "Tiempo:"); /*Set the text*/
-	lv_obj_align(labelTime, NULL, LV_ALIGN_IN_TOP_MID, 500, 410);
+	lv_obj_align(labelTime, NULL, LV_ALIGN_IN_TOP_MID, 200, 100);
 
 	labelVol = lv_label_create(cont_screen_welcome, NULL);
 	lv_label_set_recolor(labelVol, true);
 	lv_label_set_text(labelVol, "Voltaje:"); /*Set the text*/
-	lv_obj_align(labelVol, NULL, LV_ALIGN_IN_TOP_MID, -200, 410);
+	lv_obj_align(labelVol, NULL, LV_ALIGN_IN_TOP_MID, -250, 410);
 
 	labelCur = lv_label_create(cont_screen_welcome, NULL);
 	lv_label_set_recolor(labelCur, true);
@@ -168,19 +164,41 @@ void screen_welcome(void)
 	labelCon = lv_label_create(cont_screen_welcome, NULL);
 	lv_label_set_recolor(labelCon, true);
 	lv_label_set_text(labelCon, "Consumo:"); /*Set the text*/
-	lv_obj_align(labelCon, NULL, LV_ALIGN_IN_TOP_MID, 200, 410);
+	lv_obj_align(labelCon, NULL, LV_ALIGN_IN_TOP_MID, 250, 410);
+
+	labelPhoenix = lv_label_create(cont_screen_welcome, NULL);
+	lv_label_set_recolor(labelPhoenix, true);
+	lv_label_set_text(labelPhoenix, " - "); /*Set the text*/
+	lv_obj_align(labelPhoenix, NULL, LV_ALIGN_IN_TOP_MID, 0, 440);
+
+
 }
 
 void lv_ex_mbox_1(void)
 {
-	static const char *btns[] = {"Si que va!", "Bueno Toco...", ""};
+	static lv_style_t modal_style;
+	/* Create a full-screen background */
+	lv_style_copy(&modal_style, &lv_style_plain_color);
 
-	mbox1 = lv_mbox_create(lv_scr_act(), NULL);
-	lv_mbox_set_text(mbox1, "Espere Porfavor.");
-	lv_mbox_add_btns(mbox1, btns);
-	lv_obj_set_width(mbox1, 200);
-	lv_obj_set_event_cb(mbox1, btn_event_cb);
-	lv_obj_align(mbox1, NULL, LV_ALIGN_CENTER, 0, 0); /*Align to the corner*/
+	/* Set the background's style */
+	modal_style.body.main_color = modal_style.body.grad_color = LV_COLOR_BLACK;
+	modal_style.body.opa = LV_OPA_50;
+
+	/* Create a base object for the modal background */
+	lv_obj_t *obj = lv_obj_create(lv_scr_act(), NULL);
+	lv_obj_set_style(obj, &modal_style);
+	lv_obj_set_pos(obj, 0, 0);
+	lv_obj_set_size(obj, LV_HOR_RES, LV_VER_RES);
+	lv_obj_set_opa_scale_enable(obj, true); /* Enable opacity scaling for the animation */
+
+	static const char *btns2[] = {"Ok", "Cancel", ""};
+
+	/* Create the message box as a child of the modal background */
+	mbox = lv_mbox_create(obj, NULL);
+	lv_mbox_add_btns(mbox, btns2);
+	lv_mbox_set_text(mbox, "Espere porfavor!");
+	lv_obj_align(mbox, NULL, LV_ALIGN_CENTER, 0, 0);
+	lv_obj_set_event_cb(mbox, mbox_event_cb);
 }
 
 /**********************
@@ -200,18 +218,19 @@ static void btn_event_cb(lv_obj_t *obj, lv_event_t event)
 			{
 				stateindi = true;
 				xSemaphoreGive(Semaphore_Out_Phoenix);
+				lv_label_set_text(labelIndicatorPhoenix, "Phoenix Indicador OFF");
 				printf("Clicked Phoenix Indicador OFF\n");
 				//lv_ex_mbox_1();
 			}
 			else
 			{
 				stateindi = false;
+				lv_label_set_text(labelIndicatorPhoenix, "Phoenix Indicador ON");
 				printf("Clicked Phoenix Indicador ON\n");
 			}
 		}
 		else if (obj == btn2)
 		{
-
 			if (!statechar)
 			{
 				statechar = true;
@@ -229,9 +248,11 @@ static void btn_event_cb(lv_obj_t *obj, lv_event_t event)
 		}
 		else if (obj == btn3)
 		{
+			xSemaphoreGive(Semaphore_Stop_Charging);
 		}
 		else if (obj == btn4)
 		{
+			xSemaphoreGive(Semaphore_Stop_Charging);
 		}
 	}
 	else if (event == LV_EVENT_VALUE_CHANGED)
@@ -239,5 +260,19 @@ static void btn_event_cb(lv_obj_t *obj, lv_event_t event)
 		printf("Toggled\n");
 	}
 }
+
+static void mbox_event_cb(lv_obj_t *obj, lv_event_t evt)
+{
+	if(evt == LV_EVENT_DELETE && obj == mbox) {
+		/* Delete the parent modal background */
+		lv_obj_del_async(lv_obj_get_parent(mbox));
+		mbox = NULL; /* happens before object is actually deleted! */
+		
+	} else if(evt == LV_EVENT_VALUE_CHANGED) {
+		/* A button was clicked */
+		lv_mbox_start_auto_close(mbox, 0);
+	}
+}
+
 
 #endif /*LV_USE_DEMO*/
