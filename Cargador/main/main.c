@@ -55,10 +55,11 @@ void Network_Control(void *p)
 				mqtt_config();
 				mqtt_init("mqtt://platform.agrum.co", "airis/cc/01", "airis/cc/report");
 				network_signal = true;
+				
 			}
 			if (ready_information)
 			{
-				ReadInformation();
+				//ReadInformation();	//Send data to MQTT
 				vTaskDelay(5000 / portTICK_RATE_MS);
 			}
 		}
@@ -80,6 +81,9 @@ void app_main()
 	Semaphore_Start_Charging = xSemaphoreCreateBinary();
 	Semaphore_Stop_Charging = xSemaphoreCreateBinary();
 	Semaphore_Out_Phoenix = xSemaphoreCreateBinary();
+
+	Semaphore_Out_Rele = xSemaphoreCreateBinary();
+    Semaphore_Out_Led = xSemaphoreCreateBinary();
 
 	//EPLD
 	begin_maxV();
@@ -161,21 +165,21 @@ void app_main()
 	wifi_begin("DeepSea Developments", "hexaverse"); //ISSUE cuando no tiene red falla
 	if (detectAnalizer)
 	{
-		xTaskCreate(grid_analyzer_task, "grid_analyzer_task", 4096, NULL, 5, NULL);
+		xTaskCreate(grid_analyzer_task, "grid_analyzer_task", 2048, NULL, 5, NULL);
 	}
 	if (detectModbus)
 	{
 		begin_phoenixcontact();
-		xTaskCreate(phoenix_task, "phoenix_task", 4096, NULL, 5, NULL);
+		xTaskCreate(phoenix_task, "phoenix_task", 2048, NULL, 5, NULL);
 	}
 	//xTaskCreate(Time_Task_Control, "Time_Task_Control", 2048, NULL, 1, NULL);
-	xTaskCreatePinnedToCore(Network_Control, "Network_Control", 4096, NULL, 3, NULL, 1);
+	xTaskCreatePinnedToCore(Network_Control, "Network_Control", 3072, NULL, 3, NULL, 1);
 
 	//LittleVgl Init
 	lv_init();
 	static lv_disp_buf_t disp_buf;
 	uint16_t *buf1;
-	buf1 = heap_caps_malloc(60001, MALLOC_CAP_DMA);
+	buf1 = heap_caps_malloc(40001, MALLOC_CAP_DMA);
 	//lv_disp_buf_init(&disp_buf, buf1, NULL, 800);
 	lv_disp_buf_init(&disp_buf, buf1, NULL, DISP_BUF_SIZE);
 	//screen LittleVgl

@@ -161,6 +161,9 @@ xSemaphoreHandle Semaphore_Start_Charging;
 xSemaphoreHandle Semaphore_Stop_Charging;
 xSemaphoreHandle Semaphore_Out_Phoenix;
 
+xSemaphoreHandle Semaphore_Out_Rele;
+xSemaphoreHandle Semaphore_Out_Led;
+
 uint16_t PStatus;
 uint16_t EStatus;
 uint8_t PHour;
@@ -170,11 +173,12 @@ bool charging;
 
 
 //LittleVgl 
-#define DISP_BUF_SIZE (LV_HOR_RES_MAX * 1)
+#define DISP_BUF_SIZE (LV_HOR_RES_MAX * 20)
 lv_obj_t *labelVol;
 lv_obj_t *labelCur;
 lv_obj_t *labelPow;
 lv_obj_t *labelCon;
 lv_obj_t *labelTime;
+lv_obj_t *labelPhoenix;
 
 

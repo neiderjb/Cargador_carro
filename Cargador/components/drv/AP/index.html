@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <link rel="icon" type="image/png"
+        href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAALVBMVEX///8EBwfBwsLw8PAzNjaCg4NTVVUjJiZDRUUUFxdiZGSho6OSk5Pg4eFydHTCjaf3AAAAZElEQVQ4je2NSw7AIAhEBamKn97/uMXEGBvozkWb9C2Zx4xzWykBhFAeYp9gkLyZE0zIMno9n4g19hmdY39scwqVkOXaxph0ZCXQcqxSpgQpONa59wkRDOL93eAXvimwlbPbwwVAegLS1HGfZAAAAABJRU5ErkJggg=="
+        <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Wifi Portal AIRIS</title>
+    <style>
+        * {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 1rem;
+        }
+
+        input,
+        select {
+            font-size: 1rem;
+            margin: 0.2rem;
+            padding: 0.2rem;
+            border-width: 1pt;
+            border-color: black;
+            border-style: solid;
+            border-radius: 3pt;
+            text-align: center;
+            < !--min-width: 90%;
+            -->
+        }
+
+        .ronly {
+            background-color: #EEEEEE;
+        }
+
+        .flabel {
+            text-align: center;
+            color: black;
+            background-color: rgb(228, 228, 228);
+            font-size: 1.5rem;
+            margin: 0.5rem 8% 0.5rem 8%;
+            padding: 0.5rem;
+        }
+
+        .fcontrol {
+            text-align: center;
+            margin: 0.5rem 8% 0.5rem 8%;
+        }
+
+        .header {
+            padding: 0.5rem;
+            margin-bottom: 1.5rem;
+            margin-top: 1rem;
+            border-width: 1pt;
+            border-color: black;
+            border-style: solid;
+            border-radius: 5pt;
+            text-align: center;
+            color: black;
+            background-color: rgb(1, 141, 255);
+            font-size: 2rem;
+        }
+
+        .footer {
+            padding: 0.25rem;
+            margin: 1.5rem 0 2rem 0;
+            text-align: center;
+        }
+
+        .botonW {
+            background-color: #E74C3C;
+            border-width: 1pt;
+            border-color: black;
+            border-style: solid;
+            border-radius: 3pt;
+            padding: 0.25rem;
+            color: black;
+            font-size: 1.5rem;
+            cursor: pointer;
+            min-width: 60%;
+            margin-bottom: 2rem;
+        }
+
+        .botonR {
+            background-color: #3498DB;
+            border-width: 1pt;
+            border-color: black;
+            border-style: solid;
+            border-radius: 3pt;
+            padding: 0.25rem;
+            color: black;
+            font-size: 1.5rem;
+            cursor: pointer;
+            min-width: 60%;
+            margin-bottom: 2rem;
+        }
+
+        .botonX {
+            background-color: #58D68D;
+            border-width: 1pt;
+            border-color: black;
+            border-style: solid;
+            border-radius: 3pt;
+            padding: 0.25rem;
+            color: black;
+            font-size: 1.5rem;
+            cursor: pointer;
+            min-width: 60%;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">Wifi Portal</div>
+    <div class="group">
+        <div class="flabel">SSID</div>
+        <div class="fcontrol">
+            <input type="text" id="idssid" style="width: 95%" maxlength="31">
+        </div>
+        <div class="flabel">PASSWORD</div>
+        <div class="fcontrol">
+            <input type="password" id="idpassword" style="width: 95%" maxlength="31">
+        </div>
+        <div class="flabel">MAC</div>
+        <div class="fcontrol">
+            <input class="ronly" type="text" id="idmac" style="width: 95%" maxlength="20" readonly="">
+        </div>
+        <div class="flabel">Asignación de IP</div>
+        <div class="fcontrol">
+            <select id="idipmode">
+                <option value="0">dhcp</option>
+                <option value="1">static</option>
+            </select>
+        </div>
+        <div id="ip_mode" style="display:none">
+            <div class="flabel">IP</div>
+            <div class="fcontrol">
+                <input type="text" id="idip1" style="width: 10%" maxlength="3">&nbsp;:&nbsp;
+                <input type="text" id="idip2" style="width: 10%" maxlength="3">&nbsp;:&nbsp;
+                <input type="text" id="idip3" style="width: 10%" maxlength="3">&nbsp;:&nbsp;
+                <input type="text" id="idip4" style="width: 10%" maxlength="3">
+            </div>
+            <div class="flabel">Mask</div>
+            <div class="fcontrol">
+                <input type="text" id="idmask1" style="width: 10%" maxlength="3">&nbsp;:&nbsp;
+                <input type="text" id="idmask2" style="width: 10%" maxlength="3">&nbsp;:&nbsp;
+                <input type="text" id="idmask3" style="width: 10%" maxlength="3">&nbsp;:&nbsp;
+                <input type="text" id="idmask4" style="width: 10%" maxlength="3">
+            </div>
+            <div class="flabel">Gateway</div>
+            <div class="fcontrol">
+                <input type="text" id="idrouter1" style="width: 10%" maxlength="3">&nbsp;:&nbsp;
+                <input type="text" id="idrouter2" style="width: 10%" maxlength="3">&nbsp;:&nbsp;
+                <input type="text" id="idrouter3" style="width: 10%" maxlength="3">&nbsp;:&nbsp;
+                <input type="text" id="idrouter4" style="width: 10%" maxlength="3">
+            </div>
+            <div class="flabel">Dns</div>
+            <div class="fcontrol">
+                <input type="text" id="iddns1" style="width: 10%" maxlength="3">&nbsp;:&nbsp;
+                <input type="text" id="iddns2" style="width: 10%" maxlength="3">&nbsp;:&nbsp;
+                <input type="text" id="iddns3" style="width: 10%" maxlength="3">&nbsp;:&nbsp;
+                <input type="text" id="iddns4" style="width: 10%" maxlength="3">
+            </div>
+        </div>
+        <form id="uploadform" enctype="multipart/form-data" method="post" action="/upload">
+            <H1>Carge archivo '.bin'</H1>
+            <input id="fileupload" name="inobinfile" type="file" />
+            <input type="submit" value="Cargar" id="submit" />
+         </form>
+
+    </div>
+    <div class="footer">
+        <button class="botonR" onClick="Guardar()">Guardar</button>
+        <br>
+        <button class="botonR" onClick="clickRead(true)">Leer</button>
+    </div>
+
+    <script>
+        var isRun = false;
+
+        window.onload = function () {
+            initPageESP32();
+
+
+        };
+        function toQuery(params) {
+            return Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&');
+        }
+
+        function ajaxPost(url, contenido, callbackOK, callbackFAIL) {
+
+            if (isRun == true)
+                return;
+
+            isRun = true;
+
+            if (window.XMLHttpRequest) {
+                connection = new XMLHttpRequest();
+            }
+            else if (window.ActiveXObject) {
+                connection = new ActiveXObject("Microsoft.XMLHTTP");
+            }
+
+            connection.onreadystatechange = function () {
+                if (this.readyState == XMLHttpRequest.DONE) {
+                    isRun = false;
+
+                    if (this.status == 200)
+                        callbackOK(this.responseText);
+                    else
+                        callbackFAIL();
+                }
+            };
+            //connection.onerror = callbackFAIL;
+
+            connection.open('POST', url, true);
+            connection.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            var contenidoObj =
+            {
+                'ssid': contenido.ssid,
+                // password: document.getElementById('idpassword').value,
+                // ipmode: document.getElementById('idipmode').value,
+                // ip1: document.getElementById('idip1').value,
+                // ip2: document.getElementById('idip2').value,
+                // ip3: document.getElementById('idip3').value,
+                // ip4: document.getElementById('idip4').value,
+                // mask1: document.getElementById('idmask1').value,
+                // mask2: document.getElementById('idmask2').value,
+                // mask3: document.getElementById('idmask3').value,
+                // mask4: document.getElementById('idmask4').value,
+                // router1: document.getElementById('idrouter1').value,
+                // router2: document.getElementById('idrouter2').value,
+                // router3: document.getElementById('idrouter3').value,
+                // router4: document.getElementById('idrouter4').value,
+                // dns1: document.getElementById('iddns1').value,
+                // dns2: document.getElementById('iddns2').value,
+                // dns3: document.getElementById('iddns3').value,
+                // dns4: document.getElementById('iddns4').value
+            }
+            console.log(contenidoObj);
+            connection.send(contenido);
+        }
+
+        function Guardar() {
+
+            var envio =
+            {
+                ssid: document.getElementById('idssid').value,
+                password: document.getElementById('idpassword').value,
+                ipmode: document.getElementById('idipmode').value,
+                ip1: document.getElementById('idip1').value,
+                ip2: document.getElementById('idip2').value,
+                ip3: document.getElementById('idip3').value,
+                ip4: document.getElementById('idip4').value,
+                mask1: document.getElementById('idmask1').value,
+                mask2: document.getElementById('idmask2').value,
+                mask3: document.getElementById('idmask3').value,
+                mask4: document.getElementById('idmask4').value,
+                router1: document.getElementById('idrouter1').value,
+                router2: document.getElementById('idrouter2').value,
+                router3: document.getElementById('idrouter3').value,
+                router4: document.getElementById('idrouter4').value,
+                dns1: document.getElementById('iddns1').value,
+                dns2: document.getElementById('iddns2').value,
+                dns3: document.getElementById('iddns3').value,
+                dns4: document.getElementById('iddns4').value
+            }
+            ajaxPost('/write',
+                envio,
+                function (cont) {
+                    try {
+                        alert(cont);
+                    }
+                    catch (Error) {
+                        alert('FAIL !!!');
+                    }
+                },
+                function () {
+                    alert('FAIL CONNECTION !!!');
+                }
+            );
+
+
+
+        }
+        function initPageESP32() {
+            clickRead(false);
+            let selector = document.querySelector('#idipmode');
+
+            selector.addEventListener("change", function (e) {
+
+
+                if (selector.value == "1") {
+                    document.querySelector('#ip_mode').style.display = "";
+                }
+                else {
+                    document.querySelector('#ip_mode').style.display = "none";
+                }
+            });
+        }
+        function clickRead(imprime) {
+
+            ajaxPost('/read',
+                "none",
+                function (cont) {
+                    try {
+                        cont = cont.split(',');
+                        if (cont.length >= 20) {
+                            document.getElementById('idmac').value = cont[0];
+                            document.getElementById('idssid').value = cont[1];
+                            document.getElementById('idpassword').value = cont[2];
+                            document.getElementById('idipmode').value = cont[3];
+                            document.getElementById('idip1').value = cont[4];
+                            document.getElementById('idip2').value = cont[5];
+                            document.getElementById('idip3').value = cont[6];
+                            document.getElementById('idip4').value = cont[7];
+                            document.getElementById('idmask1').value = cont[8];
+                            document.getElementById('idmask2').value = cont[9];
+                            document.getElementById('idmask3').value = cont[10];
+                            document.getElementById('idmask4').value = cont[11];
+                            document.getElementById('idrouter1').value = cont[12];
+                            document.getElementById('idrouter2').value = cont[13];
+                            document.getElementById('idrouter3').value = cont[14];
+                            document.getElementById('idrouter4').value = cont[15];
+                            document.getElementById('iddns1').value = cont[16];
+                            document.getElementById('iddns2').value = cont[17];
+                            document.getElementById('iddns3').value = cont[18];
+                            document.getElementById('iddns4').value = cont[19];
+
+                            if (imprime == true)
+                                alert('OK, PARAMS RELOAD !!');
+                        }
+                        else
+                            alert('FAIL  1!!!');
+                    }
+                    catch (Error) {
+                        alert('FAIL 2 !!!');
+                    }
+                },
+                function () {
+                    alert('FAIL CONNECTION !!!');
+                }
+            );
+        }
+    </script>
+</body>

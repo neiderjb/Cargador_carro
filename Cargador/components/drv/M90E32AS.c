@@ -779,7 +779,7 @@ bool timestamp = true;
 void grid_analyzer_task(void *arg)
 {
     ESP_LOGI(TAG, "Initiation grid_analyzer_task");
-    vTaskDelay(5000 / portTICK_RATE_MS);
+    vTaskDelay(7000 / portTICK_RATE_MS);
     // float voltageA, currentA, powerfactorA, powerA, powerReacA, powerAppA,
     // 	voltageB, currentB, powerfactorB, powerB, powerReacB, powerAppB,
     // 	voltageC, currentC, powerfactorC, powerC, powerReacC, powerAppC,
@@ -846,52 +846,56 @@ void grid_analyzer_task(void *arg)
 
             uint8_t dataTime[6];
             getTime(dataTime);
-            if (charging)
-            {
-                if (timestamp)
-                {
-                    timestamp=false;
-                    printf("\033[0;32m");
-                    printf("Charger Time: %d:%d:%d \n", dataTime[2], dataTime[1], dataTime[0]);
-                    printf("\033[0m");
-                    secondChargerOld = dataTime[0];
-                    minuteChargerOld = dataTime[1];
-                    hourChargerOld = dataTime[2];
-                }
+            
+            // if (charging)
+            // {
+            //     if (timestamp)
+            //     {
+            //         timestamp = false;
+            //         printf("\033[0;32m");
+            //         printf("Charger Time: %d:%d:%d \n", dataTime[2], dataTime[1], dataTime[0]);
+            //         printf("\033[0m");
+            //         secondChargerOld = dataTime[0];
+            //         minuteChargerOld = dataTime[1];
+            //         hourChargerOld = dataTime[2];
+            //     }
 
-                secondCharger = dataTime[0];
-                minuteCharger = dataTime[1];
-                hourCharger = dataTime[2];
+            //     secondCharger = dataTime[0];
+            //     minuteCharger = dataTime[1];
+            //     hourCharger = dataTime[2];
 
-                PowerConsumeA = PowerConsumeA + powerA;
-                PowerConsumeB = PowerConsumeB + powerB;
-                PowerConsumeC = PowerConsumeC + powerC;
+            //     PowerConsumeA = PowerConsumeA + powerA;
+            //     PowerConsumeB = PowerConsumeB + powerB;
+            //     PowerConsumeC = PowerConsumeC + powerC;
 
-                hourstamp = hourCharger - hourChargerOld;
-                minutestamp = minuteCharger - minuteChargerOld;
-                secondstamp = secondCharger - secondChargerOld;
+            //     hourstamp = hourCharger - hourChargerOld;
+            //     minutestamp = minuteCharger - minuteChargerOld;
+            //     secondstamp = secondCharger - secondChargerOld;
 
-                if (hourCharger < 24 && minuteCharger < 60 && minutestamp <= -1)
-                {
-                    minutestamp = minutestamp + 60;
-                    hourstamp = hourstamp - 1;
-                }
-                if (hourCharger < 24 && secondCharger < 60 && secondstamp <= -1)
-                {
-                    secondstamp = secondstamp + 60;
-                    minutestamp = minutestamp - 1;
-                }
-                printf("Charger Time: %d:%d:%d \n", hourstamp, minutestamp, secondstamp);
+            //     if (hourCharger < 24 && minuteCharger < 60 && minutestamp <= -1)
+            //     {
+            //         minutestamp = minutestamp + 60;
+            //         hourstamp = hourstamp - 1;
+            //     }
+            //     if (hourCharger < 24 && secondCharger < 60 && secondstamp <= -1)
+            //     {
+            //         secondstamp = secondstamp + 60;
+            //         minutestamp = minutestamp - 1;
+            //     }
+            //     printf("Charger Time: %d:%d:%d \n", hourstamp, minutestamp, secondstamp);
 
-                if (minutestamp > minuteChargerOld + 1 && secondstamp >= secondChargerOld)
-                {
-                    timestamp =true;
-                    printf("Charger PowerConsumeA %.1f [W]\n",(PowerConsumeA/3600));
-                    printf("Charger PowerConsumeB %.1f [W]\n",(PowerConsumeB/3600));
-                    printf("Charger PowerConsumeB %.1f [W]\n",(PowerConsumeB/3600));
-                }
-            }
-            //UpdateLabelsScreen(voltageA,currentA,temperature,powerAppA,freq, dataTime);
+            //     if (minutestamp > minuteChargerOld + 1 && secondstamp >= secondChargerOld)
+            //     {
+            //         timestamp = true;
+            //         printf("Charger PowerConsumeA %.1f [W]\n", (PowerConsumeA / 3600));
+            //         printf("Charger PowerConsumeB %.1f [W]\n", (PowerConsumeB / 3600));
+            //         printf("Charger PowerConsumeB %.1f [W]\n", (PowerConsumeB / 3600));
+            //     }
+            //}
+            // if (ready_information)
+            // {
+            //     UpdateLabelsScreen(voltageA, currentA, temperature, powerAppA, dataTime);
+            // }
 
 #ifdef DEBUG
             printf("\033[0;32m");
@@ -926,6 +930,6 @@ void grid_analyzer_task(void *arg)
         }
 
         read_time = true;
-        vTaskDelay(5000 / portTICK_RATE_MS);
+        vTaskDelay(2000 / portTICK_RATE_MS);
     }
 }

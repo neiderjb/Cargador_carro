@@ -1,5 +1,5 @@
 /**
- * @file cargador.h
+ * @file demo.h
  *
  */
 
@@ -43,6 +43,8 @@ void cargador_create(void);
 
 void screen_welcome(void);
 void screen_code(void);
+void screen_init_carga(void);
+
 void screen_carga_one(void);
 void screen_carga_two(void);
 

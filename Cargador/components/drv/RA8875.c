@@ -77,7 +77,7 @@ void PLLinit(void)
     printf("pll 800x480");
     writeRegRA(RA8875_PLLC1, RA8875_PLLC1_PLLDIV1 + 11);
     vTaskDelay(10 / portTICK_RATE_MS);
-    writeRegRA(RA8875_PLLC2, RA8875_PLLC2_DIV2); //RA8875_PLLC2_DIV4
+    writeRegRA(RA8875_PLLC2, RA8875_PLLC2_DIV1); //RA8875_PLLC2_DIV4
     vTaskDelay(10 / portTICK_RATE_MS);
   }
 }

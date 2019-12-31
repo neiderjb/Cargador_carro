@@ -7,13 +7,13 @@
  *      INCLUDES
  *********************/
 #include "cargador.h"
-#include "drv/Parameters.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #if LV_USE_DEMO
+
 
 /*********************
  *      DEFINES
@@ -26,29 +26,69 @@
 /**********************
  *  STATIC PROTOTYPES
  **********************/
-static void mbox_event_cb(lv_obj_t *obj, lv_event_t evt);
-static void btn_event_cb(lv_obj_t *obj, lv_event_t event);
-static void kb_event_cb(lv_obj_t *event_kb, lv_event_t event);
-static void ta_event_cb(lv_obj_t *ta, lv_event_t event);
+static void mbox_event_cb(lv_obj_t* obj, lv_event_t evt);
+static void btn_event_cb(lv_obj_t* obj, lv_event_t event);
+static void kb_event_cb(lv_obj_t* event_kb, lv_event_t event);
+static void ta_event_cb(lv_obj_t* ta, lv_event_t event);
 
-lv_obj_t *scr1;
-lv_obj_t *win;
 
-lv_obj_t *cont_screen_welcome;
-lv_obj_t *cont_screen_code;
-lv_obj_t *cont_screen_CharOne;
-lv_obj_t *cont_screen_CharTwo;
-lv_obj_t *cont_screen_alert_info;
-lv_obj_t *cont_screen_alert_info_wait;
-lv_obj_t *cont_screen_alert_info_outService;
+//LV_KEY_UP = 17,  /*0x11*/
+//LV_KEY_DOWN = 18,  /*0x12*/
+//LV_KEY_RIGHT = 19,  /*0x13*/
+//LV_KEY_LEFT = 20,  /*0x14*/
+//LV_KEY_ESC = 27,  /*0x1B*/
+//LV_KEY_DEL = 127, /*0x7F*/
+//LV_KEY_BACKSPACE = 8,   /*0x08*/
+//LV_KEY_ENTER = 10,  /*0x0A, '\n'*/
+//LV_KEY_NEXT = 9,   /*0x09, '\t'*/
+//LV_KEY_PREV = 11,  /*0x0B, '*/
+//LV_KEY_HOME = 2,   /*0x02, STX*/
+//LV_KEY_END = 3,   /*0x03, ETX*/
 
-lv_obj_t *btn_info;
-lv_obj_t *btn_config;
-lv_obj_t *btn_airis;
-lv_obj_t *btn_close_alert;
 
-lv_obj_t *btn1, *btn2, *btn3, *btn4;
-lv_obj_t *labelCharger;
+lv_obj_t* scr1;
+
+char str1[] = { '1','2','3','4','\n'};
+char str2[] = { '0','0','0','0','\n' };
+
+
+bool welcome = false;
+bool EnableCharger = true;
+bool StopCharger = false;
+
+lv_obj_t* cont_screen_welcome;
+
+lv_obj_t* cont_screen_code;
+lv_obj_t* warning;
+lv_obj_t* label_codeStatus;
+lv_obj_t* label_code;
+lv_obj_t* ta_code;
+
+lv_obj_t* cont_screen_CharTwo;
+lv_obj_t* cont_screen_alert_info;
+lv_obj_t* cont_screen_alert_info_wait;
+lv_obj_t* cont_screen_alert_info_outService;
+
+
+lv_obj_t* cont_screen_init;
+lv_obj_t* labelCon;
+lv_obj_t* reloj;
+lv_obj_t* btnCancel;
+lv_obj_t* btnCancel2;
+lv_obj_t* btnContinuar;
+
+
+lv_obj_t* cont_screen_CharOne;
+lv_obj_t* labelPotencia;
+lv_obj_t* labelCarga;
+lv_obj_t* labelCoste;
+lv_obj_t* labelTiempo;
+
+lv_obj_t* btn_info;
+lv_obj_t* btn_config;
+lv_obj_t* btn_airis;
+lv_obj_t* btn_close_alert;
+
 
 lv_coord_t hres;
 lv_coord_t vres;
@@ -56,14 +96,19 @@ lv_coord_t vres;
 /**********************
  *  STATIC VARIABLES
  **********************/
-static lv_obj_t *mbox, *info;
-lv_obj_t *mbox1;
-static lv_obj_t *chart;
-static lv_obj_t *ta; //Text Area
-static lv_obj_t *kb; //Teclado
+static lv_obj_t * mbox, * info;
+static lv_obj_t * chart;
+static lv_obj_t * ta;	//Text Area
+static lv_obj_t * kb;	//Teclado
+
 
 LV_IMG_DECLARE(img_logo)
-// LV_IMG_DECLARE(img_touch)
+LV_IMG_DECLARE(img_logo_small)
+LV_IMG_DECLARE(img_tactil)
+LV_IMG_DECLARE(img_warning)
+LV_IMG_DECLARE(img_reloj)
+LV_IMG_DECLARE(img_conect)
+
 LV_IMG_DECLARE(img_alert2)
 LV_IMG_DECLARE(img_airis_logo)
 
@@ -73,171 +118,486 @@ LV_IMG_DECLARE(img_airis_logo)
  *      MACROS
  **********************/
 
-/**********************
- *   GLOBAL FUNCTIONS
- **********************/
+ /**********************
+  *   GLOBAL FUNCTIONS
+  **********************/
+
+static lv_theme_t* th;
+static lv_style_t styleLabel1;
+static lv_style_t styleContent1;
+
+
 
 /**
  * Create a demo application
  */
 void cargador_create(void)
 {
-	hres = lv_disp_get_hor_res(NULL);
-	vres = lv_disp_get_ver_res(NULL);
+	th = lv_theme_mono_init(210, NULL);
+	lv_theme_set_current(th);
 
-	scr1 = lv_page_create(NULL, NULL);
+	lv_style_copy(&styleLabel1, &lv_style_plain);
+	styleLabel1.text.font = &lv_font_roboto_28;
 
-	//scr1 = lv_obj_create(NULL, NULL);
+	styleContent1.image.color = LV_COLOR_WHITE;
+
+    hres = lv_disp_get_hor_res(NULL);
+    vres = lv_disp_get_ver_res(NULL);
+
+	scr1 = lv_page_create(NULL, NULL);	
 	lv_disp_load_scr(scr1);
 
 	screen_welcome();
-	printf("CargadorScreen GUI OK\n");
 }
+
 
 /**
  * Create 1 screen application
  */
-void screen_welcome(void)
-{
+void screen_welcome(void) {
 
+		
 	cont_screen_welcome = lv_cont_create(lv_scr_act(), NULL);
+	//lv_cont_set_style(cont_screen_welcome, LV_CONT_STYLE_MAIN,&styleContent1);
+	lv_obj_set_event_cb(cont_screen_welcome, btn_event_cb);
 	lv_obj_set_auto_realign(cont_screen_welcome, true);
-	lv_obj_align_origo(cont_screen_welcome, NULL, LV_ALIGN_CENTER, 0, 0); /*This parametrs will be sued when realigned*/
+	lv_obj_align_origo(cont_screen_welcome, NULL, LV_ALIGN_CENTER, 0, 0);  /*This parametrs will be sued when realigned*/
 	lv_cont_set_fit(cont_screen_welcome, LV_FIT_FLOOD);
 	lv_cont_set_layout(cont_screen_welcome, LV_LAYOUT_OFF);
-	lv_obj_set_event_cb(cont_screen_welcome, btn_event_cb);
+	
 
-	lv_obj_t *labelwelcome = lv_label_create(cont_screen_welcome, NULL); /*First parameters (scr) is the parent*/
-	lv_label_set_text(labelwelcome, "Bienvenido");						 /*Set the text*/
-	lv_obj_align(labelwelcome, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
+	lv_obj_t* label = lv_label_create(cont_screen_welcome, NULL); /*First parameters (scr) is the parent*/
+	lv_label_set_style(label, LV_LABEL_LONG_EXPAND,&styleLabel1);
+	lv_label_set_text(label, "Bienvenido");  /*Set the text*/
+	lv_obj_align(label, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
 
-	lv_obj_t *logo = lv_img_create(cont_screen_welcome, NULL);
+	lv_obj_t* logo = lv_img_create(cont_screen_welcome, NULL);
 	lv_img_set_src(logo, &img_airis_logo);
-	lv_obj_align(logo, NULL, LV_ALIGN_IN_TOP_MID, 0, 40);
+	lv_obj_align(logo, NULL, LV_ALIGN_CENTER, 0, -20);
 
-	lv_obj_t *label;
-	btn1 = lv_btn_create(cont_screen_welcome, NULL);
-	lv_obj_set_size(btn1, 200, 50);
-	lv_obj_set_event_cb(btn1, btn_event_cb);
-	lv_obj_align(btn1, NULL, LV_ALIGN_IN_TOP_MID, -150, 290);
-	label = lv_label_create(btn1, NULL);
-	lv_label_set_text(label, "Phoenix Indicador ON");
+	lv_obj_t* touch = lv_img_create(cont_screen_welcome, NULL);
+	lv_img_set_src(touch, &img_tactil);
+	lv_obj_set_size(touch, 80, 80);
+	lv_obj_align(touch, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -70);
 
-	btn2 = lv_btn_create(cont_screen_welcome, NULL);
-	lv_obj_set_size(btn2, 200, 50);
-	lv_obj_set_event_cb(btn2, btn_event_cb);
-	lv_obj_align(btn2, NULL, LV_ALIGN_IN_TOP_MID, 150, 290);
-	labelCharger = lv_label_create(btn2, NULL);
-	lv_label_set_text(labelCharger, "INICIAR CARGA");
-	lv_label_set_recolor(labelCharger, true);
+	lv_obj_t* label2 = lv_label_create(cont_screen_welcome, NULL); /*First parameters (scr) is the parent*/
+	lv_label_set_style(label2, LV_LABEL_LONG_EXPAND, &styleLabel1);
+	lv_label_set_text(label2, "Toque la pantalla para empezar");  /*Set the text*/
+	lv_obj_align(label2, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -20);
 
-	btn3 = lv_btn_create(cont_screen_welcome, NULL);
-	lv_obj_set_size(btn3, 200, 50);
-	lv_obj_set_event_cb(btn3, btn_event_cb);
-	lv_obj_align(btn3, NULL, LV_ALIGN_IN_TOP_MID, -150, 350);
-	label = lv_label_create(btn3, NULL);
-	lv_label_set_text(label, "Rele Carga");
-
-	btn4 = lv_btn_create(cont_screen_welcome, NULL);
-	lv_obj_set_size(btn4, 200, 50);
-	lv_obj_set_event_cb(btn4, btn_event_cb);
-	lv_obj_align(btn4, NULL, LV_ALIGN_IN_TOP_MID, 150, 350);
-	label = lv_label_create(btn4, NULL);
-	lv_label_set_text(label, "Indicador Led");
-
-	labelTime = lv_label_create(cont_screen_welcome, NULL);
-	lv_label_set_recolor(labelTime, true);
-	lv_label_set_text(labelTime, "Tiempo:"); /*Set the text*/
-	lv_obj_align(labelTime, NULL, LV_ALIGN_IN_TOP_MID, 500, 410);
-
-	labelVol = lv_label_create(cont_screen_welcome, NULL);
-	lv_label_set_recolor(labelVol, true);
-	lv_label_set_text(labelVol, "Voltaje:"); /*Set the text*/
-	lv_obj_align(labelVol, NULL, LV_ALIGN_IN_TOP_MID, -200, 410);
-
-	labelCur = lv_label_create(cont_screen_welcome, NULL);
-	lv_label_set_recolor(labelCur, true);
-	lv_label_set_text(labelCur, "Corriente:"); /*Set the text*/
-	lv_obj_align(labelCur, NULL, LV_ALIGN_IN_TOP_MID, -75, 410);
-
-	labelPow = lv_label_create(cont_screen_welcome, NULL);
-	lv_label_set_recolor(labelPow, true);
-	lv_label_set_text(labelPow, "Potencia:"); /*Set the text*/
-	lv_obj_align(labelPow, NULL, LV_ALIGN_IN_TOP_MID, 75, 410);
-
-	labelCon = lv_label_create(cont_screen_welcome, NULL);
-	lv_label_set_recolor(labelCon, true);
-	lv_label_set_text(labelCon, "Consumo:"); /*Set the text*/
-	lv_obj_align(labelCon, NULL, LV_ALIGN_IN_TOP_MID, 200, 410);
 }
 
-void lv_ex_mbox_1(void)
-{
-	static const char *btns[] = {"Si que va!", "Bueno Toco...", ""};
 
-	mbox1 = lv_mbox_create(lv_scr_act(), NULL);
-	lv_mbox_set_text(mbox1, "Espere Porfavor.");
-	lv_mbox_add_btns(mbox1, btns);
-	lv_obj_set_width(mbox1, 200);
-	lv_obj_set_event_cb(mbox1, btn_event_cb);
-	lv_obj_align(mbox1, NULL, LV_ALIGN_CENTER, 0, 0); /*Align to the corner*/
+void screen_code() {
+
+	cont_screen_code = lv_cont_create(lv_scr_act(), NULL);
+	lv_obj_set_auto_realign(cont_screen_code, true);
+	lv_obj_align_origo(cont_screen_code, NULL, LV_ALIGN_CENTER, 0, 0);  /*This parametrs will be sued when realigned*/
+	lv_cont_set_fit(cont_screen_code, LV_FIT_FLOOD);
+	lv_cont_set_layout(cont_screen_code, LV_LAYOUT_OFF);
+	lv_obj_set_event_cb(cont_screen_code, btn_event_cb);
+
+	lv_obj_t* logosmall = lv_img_create(cont_screen_code, NULL);
+	lv_img_set_src(logosmall, &img_logo_small);
+	lv_obj_align(logosmall, NULL, LV_ALIGN_IN_TOP_RIGHT, -20, 10);
+	
+
+	label_codeStatus = lv_label_create(cont_screen_code, NULL); /*First parameters (scr) is the parent*/
+	lv_label_set_recolor(label_codeStatus, true);
+	lv_label_set_text(label_codeStatus, "");  /*Set the text*/
+	lv_obj_set_size(label_codeStatus, 300, 50);
+	lv_obj_align(label_codeStatus, NULL, LV_ALIGN_IN_TOP_MID, 0, 70);
+	
+	
+	label_code = lv_label_create(cont_screen_code, NULL);
+	lv_label_set_recolor(label_code, true);
+	if (EnableCharger) {
+		lv_label_set_text(label_code, "Ingrese su codigo aqui:");
+	}
+	else
+	{
+		lv_label_set_text(label_code, "Para cancelar la recarga ingrese su codigo aqui:");
+	}
+	
+	lv_obj_set_size(label_code, 300, 50);
+	lv_obj_align(label_code, NULL, LV_ALIGN_IN_TOP_MID, 0, 130);
+	
+	
+	ta_code = lv_ta_create(cont_screen_code, NULL);
+	lv_ta_set_text(ta_code, "");
+	lv_ta_set_pwd_mode(ta_code, true);
+	lv_ta_set_one_line(ta_code, true);
+	lv_obj_set_size(ta_code, 400, 50);
+	lv_obj_align(ta_code, NULL, LV_ALIGN_IN_TOP_MID, 0, 150);
+	//lv_obj_set_pos(ta_code, 200, 150);
+	lv_obj_set_event_cb(ta_code, ta_event_cb);
+
+	/* Create a keyboard and make it fill the width of the above text areas */
+	kb = lv_kb_create(cont_screen_code, NULL);
+	lv_obj_set_pos(kb, 7, 220);
+	lv_obj_set_event_cb(kb, kb_event_cb); /* Setting a custom event handler stops the keyboard from closing automatically */
+	lv_obj_set_size(kb, hres - 40, 220);
+	lv_kb_set_ta(kb, ta_code); /* Focus it on one of the text areas to start */
+	lv_kb_set_cursor_manage(kb, true); /* Automatically show/hide cursors on text areas */
+	
 }
+
+
+void screen_init_carga() {
+	cont_screen_init = lv_cont_create(lv_scr_act(), NULL);
+	lv_obj_set_event_cb(cont_screen_init, btn_event_cb);
+	lv_obj_set_auto_realign(cont_screen_init, true);
+	lv_obj_align_origo(cont_screen_init, NULL, LV_ALIGN_CENTER, 0, 0);  /*This parametrs will be sued when realigned*/
+	lv_cont_set_fit(cont_screen_init, LV_FIT_FLOOD);
+	lv_cont_set_layout(cont_screen_init, LV_LAYOUT_OFF);
+	
+	lv_obj_t* logosmall = lv_img_create(cont_screen_init, NULL);
+	lv_img_set_src(logosmall, &img_logo_small);
+	lv_obj_align(logosmall, NULL, LV_ALIGN_IN_TOP_RIGHT, -20, 10);
+
+	labelCon = lv_label_create(cont_screen_init, NULL); /*First parameters (scr) is the parent*/
+	lv_obj_set_event_cb(labelCon, btn_event_cb);
+	lv_label_set_style(labelCon, LV_LABEL_LONG_EXPAND, &styleLabel1);
+	lv_label_set_text(labelCon, "   Espere por favor\nrealizando conexion");  /*Set the text*/
+	lv_obj_align(labelCon, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
+	
+	reloj = lv_img_create(cont_screen_init, NULL);
+	lv_obj_set_event_cb(reloj, btn_event_cb);
+	lv_img_set_src(reloj, &img_reloj);
+	lv_obj_align(reloj, NULL, LV_ALIGN_CENTER, 0, -40);
+	
+	lv_obj_t* label = lv_label_create(cont_screen_init, NULL); /*First parameters (scr) is the parent*/
+	lv_obj_set_event_cb(label, btn_event_cb);
+	lv_label_set_style(label, LV_LABEL_LONG_EXPAND, &styleLabel1);
+	if (!StopCharger) {
+		lv_label_set_text(label, "   Validando Ticket");  /*Set the text*/
+	}
+	else {
+		lv_label_set_text(label, "   Carga terminada cerrando Ticket");  /*Set the text*/
+	}	
+	lv_obj_align(label, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -120);
+
+	btnCancel = lv_btn_create(cont_screen_init, NULL);
+	lv_obj_set_event_cb(btnCancel, btn_event_cb);
+	lv_obj_set_size(btnCancel, 400, 50);
+	lv_obj_align(btnCancel, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -20);
+	lv_obj_t*  labelbtn = lv_label_create(btnCancel, NULL);
+	lv_label_set_text(labelbtn, "CANCELAR");
+
+	btnContinuar = lv_btn_create(cont_screen_init, NULL);
+	lv_obj_set_event_cb(btnContinuar, btn_event_cb);
+	lv_obj_set_size(btnContinuar, 400, 50);
+	lv_obj_align(btnContinuar, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -75);
+	labelbtn = lv_label_create(btnContinuar, NULL);
+	lv_label_set_text(labelbtn, "CONTINUAR");
+
+}
+
+void screen_carga_one() {
+	cont_screen_CharOne = lv_cont_create(lv_scr_act(), NULL);
+	lv_obj_set_auto_realign(cont_screen_CharOne, true);
+	lv_obj_align_origo(cont_screen_CharOne, NULL, LV_ALIGN_CENTER, 0, 0);  /*This parametrs will be sued when realigned*/
+	lv_cont_set_fit(cont_screen_CharOne, LV_FIT_FLOOD);
+	lv_cont_set_layout(cont_screen_CharOne, LV_LAYOUT_OFF);
+	lv_obj_set_event_cb(cont_screen_CharOne, btn_event_cb);
+
+	lv_obj_t* logosmall = lv_img_create(cont_screen_CharOne, NULL);
+	lv_img_set_src(logosmall, &img_logo_small);
+	lv_obj_align(logosmall, NULL, LV_ALIGN_IN_TOP_RIGHT, -20, 10);
+
+	lv_obj_t* conecte = lv_img_create(cont_screen_CharOne, NULL);
+	lv_img_set_src(conecte, &img_conect);
+	lv_obj_align(conecte, NULL, LV_ALIGN_CENTER, -270, -20);
+
+	//-------------------------------------------------------------------------------//
+	lv_obj_t* cont = lv_cont_create(cont_screen_CharOne, NULL);
+	lv_obj_set_auto_realign(cont, true);
+	lv_obj_set_size(cont, 480, 300);
+	lv_obj_align_origo(cont, NULL, LV_ALIGN_CENTER, 100, -10);  /*This parametrs will be sued when realigned*/
+	lv_cont_set_fit2(cont, LV_FIT_NONE, LV_FIT_NONE);
+	lv_cont_set_layout(cont, LV_LAYOUT_OFF);
+
+	lv_obj_t* label = lv_label_create(cont, NULL); /*First parameters (scr) is the parent*/
+	lv_label_set_style(label, LV_LABEL_LONG_EXPAND, &styleLabel1);
+	lv_label_set_text(label, "Potencia: ");  /*Set the text*/
+	lv_obj_align(label, NULL, LV_ALIGN_IN_TOP_LEFT, 50, 40);
+	labelPotencia = lv_label_create(cont, NULL); /*First parameters (scr) is the parent*/
+	lv_label_set_style(labelPotencia, LV_LABEL_LONG_EXPAND, &styleLabel1);
+	lv_label_set_text(labelPotencia, "-- KW");  /*Set the text*/
+	lv_obj_align(labelPotencia, NULL, LV_ALIGN_IN_TOP_RIGHT, -50, 40);
+
+	label = lv_label_create(cont, NULL); /*First parameters (scr) is the parent*/
+	lv_label_set_style(label, LV_LABEL_LONG_EXPAND, &styleLabel1);
+	lv_label_set_text(label, "Carga: ");  /*Set the text*/
+	lv_obj_align(label, NULL, LV_ALIGN_IN_TOP_LEFT, 50, 110);
+	labelCarga = lv_label_create(cont, NULL); /*First parameters (scr) is the parent*/
+	lv_label_set_style(labelCarga, LV_LABEL_LONG_EXPAND, &styleLabel1);
+	lv_label_set_text(labelCarga, "-- KW/h");  /*Set the text*/
+	lv_obj_align(labelCarga, NULL, LV_ALIGN_IN_TOP_RIGHT, -50, 110);
+	
+	label = lv_label_create(cont, NULL); /*First parameters (scr) is the parent*/
+	lv_label_set_style(label, LV_LABEL_LONG_EXPAND, &styleLabel1);
+	lv_label_set_text(label, "Coste: ");  /*Set the text*/
+	lv_obj_align(label, NULL, LV_ALIGN_IN_TOP_LEFT, 50, 180);
+	labelCoste = lv_label_create(cont, NULL); /*First parameters (scr) is the parent*/
+	lv_label_set_style(labelCoste, LV_LABEL_LONG_EXPAND, &styleLabel1);
+	lv_label_set_text(labelCoste, "-- Euros");  /*Set the text*/
+	lv_obj_align(labelCoste, NULL, LV_ALIGN_IN_TOP_RIGHT, -50, 180);
+	
+	label = lv_label_create(cont, NULL); /*First parameters (scr) is the parent*/
+	lv_label_set_style(label, LV_LABEL_LONG_EXPAND, &styleLabel1);
+	lv_label_set_text(label, "Tiempo: ");  /*Set the text*/
+	lv_obj_align(label, NULL, LV_ALIGN_IN_TOP_LEFT, 50, 250);
+	labelTiempo = lv_label_create(cont, NULL); /*First parameters (scr) is the parent*/
+	lv_label_set_style(labelTiempo, LV_LABEL_LONG_EXPAND, &styleLabel1);
+	lv_label_set_text(labelTiempo, "-- Minutos");  /*Set the text*/
+	lv_obj_align(labelTiempo, NULL, LV_ALIGN_IN_TOP_RIGHT, -50, 250);
+
+	//-------------------------------------------------------------------------------//
+
+	btnCancel2 = lv_btn_create(cont_screen_CharOne, NULL);
+	lv_obj_set_event_cb(btnCancel2, btn_event_cb);
+	lv_obj_set_size(btnCancel2, 400, 50);
+	lv_obj_align(btnCancel2, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -20);
+	lv_obj_t* labelbtn = lv_label_create(btnCancel2, NULL);
+	lv_label_set_text(labelbtn, "CANCELAR");
+}
+
+
+
+
+
+void screen_carga_two() {
+	cont_screen_CharTwo = lv_cont_create(lv_scr_act(), NULL);
+	lv_obj_set_auto_realign(cont_screen_CharTwo, true);
+	lv_obj_align_origo(cont_screen_CharTwo, NULL, LV_ALIGN_CENTER, 0, 0);  /*This parametrs will be sued when realigned*/
+	lv_cont_set_fit(cont_screen_CharTwo, LV_FIT_FLOOD);
+	lv_cont_set_layout(cont_screen_CharTwo, LV_LAYOUT_OFF);
+	lv_obj_set_event_cb(cont_screen_CharTwo, btn_event_cb);
+
+}
+
+void screen_alert_info() {
+	lv_obj_set_opa_scale(lv_scr_act(), LV_OPA_30);
+	cont_screen_alert_info = lv_cont_create(lv_scr_act(), NULL);
+	lv_obj_set_size(cont_screen_alert_info, 400, 220);
+
+	lv_obj_set_auto_realign(cont_screen_alert_info, true);
+	lv_obj_align_origo(cont_screen_alert_info, NULL, LV_ALIGN_CENTER, 0, 0);  /*This parametrs will be sued when realigned*/
+	lv_cont_set_fit(cont_screen_alert_info, LV_FIT_NONE);
+	lv_cont_set_layout(cont_screen_alert_info, LV_LAYOUT_CENTER);
+	//lv_obj_set_event_cb(cont_screen_alert_info, btn_event_cb);
+
+	lv_obj_t* label = lv_label_create(cont_screen_alert_info, NULL); /*First parameters (scr) is the parent*/
+	lv_label_set_text(label, "Instrucciones de Uso");  /*Set the text*/
+	lv_obj_set_pos(label, 5, 5);
+	lv_obj_set_x(label, 300);
+	/*Add some dummy content*/
+	lv_obj_t* txt = lv_label_create(cont_screen_alert_info, NULL);
+	lv_label_set_text(txt, "1: Ingrese el codigo\n"
+		"2:\n"
+		"3:\n"
+		"4:\n"
+		"5:\n"
+		"El proceso de carga INICIARA!");
+
+	btn_close_alert = lv_btn_create(cont_screen_alert_info, NULL);     /*Add a button the current screen*/
+	lv_obj_set_pos(btn_close_alert, 100, 250);                            /*Set its position*/
+	lv_obj_set_size(btn_close_alert, 100, 50);                          /*Set its size*/
+	lv_obj_set_event_cb(btn_close_alert, btn_event_cb);                 /*Assign a callback to the button*/
+	lv_obj_t* labelClose = lv_label_create(btn_close_alert, NULL);          /*Add a label to the button*/
+	lv_label_set_text(labelClose, "Cerrar");
+
+}
+
+void screen_alert_info_error() {
+	lv_obj_set_opa_scale(lv_scr_act(), LV_OPA_30);
+	cont_screen_alert_info = lv_cont_create(lv_scr_act(), NULL);
+	lv_obj_set_size(cont_screen_alert_info, 300, 220);
+
+	lv_obj_set_auto_realign(cont_screen_alert_info, true);
+	lv_obj_align_origo(cont_screen_alert_info, NULL, LV_ALIGN_CENTER, 0, 0);  /*This parametrs will be sued when realigned*/
+	lv_cont_set_fit(cont_screen_alert_info, LV_FIT_NONE);
+	lv_cont_set_layout(cont_screen_alert_info, LV_LAYOUT_CENTER);
+	//lv_obj_set_event_cb(cont_screen_alert_info, btn_event_cb);
+
+	lv_obj_t* imgError = lv_img_create(cont_screen_alert_info, NULL);
+	lv_img_set_auto_size(imgError, true);
+	lv_img_set_src(imgError, &img_alert2);
+	lv_obj_align(imgError, NULL, LV_ALIGN_CENTER, 0, -20);
+
+	lv_obj_t* label = lv_label_create(cont_screen_alert_info, NULL); /*First parameters (scr) is the parent*/
+	lv_label_set_align(label, LV_LABEL_ALIGN_CENTER);
+	lv_label_set_text(label, "Codigo Erroneo \n Por favor, introduzca el codigo correcto");  /*Set the text*/
+	
+
+	btn_close_alert = lv_btn_create(cont_screen_alert_info, NULL);     /*Add a button the current screen*/
+	lv_obj_set_pos(btn_close_alert, 100, 250);                            /*Set its position*/
+	lv_obj_set_size(btn_close_alert, 100, 50);                          /*Set its size*/
+	lv_obj_set_event_cb(btn_close_alert, btn_event_cb);                 /*Assign a callback to the button*/
+	lv_obj_t* labelClose = lv_label_create(btn_close_alert, NULL);          /*Add a label to the button*/
+	lv_label_set_text(labelClose, "Aceptar");
+
+}
+
+void screen_alert_info_outService() {
+	cont_screen_alert_info_outService = lv_cont_create(lv_scr_act(), NULL);
+	lv_obj_set_auto_realign(cont_screen_alert_info_outService, true);
+	lv_obj_align_origo(cont_screen_alert_info_outService, NULL, LV_ALIGN_CENTER, 0, 0);  /*This parametrs will be sued when realigned*/
+	lv_cont_set_fit(cont_screen_alert_info_outService, LV_FIT_FLOOD);
+	lv_cont_set_layout(cont_screen_alert_info_outService, LV_LAYOUT_OFF);
+	lv_obj_set_event_cb(cont_screen_alert_info_outService, btn_event_cb);
+
+	lv_obj_t* label = lv_label_create(cont_screen_alert_info_outService, NULL); /*First parameters (scr) is the parent*/
+	lv_label_set_text(label, "FUERA DE SERVICIO");  /*Set the text*/
+	lv_obj_align(label, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
+
+	lv_obj_t* logo = lv_img_create(cont_screen_alert_info_outService, NULL);
+	lv_img_set_src(logo, &img_airis_logo);
+	lv_obj_align(logo, NULL, LV_ALIGN_CENTER, 0, -20);
+
+	lv_obj_t* label2 = lv_label_create(cont_screen_alert_info_outService, NULL); /*First parameters (scr) is the parent*/
+	lv_label_set_text(label2, "DISCULPE LAS MOLESTIAS");  /*Set the text*/
+	lv_obj_align(label2, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -20);
+
+
+}
+
+void screen_alert_info_wait() {
+	cont_screen_alert_info_wait = lv_cont_create(lv_scr_act(), NULL);
+	lv_obj_set_auto_realign(cont_screen_alert_info_wait, true);
+	lv_obj_align_origo(cont_screen_alert_info_wait, NULL, LV_ALIGN_CENTER, 0, 0);  /*This parametrs will be sued when realigned*/
+	lv_cont_set_fit(cont_screen_alert_info_wait, LV_FIT_FLOOD);
+	lv_cont_set_layout(cont_screen_alert_info_wait, LV_LAYOUT_OFF);
+	lv_obj_set_event_cb(cont_screen_alert_info_wait, btn_event_cb);
+
+
+}
+ 
 
 /**********************
  *   STATIC FUNCTIONS
  **********************/
-bool statechar = false;
-bool stateindi = false;
 
-static void btn_event_cb(lv_obj_t *obj, lv_event_t event)
+
+static void btn_event_cb(lv_obj_t* obj, lv_event_t event)
 {
-	if (event == LV_EVENT_CLICKED)
-	{
+	if (event == LV_EVENT_CLICKED ) {
+		printf("Clicked\n");
 
-		if (obj == btn1)
-		{
-			if (!stateindi)
-			{
-				stateindi = true;
-				xSemaphoreGive(Semaphore_Out_Phoenix);
-				printf("Clicked Phoenix Indicador OFF\n");
-				//lv_ex_mbox_1();
-			}
-			else
-			{
-				stateindi = false;
-				printf("Clicked Phoenix Indicador ON\n");
-			}
-		}
-		else if (obj == btn2)
-		{
+		if (obj == cont_screen_welcome && !welcome) {
+lv_obj_del(cont_screen_welcome);
+printf("Clicked Screen Welcome\n");
+welcome = true;
+screen_code();
 
-			if (!statechar)
-			{
-				statechar = true;
-				xSemaphoreGive(Semaphore_Start_Charging);
-				lv_label_set_text(labelCharger, "DETENER CARGA");
-				printf("Clicked Phoenix Start \n");
-			}
-			else
-			{
-				statechar = false;
-				xSemaphoreGive(Semaphore_Stop_Charging);
-				lv_label_set_text(labelCharger, "INICIAR CARGA");
-				printf("Clicked Phoenix Stop \n");
-			}
 		}
-		else if (obj == btn3)
-		{
+
+		else if (obj == cont_screen_code) {
+		printf("Clicked Screen Code\n");
 		}
-		else if (obj == btn4)
-		{
+
+		else if (obj == btnContinuar && !StopCharger) {
+
+		lv_obj_del(cont_screen_init);
+		printf("Clicked Screen Code\n");
+		screen_carga_one();
 		}
+
+		else if (obj == btnContinuar && StopCharger) {
+		screen_welcome();
+		StopCharger = false;
+		EnableCharger = true;
+		welcome = false;
+		lv_obj_del(cont_screen_init);
+
+		}
+
+
+		else if (obj == btnCancel) {
+		lv_obj_del(cont_screen_init);
+		printf("Clicked Cancel Init\n");
+		EnableCharger = false;
+		screen_code();
+		}
+		else if (obj == btnCancel2) {
+		lv_obj_del(cont_screen_CharOne);
+		printf("Clicked Cancel CharOne\n");
+		EnableCharger = false;
+		screen_code();
+		}
+
 	}
-	else if (event == LV_EVENT_VALUE_CHANGED)
-	{
-		printf("Toggled\n");
+	else if (event == LV_EVENT_VALUE_CHANGED) {
+	printf("Toggled\n");
 	}
 }
 
-#endif /*LV_USE_DEMO*/
+static void kb_event_cb(lv_obj_t* event_kb, lv_event_t event)
+{
+	/* Just call the regular event handler */
+	lv_kb_def_event_cb(event_kb, event);
+
+}
+
+int i = 0;
+static void ta_event_cb(lv_obj_t* ta, lv_event_t event)
+{
+	if (event == LV_EVENT_CLICKED) {
+		/* Focus on the clicked text area */
+		if (kb != NULL)
+			lv_kb_set_ta(kb, ta);
+
+	}
+
+	else if (event == LV_EVENT_INSERT) {
+		const char* str = lv_event_get_data();
+		printf("Tecla %s \n", str);
+
+	
+		str2[i] = str[0];
+		i++;
+		
+		if (str[0] == 127) {
+			i = 0;
+			memset(str2, 0, sizeof(str2));
+		}
+
+		if (str[0] == '\n') {
+
+			printf("tickets %s, pass %s \n", str1, str2);
+			int result = strcmp("1234\n", str2);
+			if (result == 0) {
+				memset(str2, 0, sizeof(str2));
+				
+				if (!EnableCharger) {
+					StopCharger = true;
+				}
+
+				screen_init_carga();
+				lv_obj_del(cont_screen_code);
+				
+				
+			}
+			else
+			{
+				warning = lv_img_create(cont_screen_code, NULL);
+				lv_img_set_src(warning, &img_warning);
+				lv_obj_set_size(warning, 50, 45);
+				lv_obj_align(warning, NULL, LV_ALIGN_IN_TOP_MID, 0, 30);
+
+				lv_obj_align(label_codeStatus, NULL, LV_ALIGN_IN_TOP_MID, -65, 75);
+				lv_label_set_text(label_codeStatus, "Codigo erroneo");
+
+				lv_obj_align(label_code, NULL, LV_ALIGN_IN_TOP_MID, -65, 130);
+				lv_label_set_text(label_code, "Por favor, introduzca el codigo correcto");
+			}
+			i = 0;
+		}
+
+		
+	}
+
+
+}
+#endif  /*LV_USE_DEMO*/

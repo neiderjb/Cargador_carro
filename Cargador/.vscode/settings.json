@@ -22,6 +22,10 @@
         "vector": "c",
         "xstring": "c",
         "xutility": "c",
-        "string": "c"
+        "string": "c",
+        "sstream": "c",
+        "software_i2c.h": "c",
+        "stdint.h": "c",
+        "stdbool.h": "c"
     }
 }

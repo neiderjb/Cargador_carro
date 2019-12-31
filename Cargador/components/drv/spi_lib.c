@@ -118,7 +118,7 @@ void spi_config()
 {
 	spi_device_interface_config_t devcfg = {
 	#ifdef CONFIG_LCD_OVERCLOCK
-		.clock_speed_hz = 20 * 1000 * 1000, //Clock out at 26 MHz
+		.clock_speed_hz = 24 * 1000 * 1000, //Clock out at 26 MHz
 	#else
 		.clock_speed_hz = 5 * 1000 * 1000, //Clock out at 10 MHz
 	#endif
