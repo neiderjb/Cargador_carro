@@ -52,6 +52,7 @@
 static const char *TAG = "FunctionsCC";
 static char topic[] = "airis/1155/power_analizer";
 
+
 void decodeCommand(char *s)
 {
 	int values[32];
@@ -226,14 +227,15 @@ void ReadInformation()
 	ready_information = false;
 	printf("Phonix Charger State: %x \n", PStatus);
 	printf("Phonix Error State: %x \n", EStatus);
-	printf("Phonix Charger Time Charger- %x:%x:%x \n", PHour,PMinute,PSecond);
+	printf("Phonix Charger Time Charger- %x:%x:%x \n", PHour, PMinute, PSecond);
 
 	char *dataMQTTA = createjsonFaseA(voltageA, currentA, powerfactorA, powerA, powerReacA, powerAppA, (voltageA * currentA), temperature, PStatus, EStatus, PHour, PMinute, PSecond);
 	char *dataMQTTB = createjsonFaseB(voltageB, currentB, powerfactorB, powerB, powerReacB, powerAppB, (voltageB * currentB), temperature, PStatus, EStatus, PHour, PMinute, PSecond);
 	char *dataMQTTC = createjsonFaseC(voltageC, currentC, powerfactorC, powerC, powerReacC, powerAppC, (voltageC * currentC), temperature, PStatus, EStatus, PHour, PMinute, PSecond);
 
-	if (Isconnected()){
-				
+	if (Isconnected())
+	{
+
 		sendMessage(dataMQTTA, topic);
 		sendMessage(dataMQTTB, topic);
 		sendMessage(dataMQTTC, topic);
@@ -374,5 +376,20 @@ void begin_calibration_analizer()
 		CurrentGain = 51571;
 		begin_M90E32AS(LineFreq, PGAGain, VoltageGain, CurrentGain, CurrentGain, CurrentGain); //
 		ESP_LOGI("Network Analizer", "Calibration OK 60Hz");
+	}
+}
+
+void Charge_Power_Control(bool start)
+{
+	if (start)
+	{
+		power_charge_value += GetApparentPowerA();
+		contador_power_read++;
+		printf("power_charge: %f - %d\n", power_charge_value, contador_power_read);
+	}
+	else
+	{
+		contador_power_read = 0;
+		power_charge_value = 0;
 	}
 }

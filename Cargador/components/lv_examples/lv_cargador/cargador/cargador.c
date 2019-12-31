@@ -146,7 +146,6 @@ void cargador_create(void)
 
 	scr1 = lv_page_create(NULL, NULL);	
 	lv_disp_load_scr(scr1);
-
 	screen_welcome();
 }
 

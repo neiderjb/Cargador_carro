@@ -81,6 +81,8 @@ void app_main()
 	Semaphore_Start_Charging = xSemaphoreCreateBinary();
 	Semaphore_Stop_Charging = xSemaphoreCreateBinary();
 	Semaphore_Out_Phoenix = xSemaphoreCreateBinary();
+	Semaphore_Out_Rele = xSemaphoreCreateBinary();
+	Semaphore_Out_Led = xSemaphoreCreateBinary();
 
 	Semaphore_Out_Rele = xSemaphoreCreateBinary();
     Semaphore_Out_Led = xSemaphoreCreateBinary();
@@ -92,7 +94,7 @@ void app_main()
 	// //I2C config
 	// sw_i2c_init(PIN_SDA, PIN_SCL);
 	// sw_i2c_master_scan();
-	
+
 	// begin_SC18IS602B();
 	// //configuration analizer
 	// begin_analizer();

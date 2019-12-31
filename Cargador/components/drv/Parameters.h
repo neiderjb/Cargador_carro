@@ -181,4 +181,3 @@ lv_obj_t *labelCon;
 lv_obj_t *labelTime;
 lv_obj_t *labelPhoenix;
 
-
