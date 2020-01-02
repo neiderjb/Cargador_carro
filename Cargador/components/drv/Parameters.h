@@ -174,10 +174,11 @@ bool charging;
 
 //LittleVgl 
 #define DISP_BUF_SIZE (LV_HOR_RES_MAX * 20)
-lv_obj_t *labelVol;
-lv_obj_t *labelCur;
-lv_obj_t *labelPow;
-lv_obj_t *labelCon;
-lv_obj_t *labelTime;
+
+lv_obj_t *labelPotencia;
+lv_obj_t *labelCarga;
+lv_obj_t *labelCoste;
+lv_obj_t *labelTiempo;
+
 lv_obj_t *labelPhoenix;
 

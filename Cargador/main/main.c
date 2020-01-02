@@ -63,7 +63,7 @@ void Network_Control(void *p)
 			}
 			if (ready_information)
 			{
-				//ReadInformation();	//Send data to MQTT
+				ReadInformation();	//Send data to MQTT
 				vTaskDelay(5000 / portTICK_RATE_MS);
 			}
 		}
@@ -206,7 +206,7 @@ void app_main()
 	//Screen
 	esp_register_freertos_tick_hook(lv_tick_task);
 	cargador_create();
-	ready_information = true;
+	
 	//Screen
 	while (1)
 	{

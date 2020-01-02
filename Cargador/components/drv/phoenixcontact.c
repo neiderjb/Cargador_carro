@@ -224,10 +224,11 @@ void phoenix_task(void *arg)
         if (charging)
         {
             EStatus = phoenixcontact_error_status();
-            if (EStatus != 0)
+            if (EStatus == 0x0004 || EStatus == 0x0002 || EStatus == 0x0008 || EStatus == 0x0800 )
             {
                 ESP_LOGI(TAG, "Status Error Phoenix: %x \n", EStatus);
-                //stop_charging();
+                update_error_carga_one();
+                stop_charging();
             }
             vTaskDelay(100 / portTICK_RATE_MS);
             PStatus = phoenixcontact_SystemStatus();
@@ -251,7 +252,7 @@ void phoenix_task(void *arg)
             //phoenixcontact_Get_SettingMaximumPermissibleChargingCurrent();
         }
 
-        vTaskDelay(500 / portTICK_RATE_MS);
+        vTaskDelay(200 / portTICK_RATE_MS);
     }
 }
 

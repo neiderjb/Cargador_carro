@@ -48,6 +48,8 @@ void screen_init_carga(void);
 void screen_carga_one(void);
 void update_conectado_carga_one(void);
 void update_cargando_carga_one(void);
+void update_error_carga_one();
+void update_label_carga_one(float potencia, float carga, float coste, float tiempo);
 void close_carga_one(void);
 
 void screen_alert_info_outService(void);

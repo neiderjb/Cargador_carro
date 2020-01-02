@@ -48,6 +48,7 @@
 #include "Functions.h"
 #include "PCF85063TP.h"
 //#include "Sim800L.h"
+#include "lv_examples/lv_cargador/cargador/cargador.h"
 
 static const char *TAG = "FunctionsCC";
 static char topic[] = "airis/1155/power_analizer";
@@ -233,6 +234,8 @@ void ReadInformation()
 	char *dataMQTTB = createjsonFaseB(voltageB, currentB, powerfactorB, powerB, powerReacB, powerAppB, (voltageB * currentB), temperature, PStatus, EStatus, PHour, PMinute, PSecond);
 	char *dataMQTTC = createjsonFaseC(voltageC, currentC, powerfactorC, powerC, powerReacC, powerAppC, (voltageC * currentC), temperature, PStatus, EStatus, PHour, PMinute, PSecond);
 
+	update_label_carga_one((float)GetApparentPowerA(),(float)GetApparentPowerA(),(float)3,(float)PMinute);
+
 	if (Isconnected())
 	{
 
@@ -386,6 +389,7 @@ void Charge_Power_Control(bool start)
 		power_charge_value += GetApparentPowerA();
 		contador_power_read++;
 		printf("power_charge: %f - %d\n", power_charge_value, contador_power_read);
+
 	}
 	else
 	{
