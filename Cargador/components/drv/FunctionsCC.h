@@ -45,3 +45,4 @@ double ReadFrequency();
 void ReadInformation();
 void set_PhaseControl();
 void Charge_Power_Control(bool start);
+bool compare_ticket(char *ticket);

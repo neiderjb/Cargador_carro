@@ -24,6 +24,7 @@
 #include "driver/timer.h"
 #include "driver/spi_master.h"
 #include <math.h>
+#include "esp_http_client.h"
 
 #include "wifi_lib.h"
 
@@ -52,6 +53,34 @@
 static const char *TAG = "FunctionsCC";
 static char topic[] = "airis/1155/power_analizer";
 
+esp_err_t _http_event_handler(esp_http_client_event_t *evt)
+{
+	switch (evt->event_id)
+	{
+	case HTTP_EVENT_ERROR:
+		ESP_LOGD(TAG, "HTTP_EVENT_ERROR");
+		break;
+	case HTTP_EVENT_ON_CONNECTED:
+		ESP_LOGD(TAG, "HTTP_EVENT_ON_CONNECTED");
+		break;
+	case HTTP_EVENT_HEADER_SENT:
+		ESP_LOGD(TAG, "HTTP_EVENT_HEADER_SENT");
+		break;
+	case HTTP_EVENT_ON_HEADER:
+		ESP_LOGD(TAG, "HTTP_EVENT_ON_HEADER, key=%s, value=%s", evt->header_key, evt->header_value);
+		break;
+	case HTTP_EVENT_ON_DATA:
+		ESP_LOGD(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
+		break;
+	case HTTP_EVENT_ON_FINISH:
+		ESP_LOGD(TAG, "HTTP_EVENT_ON_FINISH");
+		break;
+	case HTTP_EVENT_DISCONNECTED:
+		ESP_LOGI(TAG, "HTTP_EVENT_DISCONNECTED");
+		break;
+	}
+	return ESP_OK;
+}
 
 void decodeCommand(char *s)
 {
@@ -392,4 +421,50 @@ void Charge_Power_Control(bool start)
 		contador_power_read = 0;
 		power_charge_value = 0;
 	}
+}
+
+bool compare_ticket(char *ticket)
+{
+	char data[50];
+	bool response;
+	esp_http_client_config_t config = {
+		.url = "http://192.168.0.104:3000",
+		.event_handler = _http_event_handler,
+	};
+	esp_http_client_handle_t client = esp_http_client_init(&config);
+
+	// GET
+	esp_err_t err = esp_http_client_perform(client);
+	if (err == ESP_OK)
+	{
+		ESP_LOGI(TAG, "HTTP  OK GET Status = %d, content_length = %d",
+				 esp_http_client_get_status_code(client),
+				 esp_http_client_get_content_length(client));
+
+		esp_http_client_read(client, data, esp_http_client_get_content_length(client));
+	}
+	else
+	{
+		return false;
+	}
+	printf("get data: %s\n", data);
+	cJSON *root, *ticket_json;
+	root = cJSON_CreateObject();
+	root = cJSON_Parse(data);
+	ticket_json = cJSON_GetObjectItem(root, "ticket");
+	char *valid_ticket = cJSON_GetStringValue(ticket_json);
+	printf("valid ticket: %s\n", valid_ticket);
+
+	if (strcmp(cJSON_GetStringValue(ticket_json), ticket) == 0)
+	{
+		printf("ticket: %s\n", ticket);
+		response = true;
+	}
+	else
+	{
+		printf("ticket: %s\n", ticket);
+		response = false;
+	}
+	cJSON_Delete(root);
+	return response;
 }

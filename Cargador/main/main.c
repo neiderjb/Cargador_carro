@@ -30,6 +30,8 @@
 //library LittleVgl
 #include "../components/lvgl/lvgl.h"
 #include "lv_examples/lv_cargador/cargador/cargador.h"
+//TimerControl
+#include "drv/TimerControl.h"
 
 //LittleVgl Variables
 uint16_t *buf1;
@@ -90,6 +92,9 @@ void app_main()
 
 	//EPLD
 	begin_maxV();
+
+	//TimerControl
+	timer_begin();
 	
 	/*	//Codigo solo Probar Analizador de RED 
 	////Debug Analizer
@@ -207,6 +212,10 @@ void app_main()
 	esp_register_freertos_tick_hook(lv_tick_task);
 	cargador_create();
 	ready_information = true;
+
+	//Periodic Timer
+	ESP_ERROR_CHECK(esp_timer_start_periodic(Timer_Memory_Control, 10000000));
+
 	//Screen
 	while (1)
 	{

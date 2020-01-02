@@ -201,7 +201,7 @@ void stop_charging()
     }
     phoenixcontact_Set_Enable_charging_process(0); //Enabling the charging process
     phoenixcontact_Set_Controlling_Locking_Actuator(0);
-    close_carga_one();
+    close_carga_one();  
 }
 
 bool indicator = false;

@@ -181,3 +181,7 @@ lv_obj_t *labelCon;
 lv_obj_t *labelTime;
 lv_obj_t *labelPhoenix;
 
+//timers
+esp_timer_handle_t Timer_Screen_Control;
+esp_timer_handle_t Timer_Memory_Control;
+

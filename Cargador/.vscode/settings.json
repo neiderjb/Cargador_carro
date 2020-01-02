@@ -26,6 +26,8 @@
         "sstream": "c",
         "software_i2c.h": "c",
         "stdint.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "timercontrol.h": "c",
+        "stdio.h": "c"
     }
 }
