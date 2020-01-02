@@ -1036,6 +1036,35 @@ void drawPixels(uint16_t *p, uint32_t num, int16_t x, int16_t y)
 
 }
 
+void drawPixels2(uint16_t *p, uint32_t num, int16_t x, int16_t y, int16_t x2, int16_t y2)
+{
+  x = applyRotationX(x);
+  y = applyRotationY(y);
+
+  writeRegRA(RA8875_CURH0, x);
+  writeRegRA(RA8875_CURH1, x >> 8);
+  writeRegRA(RA8875_CURV0, y);
+  writeRegRA(RA8875_CURV1, y >> 8);
+
+  writeRegRA(RA8875_HSAW0, x);
+  writeRegRA(RA8875_HSAW1, x >> 8);
+  writeRegRA(RA8875_VSAW0, y);
+  writeRegRA(RA8875_VSAW1, y >> 8);
+
+  writeRegRA(RA8875_HEAW0, x2);
+  writeRegRA(RA8875_HEAW1, x2 >> 8);
+  writeRegRA(RA8875_VEAW0, y2);
+  writeRegRA(RA8875_VEAW1, y2 >> 8);
+
+  writeRegRA(RA8875_MWCR0, 0x00); //(readReg(RA8875_MWCR0) & ~RA8875_MWCR0_DIRMASK) | dir
+
+  writeCommand(RA8875_MRWC);
+  gpio_set_level(PIN_NUM_CS, 0);
+  spidrawpixelsNew(p,num, RA8875_DATAWRITE);
+  gpio_set_level(PIN_NUM_CS, 1);
+}
+
+
 void init_screen()
 {
   printf("Found RA8875, Display initialized!\n");
@@ -1048,9 +1077,11 @@ void init_screen()
   PWM1out(255);
   //printf("PWM1out!\n");
   vTaskDelay(100 / portTICK_RATE_MS);
+  #ifndef littleOpt
   fillScreen(RA8875_WHITE);
   printf("fillScreen White \n");
   vTaskDelay(100 / portTICK_RATE_MS);
+  #endif
   printf("End Display initialized!\n");
 }
 

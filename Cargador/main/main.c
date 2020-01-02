@@ -31,7 +31,11 @@
 #include "../components/lvgl/lvgl.h"
 #include "lv_examples/lv_cargador/cargador/cargador.h"
 
+//LittleVgl Variables
+uint16_t *buf1;
+static lv_disp_buf_t disp_buf;
 static void IRAM_ATTR lv_tick_task(void);
+
 
 static const char *TAG = "Main";
 
@@ -84,27 +88,27 @@ void app_main()
 	Semaphore_Out_Rele = xSemaphoreCreateBinary();
 	Semaphore_Out_Led = xSemaphoreCreateBinary();
 
-	Semaphore_Out_Rele = xSemaphoreCreateBinary();
-    Semaphore_Out_Led = xSemaphoreCreateBinary();
-
 	//EPLD
 	begin_maxV();
+	
+	/*	//Codigo solo Probar Analizador de RED 
+	////Debug Analizer
+	//I2C config
+	sw_i2c_init(PIN_SDA, PIN_SCL);
+	sw_i2c_master_scan();
+	
+	begin_SC18IS602B();
+	//configuration analizer
+	begin_analizer();
+	begin_calibration_analizer(LineFreq, PGAGain, VoltageGain, CurrentGain, 60853, 63853);
+	xTaskCreate(grid_analyzer_task, "grid_analyzer_task", 4096, NULL, 5, NULL);
+	while (1)
+	{
+		vTaskDelay(100);
+	}
+	//Debug Analizer
+ 	*/
 
-	// ////Debug Analizer
-	// //I2C config
-	// sw_i2c_init(PIN_SDA, PIN_SCL);
-	// sw_i2c_master_scan();
-
-	// begin_SC18IS602B();
-	// //configuration analizer
-	// begin_analizer();
-	// begin_calibration_analizer(LineFreq, PGAGain, VoltageGain, CurrentGain, 60853, 63853);
-	// xTaskCreate(grid_analyzer_task, "grid_analyzer_task", 4096, NULL, 5, NULL);
-	// while (1)
-	// {
-	// 	vTaskDelay(100);
-	// }
-	// //Debug Analizer
 
 	//I2C config
 	sw_i2c_init(PIN_SDA, PIN_SCL);
@@ -134,10 +138,6 @@ void app_main()
 	}
 	// turn on screesn
 	init_screen();
-	vTaskDelay(100 / portTICK_RATE_MS);
-	fillScreen(RA8875_BLACK);
-	vTaskDelay(100 / portTICK_RATE_MS);
-	fillScreen(RA8875_WHITE);
 
 	//I2C-UART
 	begin_ZDU0210RJX(0xFF, 0xFF);
@@ -178,12 +178,14 @@ void app_main()
 	xTaskCreatePinnedToCore(Network_Control, "Network_Control", 3072, NULL, 3, NULL, 1);
 
 	//LittleVgl Init
-	lv_init();
-	static lv_disp_buf_t disp_buf;
-	uint16_t *buf1;
+	lv_init();	
+	#ifdef littleOpt
+	buf1 = heap_caps_malloc(120000, MALLOC_CAP_DMA);
+	lv_disp_buf_init(&disp_buf, buf1, NULL, 60000);
+	#else
 	buf1 = heap_caps_malloc(40001, MALLOC_CAP_DMA);
-	//lv_disp_buf_init(&disp_buf, buf1, NULL, 800);
 	lv_disp_buf_init(&disp_buf, buf1, NULL, DISP_BUF_SIZE);
+	#endif
 	//screen LittleVgl
 	lv_disp_drv_t disp_drv;
 	lv_disp_drv_init(&disp_drv);

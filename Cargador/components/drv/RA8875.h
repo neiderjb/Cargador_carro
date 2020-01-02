@@ -82,6 +82,7 @@ void scrollY(int16_t dist);
 
 void drawPixel(int16_t x, int16_t y, uint16_t color);
 void drawPixels(uint16_t *p, uint32_t num, int16_t x, int16_t y);
+void drawPixels2(uint16_t *p, uint32_t num, int16_t x, int16_t y, int16_t x2, int16_t y2);
 
 
 // void print_screen(float volA, float currA, float temp, float power, float frequen);

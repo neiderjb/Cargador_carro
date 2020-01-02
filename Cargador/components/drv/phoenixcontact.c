@@ -61,6 +61,8 @@ uint8_t ReadDiscreteInputs = 0x02;   ///< Modbus function 0x02 Read Discrete Inp
 uint8_t ReadHoldingRegisters = 0x03; ///< Modbus function 0x03 Read Holding Registers
 uint8_t ReadInputRegisters = 0x04;   ///< Modbus function 0x04 Read Input Registers
 
+
+
 void begin_phoenixcontact()
 {
     begin_modbusMaster(3);
@@ -116,7 +118,7 @@ void start_charging()
 
     //Credenciales del ticket Aca
     int tryConect = 20;
-    while (1)
+    while (1) //Realiza 20 Intentos para que conecten la pistola
     {
         tryConect--;
         if (tryConect == 0)
@@ -131,18 +133,14 @@ void start_charging()
         else if (PStatus == 0x4231 || PStatus == 0x4232)
         {
             ESP_LOGI(TAG, "B1 o B2- Socket conectado pero no cargando\n");
-            break;
-        }
-        else if (PStatus == 0x4331)
-        {
-            ESP_LOGI(TAG, "C1- Cargando\n");
+            update_conectado_carga_one(); //Actualiza la pantalla cuando se detecta la conexion con el carro
             break;
         }
         vTaskDelay(200 / portTICK_RATE_MS);
     }
 
-    if (PStatus == 0x4231 || PStatus == 0x4232)
-    {
+    if ((PStatus == 0x4231 || PStatus == 0x4232) && tryConect > 0) //Una vez conectada se habilita
+    {                                                              //Potencia y se coloca el seguro
         phoenixcontact_Set_Controlling_Locking_Actuator(1);
         //Enabling the charging process
         phoenixcontact_Set_Enable_charging_process(1);
@@ -151,25 +149,43 @@ void start_charging()
         rele_state_maxV(1, 0); ////Open rele signal security
 
         vTaskDelay(100 / portTICK_RATE_MS);
-        PStatus = phoenixcontact_SystemStatus();
-        ESP_LOGI(TAG, "Status Phoenix Charger: %x \n", PStatus);
-        if (PStatus == 0x4231 || PStatus == 0x4232)
+        int tryBtoC = 20;
+        while (1) //Realiza 20 Intentos para que el vehiculo cambie de estado B a C
         {
-            ESP_LOGI(TAG, "B1 o B2- Socket conectado pero no cargando\n");
-        }
-        else if (PStatus == 0x4331)
-        {
-            ESP_LOGI(TAG, "C1- Cargando!!!!!!!!!!!!!!!!!!!!!!!\n");
+            tryBtoC--;
+            if (tryBtoC == 0)
+            {
+                break;
+            }
+            PStatus = phoenixcontact_SystemStatus();
+            if (PStatus == 0x4331 || PStatus == 0x4332)
+            {
+                update_cargando_carga_one();
+                ESP_LOGI(TAG, "Status de vehiculo correcto para cargar !\n");
+                phoenixcontact_Digital_OutputBehaviorOut1(2);
+                charging = true;
+                break;
+            }
+            vTaskDelay(200 / portTICK_RATE_MS);
         }
 
-        phoenixcontact_Digital_OutputBehaviorOut1(2);
-
-        vTaskDelay(1000 / portTICK_RATE_MS);
-        charging = true;
+        if (PStatus != 0x4331 || PStatus != 0x4332 || tryBtoC == 0)
+        {
+            ESP_LOGE(TAG, "No se Cambio el estado del carro\n");
+            charging = false;
+            close_carga_one();
+            //Devolverse a la pantalla de INICIO
+        }
+        vTaskDelay(300 / portTICK_RATE_MS);
+        
     }
     else
     {
         ESP_LOGE(TAG, "A1 No se conecto la pistola reintente la carga\n");
+        charging = false;
+        close_carga_one();
+        //Devolverse a la pantalla de INICIO
+
     }
 
     ESP_LOGI(TAG, "Start charging END Register\n");
@@ -203,56 +219,6 @@ void phoenix_task(void *arg)
 
     for (;;)
     {
-        if (xSemaphoreTake(Semaphore_Out_Phoenix, 10))
-        {
-            if (!indicator)
-            {
-                phoenixcontact_Digital_OutputBehaviorOut0(2);
-                indicator = true;
-            }
-            else
-            {
-                phoenixcontact_Digital_OutputBehaviorOut0(0);
-                indicator = false;
-            }
-        }
-
-        if (xSemaphoreTake(Semaphore_Start_Charging, 10))
-        {
-            start_charging();
-        }
-        if (xSemaphoreTake(Semaphore_Stop_Charging, 10))
-        {
-            stop_charging();
-        }
-
-        if (xSemaphoreTake(Semaphore_Out_Rele, 10))
-        {
-            if (!rele)
-            {
-                rele_state_maxV(3, 1); //Open rele
-                rele = true;
-            }
-            else
-            {
-                rele_state_maxV(3, 0); ////Open rele signal security
-                rele = false;
-            }
-        }
-
-        if (xSemaphoreTake(Semaphore_Out_Led, 10))
-        {
-            if (!led)
-            {
-                led_state_maxV(2, 1);
-                led = true;
-            }
-            else
-            {
-                led_state_maxV(2, 0);
-                led = false;
-            }
-        }
 
         if (charging)
         {
@@ -262,25 +228,28 @@ void phoenix_task(void *arg)
                 ESP_LOGI(TAG, "Status Error Phoenix: %x \n", EStatus);
                 //stop_charging();
             }
+            vTaskDelay(100 / portTICK_RATE_MS);
             PStatus = phoenixcontact_SystemStatus();
-            ESP_LOGI(TAG, "Status Phoenix Charger: %x \n", PStatus);
+            //ESP_LOGI(TAG, "Status Phoenix Charger: %x \n", PStatus);
+            if (PStatus == 0x4331 || PStatus == 0x4332)
+            {
+                ESP_LOGI(TAG, "------------C1- Cargando!!!!!!!!!!!!!!!!!!!!!!!\n");
+                PHour = (uint8_t)phoenixcontact_HoursCounterStatusC();
+                vTaskDelay(100 / portTICK_RATE_MS);
+                PMinute = (uint8_t)phoenixcontact_MinutesCounterSecondsStatusC() >> 8;
+                vTaskDelay(100 / portTICK_RATE_MS);
+                PSecond = (uint8_t)phoenixcontact_MinutesCounterSecondsStatusC();
+            }
+
             if (PStatus == 0x4231)
             {
                 ESP_LOGI(TAG, "-------------B1 - Carga finalizada\n");
                 //stop_charging();
             }
-            else if (PStatus == 0x4331 || PStatus == 0x4332)
-            {
-                ESP_LOGI(TAG, "------------C1- Cargando!!!!!!!!!!!!!!!!!!!!!!!\n");
-                PHour = (uint8_t)phoenixcontact_HoursCounterStatusC();
-                PMinute = (uint8_t)phoenixcontact_MinutesCounterSecondsStatusC() >> 8;
-                PSecond = (uint8_t)phoenixcontact_MinutesCounterSecondsStatusC();
-            }
-            phoenixcontact_Get_SettingMaximumPermissibleChargingCurrent();
-            vTaskDelay(500 / portTICK_RATE_MS);
-        }
 
-        vTaskDelay(100 / portTICK_RATE_MS);
+            //phoenixcontact_Get_SettingMaximumPermissibleChargingCurrent();
+        }
+        vTaskDelay(500 / portTICK_RATE_MS);
     }
 }
 
