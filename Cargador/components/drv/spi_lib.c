@@ -80,6 +80,32 @@ void spidrawpixels2(uint16_t *p, uint32_t num, uint8_t command){
   	}
 }
 
+void spidrawpixelsNew(uint16_t *p, uint32_t num, uint8_t command)
+{
+	esp_err_t ret;
+	static spi_transaction_t t;
+	memset(&t, 0, sizeof(t)); //Zero out the transaction
+	t.length = 8;
+	t.tx_data[0] = command; //The data is the cmd itself
+	t.flags = SPI_TRANS_USE_TXDATA;
+	t.user = (void *)0;							//D/C needs to be set to 0
+	ret = spi_device_polling_transmit(spi_handle, &t); //Transmit!
+	assert(ret == ESP_OK);
+
+	//Should have had no issues.
+	t.tx_buffer = p;	 //finally send the line data
+	t.rx_buffer = NULL;  //finally send the line data
+	t.length = 16 * num; //Data length, in bits
+	t.rxlength = 16 * num;
+	t.flags = 0;
+	ret = spi_device_queue_trans(spi_handle, &t, portMAX_DELAY); //spi_device_polling_transmit(spi, &t);  //Transmit!
+	assert(ret == ESP_OK);								  //Should have had no issues.
+	spi_transaction_t *rtrans;
+	ret = spi_device_get_trans_result(spi_handle, &rtrans, portMAX_DELAY);
+	assert(ret == ESP_OK);
+}
+
+
 void spi_begin()
 {
 	esp_err_t ret;

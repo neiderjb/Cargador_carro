@@ -46,13 +46,12 @@ void screen_code(void);
 void screen_init_carga(void);
 
 void screen_carga_one(void);
-void screen_carga_two(void);
+void update_conectado_carga_one(void);
+void update_cargando_carga_one(void);
+void close_carga_one(void);
 
-
-void screen_alert_info();
-void screen_alert_info_error(void);
 void screen_alert_info_outService(void);
-void screen_alert_info_wait(void);
+void screen_configuration(void);
 
 /**********************
  *      MACROS
