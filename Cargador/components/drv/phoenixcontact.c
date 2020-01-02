@@ -61,8 +61,6 @@ uint8_t ReadDiscreteInputs = 0x02;   ///< Modbus function 0x02 Read Discrete Inp
 uint8_t ReadHoldingRegisters = 0x03; ///< Modbus function 0x03 Read Holding Registers
 uint8_t ReadInputRegisters = 0x04;   ///< Modbus function 0x04 Read Input Registers
 
-
-
 void begin_phoenixcontact()
 {
     begin_modbusMaster(3);
@@ -169,7 +167,7 @@ void start_charging()
             vTaskDelay(200 / portTICK_RATE_MS);
         }
 
-        if (PStatus != 0x4331 || PStatus != 0x4332 || tryBtoC == 0)
+        if (PStatus != 0x4331 && PStatus != 0x4332 && tryBtoC == 0)
         {
             ESP_LOGE(TAG, "No se Cambio el estado del carro\n");
             charging = false;
@@ -177,7 +175,6 @@ void start_charging()
             //Devolverse a la pantalla de INICIO
         }
         vTaskDelay(300 / portTICK_RATE_MS);
-        
     }
     else
     {
@@ -185,7 +182,6 @@ void start_charging()
         charging = false;
         close_carga_one();
         //Devolverse a la pantalla de INICIO
-
     }
 
     ESP_LOGI(TAG, "Start charging END Register\n");
@@ -205,6 +201,7 @@ void stop_charging()
     }
     phoenixcontact_Set_Enable_charging_process(0); //Enabling the charging process
     phoenixcontact_Set_Controlling_Locking_Actuator(0);
+    close_carga_one();
 }
 
 bool indicator = false;
@@ -219,6 +216,10 @@ void phoenix_task(void *arg)
 
     for (;;)
     {
+        if (xSemaphoreTake(Semaphore_Start_Charging, 10))
+        {
+            start_charging();
+        }
 
         if (charging)
         {
@@ -241,14 +242,15 @@ void phoenix_task(void *arg)
                 PSecond = (uint8_t)phoenixcontact_MinutesCounterSecondsStatusC();
             }
 
-            if (PStatus == 0x4231)
+            if (PStatus == 0x4231 || PStatus == 0x4232 || PStatus == 0x4131 )
             {
                 ESP_LOGI(TAG, "-------------B1 - Carga finalizada\n");
-                //stop_charging();
+                stop_charging();
             }
 
             //phoenixcontact_Get_SettingMaximumPermissibleChargingCurrent();
         }
+
         vTaskDelay(500 / portTICK_RATE_MS);
     }
 }
