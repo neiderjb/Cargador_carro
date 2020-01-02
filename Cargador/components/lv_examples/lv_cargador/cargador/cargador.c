@@ -9,6 +9,7 @@
 #include "cargador.h"
 #include "drv/Parameters.h"
 #include "drv/Functions.h"
+#include "drv/FunctionsCC.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -269,21 +270,21 @@ void screen_init_carga()
 		lv_label_set_text(label, "   Carga terminada cerrando Ticket"); /*Set the text*/
 	}
 	lv_obj_align(label, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -120);
+	ESP_ERROR_CHECK(esp_timer_start_once(Timer_Screen_Control, 10000000));
 
-	btnCancel = lv_btn_create(cont_screen_init, NULL);
-	lv_obj_set_event_cb(btnCancel, btn_event_cb);
-	lv_obj_set_size(btnCancel, 400, 50);
-	lv_obj_align(btnCancel, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -20);
-	lv_obj_t *labelbtn = lv_label_create(btnCancel, NULL);
-	lv_label_set_text(labelbtn, "CANCELAR");
+	// btnCancel = lv_btn_create(cont_screen_init, NULL);
+	// lv_obj_set_event_cb(btnCancel, btn_event_cb);
+	// lv_obj_set_size(btnCancel, 400, 50);
+	// lv_obj_align(btnCancel, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -20);
+	// lv_obj_t *labelbtn = lv_label_create(btnCancel, NULL);
+	// lv_label_set_text(labelbtn, "CANCELAR");
 
-	btnContinuar = lv_btn_create(cont_screen_init, NULL);
-	lv_obj_set_event_cb(btnContinuar, btn_event_cb);
-	lv_obj_set_size(btnContinuar, 400, 50);
-	lv_obj_align(btnContinuar, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -75);
-	labelbtn = lv_label_create(btnContinuar, NULL);
-	lv_label_set_text(labelbtn, "CONTINUAR");
-	ready_information = false;
+	// btnContinuar = lv_btn_create(cont_screen_init, NULL);
+	// lv_obj_set_event_cb(btnContinuar, btn_event_cb);
+	// lv_obj_set_size(btnContinuar, 400, 50);
+	// lv_obj_align(btnContinuar, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -75);
+	// labelbtn = lv_label_create(btnContinuar, NULL);
+	// lv_label_set_text(labelbtn, "CONTINUAR");
 }
 
 void screen_carga_one()
@@ -529,14 +530,14 @@ static void btn_event_cb(lv_obj_t *obj, lv_event_t event)
 			printf("Clicked Screen Code\n");
 		}
 
-		else if (obj == btnContinuar && !StopCharger)
-		{
+		// else if (obj == btnContinuar && !StopCharger)
+		// {
 
-			lv_obj_del(cont_screen_init);
-			printf("Clicked Continue chargerOne\n");
-			screen_carga_one();
-			xSemaphoreGive(Semaphore_Start_Charging);
-		}
+		// 	lv_obj_del(cont_screen_init);
+		// 	printf("Clicked Continue chargerOne\n");
+		// 	screen_carga_one();
+		// 	xSemaphoreGive(Semaphore_Start_Charging);
+		// }
 
 		else if (obj == btnContinuar && StopCharger)
 		{
@@ -552,13 +553,13 @@ static void btn_event_cb(lv_obj_t *obj, lv_event_t event)
 			update_conectado_carga_one();
 		}
 
-		else if (obj == btnCancel)
-		{
-			lv_obj_del(cont_screen_init);
-			printf("Clicked Cancel Init\n");
-			EnableCharger = false;
-			screen_code();
-		}
+		// else if (obj == btnCancel)
+		// {
+		// 	lv_obj_del(cont_screen_init);
+		// 	printf("Clicked Cancel Init\n");
+		// 	EnableCharger = false;
+		// 	screen_code();
+		// }
 		else if (obj == btnCancel2)
 		{
 			lv_obj_del(cont_screen_CharOne);
@@ -605,13 +606,15 @@ static void ta_event_cb(lv_obj_t *ta, lv_event_t event)
 
 		if (str[0] == '\n')
 		{
+			printf("ticket %s\n", str2);
 
-			printf("tickets %s, pass %s \n", str1, str2);
-			int result = strcmp("1234\n", str2);
-			if (result == 0)
+			if (strcmp("0000\n", str2) == 0)
 			{
-				memset(str2, 0, sizeof(str2));
-
+				screen_configuration();
+				lv_obj_del(cont_screen_code);
+			}
+			else
+			{
 				if (!EnableCharger)
 				{
 					StopCharger = true;
@@ -619,26 +622,45 @@ static void ta_event_cb(lv_obj_t *ta, lv_event_t event)
 				screen_init_carga();
 				lv_obj_del(cont_screen_code);
 			}
-			else if (strcmp("0000\n", str2) == 0)
-			{
-				screen_configuration();
-				lv_obj_del(cont_screen_code);
-			}
-			else
-			{
-				warning = lv_img_create(cont_screen_code, NULL);
-				lv_img_set_src(warning, &img_warning);
-				lv_obj_set_size(warning, 50, 45);
-				lv_obj_align(warning, NULL, LV_ALIGN_IN_TOP_MID, 0, 30);
-
-				lv_obj_align(label_codeStatus, NULL, LV_ALIGN_IN_TOP_MID, -65, 75);
-				lv_label_set_text(label_codeStatus, "Codigo erroneo");
-
-				lv_obj_align(label_code, NULL, LV_ALIGN_IN_TOP_MID, -65, 130);
-				lv_label_set_text(label_code, "Por favor, introduzca el codigo correcto");
-			}
 			i = 0;
 		}
 	}
 }
+
+void ChargeControlOne()
+{
+	bool response = compare_ticket(str2);
+	printf("Response : %d\n", (int)response);
+	// int tryBtoC = 20;
+	// while (tryBtoC != 0) //Realiza 20 Intentos para que el vehiculo cambie de estado B a C
+	// {
+	// 	tryBtoC--;
+	// 	vTaskDelay(200 / portTICK_RATE_MS);
+	// }
+	if (response)
+	{
+		lv_obj_del(cont_screen_init);
+		printf("Clicked Continue chargerOne\n");
+		screen_carga_one();
+		xSemaphoreGive(Semaphore_Start_Charging);
+	}
+	else
+	{
+		EnableCharger = false;
+		lv_obj_del(cont_screen_init);
+		screen_code();
+		warning = lv_img_create(cont_screen_code, NULL);
+		lv_img_set_src(warning, &img_warning);
+		lv_obj_set_size(warning, 50, 45);
+		lv_obj_align(warning, NULL, LV_ALIGN_IN_TOP_MID, 0, 30);
+
+		lv_obj_align(label_codeStatus, NULL, LV_ALIGN_IN_TOP_MID, -65, 75);
+		lv_label_set_text(label_codeStatus, "Codigo erroneo");
+
+		lv_obj_align(label_code, NULL, LV_ALIGN_IN_TOP_MID, -65, 130);
+		lv_label_set_text(label_code, "Por favor, introduzca el codigo correcto");
+	}
+	memset(str2, 0, sizeof(str2));
+}
+
 #endif /*LV_USE_DEMO*/

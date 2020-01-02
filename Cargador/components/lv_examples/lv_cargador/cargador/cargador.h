@@ -54,6 +54,7 @@ void close_carga_one(void);
 
 void screen_alert_info_outService(void);
 void screen_configuration(void);
+void ChargeControlOne();
 
 /**********************
  *      MACROS
