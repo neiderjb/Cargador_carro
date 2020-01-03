@@ -128,6 +128,7 @@ LV_IMG_DECLARE(img_airis_logo)
 static lv_theme_t *th;
 static lv_style_t styleLabel1;
 static lv_style_t styleContent1;
+static lv_style_t stylepreload;
 
 /**
  * Create a demo application
@@ -141,6 +142,13 @@ void cargador_create(void)
 	styleLabel1.text.font = &lv_font_roboto_28;
 
 	styleContent1.image.color = LV_COLOR_WHITE;
+
+	lv_style_copy(&stylepreload, &lv_style_plain);
+	stylepreload.line.width = 10;						   /*10 px thick arc*/
+	stylepreload.line.color = lv_color_hex3(0x258);		   /*Blueish arc color*/
+	stylepreload.body.border.color = lv_color_hex3(0xBBB); /*Gray background color*/
+	stylepreload.body.border.width = 10;
+	stylepreload.body.padding.left = 0;
 
 	hres = lv_disp_get_hor_res(NULL);
 	vres = lv_disp_get_ver_res(NULL);
@@ -272,19 +280,12 @@ void screen_init_carga()
 	lv_obj_align(label, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -120);
 	ESP_ERROR_CHECK(esp_timer_start_once(Timer_Screen_Control, 10000000));
 
-	// btnCancel = lv_btn_create(cont_screen_init, NULL);
-	// lv_obj_set_event_cb(btnCancel, btn_event_cb);
-	// lv_obj_set_size(btnCancel, 400, 50);
-	// lv_obj_align(btnCancel, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -20);
-	// lv_obj_t *labelbtn = lv_label_create(btnCancel, NULL);
-	// lv_label_set_text(labelbtn, "CANCELAR");
+	/*Create a Preloader object*/
+	lv_obj_t *preload = lv_preload_create(cont_screen_init, NULL);
+	lv_obj_set_size(preload, 100, 100);
+	lv_obj_align(preload, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -10);
+	lv_preload_set_style(preload, LV_PRELOAD_STYLE_MAIN, &stylepreload);
 
-	// btnContinuar = lv_btn_create(cont_screen_init, NULL);
-	// lv_obj_set_event_cb(btnContinuar, btn_event_cb);
-	// lv_obj_set_size(btnContinuar, 400, 50);
-	// lv_obj_align(btnContinuar, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -75);
-	// labelbtn = lv_label_create(btnContinuar, NULL);
-	// lv_label_set_text(labelbtn, "CONTINUAR");
 }
 
 void screen_carga_one()
@@ -318,7 +319,7 @@ void screen_carga_one()
 	labelPotencia = lv_label_create(cont, NULL); /*First parameters (scr) is the parent*/
 	lv_label_set_style(labelPotencia, LV_LABEL_LONG_EXPAND, &styleLabel1);
 	lv_label_set_text(labelPotencia, "-- KW"); /*Set the text*/
-	lv_obj_align(labelPotencia, NULL, LV_ALIGN_IN_TOP_RIGHT, -50, 40);
+	lv_obj_align(labelPotencia, NULL, LV_ALIGN_IN_TOP_RIGHT, -80, 40);
 
 	label = lv_label_create(cont, NULL); /*First parameters (scr) is the parent*/
 	lv_label_set_style(label, LV_LABEL_LONG_EXPAND, &styleLabel1);
@@ -327,7 +328,7 @@ void screen_carga_one()
 	labelCarga = lv_label_create(cont, NULL); /*First parameters (scr) is the parent*/
 	lv_label_set_style(labelCarga, LV_LABEL_LONG_EXPAND, &styleLabel1);
 	lv_label_set_text(labelCarga, "-- KW/h"); /*Set the text*/
-	lv_obj_align(labelCarga, NULL, LV_ALIGN_IN_TOP_RIGHT, -50, 110);
+	lv_obj_align(labelCarga, NULL, LV_ALIGN_IN_TOP_RIGHT, -80, 110);
 
 	label = lv_label_create(cont, NULL); /*First parameters (scr) is the parent*/
 	lv_label_set_style(label, LV_LABEL_LONG_EXPAND, &styleLabel1);
@@ -336,7 +337,7 @@ void screen_carga_one()
 	labelCoste = lv_label_create(cont, NULL); /*First parameters (scr) is the parent*/
 	lv_label_set_style(labelCoste, LV_LABEL_LONG_EXPAND, &styleLabel1);
 	lv_label_set_text(labelCoste, "-- Euros"); /*Set the text*/
-	lv_obj_align(labelCoste, NULL, LV_ALIGN_IN_TOP_RIGHT, -50, 180);
+	lv_obj_align(labelCoste, NULL, LV_ALIGN_IN_TOP_RIGHT, -80, 180);
 
 	label = lv_label_create(cont, NULL); /*First parameters (scr) is the parent*/
 	lv_label_set_style(label, LV_LABEL_LONG_EXPAND, &styleLabel1);
@@ -345,7 +346,7 @@ void screen_carga_one()
 	labelTiempo = lv_label_create(cont, NULL); /*First parameters (scr) is the parent*/
 	lv_label_set_style(labelTiempo, LV_LABEL_LONG_EXPAND, &styleLabel1);
 	lv_label_set_text(labelTiempo, "-- Minutos"); /*Set the text*/
-	lv_obj_align(labelTiempo, NULL, LV_ALIGN_IN_TOP_RIGHT, -50, 250);
+	lv_obj_align(labelTiempo, NULL, LV_ALIGN_IN_TOP_RIGHT, -80, 250);
 
 	//-------------------------------------------------------------------------------//
 
@@ -354,12 +355,6 @@ void screen_carga_one()
 	lv_label_set_text(labelVehiculo, ""); /*Set the text*/
 	lv_obj_align(labelVehiculo, NULL, LV_ALIGN_IN_LEFT_MID, 10, 70);
 
-	btnCargar = lv_btn_create(cont_screen_CharOne, NULL);
-	lv_obj_set_event_cb(btnCargar, btn_event_cb);
-	lv_obj_set_size(btnCargar, 100, 50);
-	lv_obj_align(btnCargar, NULL, LV_ALIGN_IN_LEFT_MID, 10, 90);
-	lv_obj_t *labelbtnCar = lv_label_create(btnCargar, NULL);
-	lv_label_set_text(labelbtnCar, "Prueba");
 
 	btnCancel2 = lv_btn_create(cont_screen_CharOne, NULL);
 	lv_obj_set_event_cb(btnCancel2, btn_event_cb);
@@ -374,7 +369,6 @@ void screen_carga_one()
 //Al detectar la pistola actualiza el logo del carro, lo pasa de rojo a gris
 void update_conectado_carga_one()
 {
-
 	lv_obj_del(conecte);
 	conectado = lv_img_create(cont_screen_CharOne, NULL);
 	lv_img_set_src(conectado, &img_conectado);
@@ -411,33 +405,32 @@ void update_error_carga_one()
 void update_label_carga_one(float potencia, float carga, float coste, float tiempo)
 {
 	char res[20];
-    char dest[20];
+	char dest[20];
 
-    ftoa(potencia, res, 2);
-    strcpy(dest, " KW");
-    //strcat(dest, res);
+	ftoa(potencia, res, 2);
+	strcpy(dest, " KW");
+	//strcat(dest, res);
 	strcat(res, dest);
 	lv_label_set_text(labelPotencia, res); /*Set the text*/
-    memset(dest, 0, sizeof(dest));
+	memset(dest, 0, sizeof(dest));
 
 	ftoa(carga, res, 2);
-    strcpy(dest, " KW/h");
-    strcat(res ,dest);
+	strcpy(dest, " KW/h");
+	strcat(res, dest);
 	lv_label_set_text(labelCarga, res); /*Set the text*/
-    memset(dest, 0, sizeof(dest));
-	
+	memset(dest, 0, sizeof(dest));
+
 	ftoa(coste, res, 2);
-    strcpy(dest, " Euros");
-    strcat(res, dest);
+	strcpy(dest, " Euros");
+	strcat(res, dest);
 	lv_label_set_text(labelCoste, res); /*Set the text*/
-    memset(dest, 0, sizeof(dest));
+	memset(dest, 0, sizeof(dest));
 
 	ftoa(tiempo, res, 2);
-    strcpy(dest, " Minutos");
-    strcat(res, dest);
+	strcpy(dest, " Minutos");
+	strcat(res, dest);
 	lv_label_set_text(labelTiempo, res); /*Set the text*/
-    memset(dest, 0, sizeof(dest));
-
+	memset(dest, 0, sizeof(dest));
 }
 
 void close_carga_one()
@@ -546,11 +539,6 @@ static void btn_event_cb(lv_obj_t *obj, lv_event_t event)
 			EnableCharger = true;
 			welcome = false;
 			lv_obj_del(cont_screen_init);
-		}
-
-		else if (obj == btnCargar)
-		{
-			update_conectado_carga_one();
 		}
 
 		// else if (obj == btnCancel)

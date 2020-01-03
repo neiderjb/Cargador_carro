@@ -122,5 +122,5 @@ uint8_t Read_Receive_Watermark_Register_ZDU0210RJX(uint8_t uart);
 
 bool Enable_Uart_ZDU0210RJX(uint8_t data, uint8_t uart);
 
-uint8_t Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(uint8_t uart, uint8_t RxTx);
+int Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(uint8_t uart, uint8_t RxTx);
 bool uart_reset_FIFO_ZDU0210RJX(uint8_t uart);

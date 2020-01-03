@@ -40,8 +40,6 @@ uint8_t EnableUartData = 0x03; // Rx Tx Enable
 
 uint8_t UART_RESET_FIFO[2] = {0x06, 0x03}; //0x04, 0x57- 115200
 
-
-
 void begin_ZDU0210RJX(uint8_t gpio, uint8_t mode)
 {
 
@@ -51,26 +49,26 @@ void begin_ZDU0210RJX(uint8_t gpio, uint8_t mode)
     //i2c_gpio_configuration(I2C_NUM_0, ZDU0210RJX_address, _gpio, _mode);
 
     Write_Configuration_ZDU0210RJX(UART0_ConfigurationData, 0);
-    uint8_t  confUart0[2];
-    Read_Configuration_ZDU0210RJX(confUart0,0);
+    uint8_t confUart0[2];
+    Read_Configuration_ZDU0210RJX(confUart0, 0);
     int value = confUart0[0] << 8 | confUart0[1];
     printf("Configuration UART0: %d\n", value);
 
     Write_Configuration_ZDU0210RJX(UART1_ConfigurationData, 1);
-    uint8_t  confUart1[2];
-    Read_Configuration_ZDU0210RJX(confUart1,1);
+    uint8_t confUart1[2];
+    Read_Configuration_ZDU0210RJX(confUart1, 1);
     value = confUart1[0] << 8 | confUart1[1];
     printf("Configuration UART1: %d\n", value);
 
     Write_Baud_Rate_Register_ZDU0210RJX(UART0_BaudrateData, 0);
-    uint8_t  baudUart0[2];
-    Read_Actual_baud_Rate_ZDU0210RJX(baudUart0,0);
+    uint8_t baudUart0[2];
+    Read_Actual_baud_Rate_ZDU0210RJX(baudUart0, 0);
     value = baudUart0[0] << 8 | baudUart0[1];
     printf("Baudrate UART0: %d\n", value);
 
     Write_Baud_Rate_Register_ZDU0210RJX(UART1_BaudrateData, 1);
-    uint8_t  baudUart1[2];
-    Read_Actual_baud_Rate_ZDU0210RJX(baudUart1,0);
+    uint8_t baudUart1[2];
+    Read_Actual_baud_Rate_ZDU0210RJX(baudUart1, 0);
     value = baudUart1[0] << 8 | baudUart1[1];
     printf("Baudrate UART0: %d\n", value);
 
@@ -98,7 +96,7 @@ uint8_t gpio_read_ZDU0210RJX()
 
 bool Read_UART_STATUS_REGISTER_ZDU0210RJX(uint8_t uart, uint8_t *dataRead)
 {
-    
+
     if (uart == 0)
         uart = UART0_ReadStatusRegister;
     else
@@ -174,7 +172,7 @@ uint8_t Read_Data_RX_FIFO_ZDU0210RJX(uint8_t uart, uint8_t *data, int count)
         uart = UART0_ReadDataRXFIFO;
     else
         uart = UART1_ReadDataRXFIFO;
-    
+
     return i2c_uart_read_ZDU0210RJX(ZDU0210RJX_address, data, count, uart);
 }
 
@@ -313,9 +311,9 @@ The maximum value is 64 and the minimum value is 0.
 RxTx= 0; Rx FIFO
 RxTx= 1; Tx FIFO
  */
-uint8_t Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(uint8_t uart, uint8_t RxTx)
+int Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(uint8_t uart, uint8_t RxTx)
 {
-    uint8_t dataout = 0;
+    int dataout = 0;
     if (uart == 0)
         uart = UART0_ReadReceiveTransmitFIFOLevelRegisters;
     else
@@ -328,6 +326,11 @@ uint8_t Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(uint8_t uart, uint
         dataout = data[0];
     else
         dataout = data[1];
+
+    if (dataout < 0)
+        dataout = 0;
+    else if (dataout > 64)
+        dataout = 64;
 
     return dataout;
 }

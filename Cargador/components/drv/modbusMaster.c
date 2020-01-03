@@ -441,7 +441,7 @@ uint8_t ModbusMasterTransaction(uint8_t u8MBFunction)
 
 void responseModbus(uint8_t u8MBFunction, uint8_t *data_rd, bool coil)
 {
-    vTaskDelay(100 / portTICK_RATE_MS);
+    vTaskDelay(100);
     uint8_t u8ModbusADU[20];
     uint8_t u8MBStatus = ku8MBSuccess;
     uint8_t u8ModbusADUSize = 0;
@@ -475,21 +475,21 @@ void responseModbus(uint8_t u8MBFunction, uint8_t *data_rd, bool coil)
             if (u8ModbusADU[u8ModbusADUSize - size] != _u8MBSlave)
             {
                 u8MBStatus = ku8MBInvalidSlaveID;
-                ESP_LOGE(TAG, "FAIL SLAVE %x -NO VALID %x \n ", u8ModbusADU[u8ModbusADUSize - size], u8MBStatus);
+                ESP_LOGI(TAG, "FAIL SLAVE %x -NO VALID %x \n ", u8ModbusADU[u8ModbusADUSize - size], u8MBStatus);
             }
 
             // verify response is for correct Modbus function code (mask exception bit 7)
             if ((u8ModbusADU[u8ModbusADUSize - (size - 1)] & 0x7F) != u8MBFunction)
             {
                 u8MBStatus = ku8MBInvalidFunction;
-                ESP_LOGE(TAG, "FAIL function code  %x -NO VALID %x \n ", u8ModbusADU[u8ModbusADUSize - (size - 1)], u8MBStatus);
+                ESP_LOGI(TAG, "FAIL function code  %x -NO VALID %x \n ", u8ModbusADU[u8ModbusADUSize - (size - 1)], u8MBStatus);
             }
 
             // check whether Modbus exception occurred; return Modbus Exception Code
             if ((u8ModbusADU[u8ModbusADUSize - (size - 1)] >> 7) & 0x01)
             {
                 u8MBStatus = u8ModbusADU[u8ModbusADUSize - (size - 2)];
-                ESP_LOGE(TAG, "FAIL function code Exception %x -NO VALID %x \n ", u8ModbusADU[u8ModbusADUSize - (size - 2)], u8MBStatus);
+                ESP_LOGI(TAG, "FAIL function code Exception %x -NO VALID %x \n ", u8ModbusADU[u8ModbusADUSize - (size - 2)], u8MBStatus);
             }
 
             // verify response is large enough to inspect further
@@ -510,7 +510,7 @@ void responseModbus(uint8_t u8MBFunction, uint8_t *data_rd, bool coil)
                                     (uint8_t)(u16CRC >> 8) != u8ModbusADU[u8ModbusADUSize - 1]))
                 {
                     u8MBStatus = ku8MBInvalidCRC;
-                    ESP_LOGE(TAG, "Invalidate CRC State:  %d \n", u8MBStatus);
+                    ESP_LOGI(TAG, "Invalidate CRC State:  %d \n", u8MBStatus);
                 }
                 else
                 {
@@ -575,22 +575,24 @@ void responseModbus(uint8_t u8MBFunction, uint8_t *data_rd, bool coil)
             }
             else
             {
-                ESP_LOGE(TAG, "NO CRC-FAIL DATA MODBUS");
-                ESP_LOGE(TAG, "SizeBuffer:%d \n", u8ModbusADUSize);
+                ESP_LOGI(TAG, "NO CRC-FAIL DATA MODBUS");
+                ESP_LOGI(TAG, "SizeBuffer:%d \n", u8ModbusADUSize);
             }
             memset(u8ModbusADU, 0, sizeof(u8ModbusADU));
         }
         else
         {
             memset(u8ModbusADU, 0, sizeof(u8ModbusADU));
-            ESP_LOGE(TAG, "NO SIZE DATA MODBUS");
+            ESP_LOGI(TAG, "NO SIZE DATA MODBUS");
+            ESP_LOGI(TAG, "SizeBuffer:%d \n", u8ModbusADUSize);
             data_rd[0] = 0;
             data_rd[1] = 0;
         }
     }
     else
     {
-        ESP_LOGE(TAG, "NO DATA MODBUS");
+        ESP_LOGI(TAG, "NO DATA MODBUS");
+        ESP_LOGI(TAG, "SizeBuffer:%d \n", u8ModbusADUSize);
         data_rd[0] = 0;
         data_rd[1] = 0;
     }
