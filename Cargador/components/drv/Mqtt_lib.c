@@ -69,24 +69,9 @@ esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 		break;
 	case MQTT_EVENT_DATA:
 		ESP_LOGI(TAG, "MQTT_EVENT_DATA");
-		int _size = event->topic_len;
-		char *_topic = substring(event->topic, 0, _size + 1);
-
-		printf("%s\n", _topic);
-		if (strcmp(_topic, "airis/cc/start"))
-		{
-			contador_power_read = 0;
-			int _start = (int)event->data;					
-			Charge_Power_Control((bool)_start);
-
-		}
-		else
-		{
-			char *s = event->data;
-			Set_Time_Reference(s);
-			free(s);
-		}
-		free(_topic);
+		char *s = event->data;
+		Set_Time_Reference(s);
+		free(s);
 		break;
 	case MQTT_EVENT_ERROR:
 		ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
@@ -100,7 +85,7 @@ esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 
 void sendMessage(char *data, char *topic)
 {
-	int msg_id = esp_mqtt_client_publish(client, topic, data, 0, 1, 0);
+	esp_mqtt_client_publish(client, topic, data, 0, 1, 0);
 	ESP_LOGI(TAG, "sent publish successful");
 	ESP_LOGW(TAG, "[APP] Free memory: %d bytes", esp_get_free_heap_size());
 }

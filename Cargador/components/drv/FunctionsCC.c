@@ -411,22 +411,6 @@ void begin_calibration_analizer()
 	}
 }
 
-void Charge_Power_Control(bool start)
-{
-	if (start)
-	{
-		power_charge_value += GetApparentPowerA();
-		contador_power_read++;
-		printf("power_charge: %f - %d\n", power_charge_value, contador_power_read);
-
-	}
-	else
-	{
-		contador_power_read = 0;
-		power_charge_value = 0;
-	}
-}
-
 bool compare_ticket(char *ticket)
 {
 	char data[50];
