@@ -368,7 +368,11 @@ void screen_carga_one()
 	lv_obj_t *labelbtn = lv_label_create(btnCancel2, NULL);
 	lv_label_set_text(labelbtn, "CANCELAR");
 
-	ready_information = true;
+	// ready_information = true;
+	ESP_ERROR_CHECK(esp_timer_start_periodic(Timer_Charge_Control, 1000000));
+	power_actual_value = 0;
+	power_charge_value = 0;
+	contador_power_read = 0;
 }
 
 //Al detectar la pistola actualiza el logo del carro, lo pasa de rojo a gris
@@ -414,14 +418,14 @@ void update_label_carga_one(float potencia, float carga, float coste, float tiem
     char dest[20];
 
     ftoa(potencia, res, 2);
-    strcpy(dest, " KW");
+    strcpy(dest, " W");
     //strcat(dest, res);
 	strcat(res, dest);
 	lv_label_set_text(labelPotencia, res); /*Set the text*/
     memset(dest, 0, sizeof(dest));
 
 	ftoa(carga, res, 2);
-    strcpy(dest, " KW/h");
+    strcpy(dest, " W/h");
     strcat(res ,dest);
 	lv_label_set_text(labelCarga, res); /*Set the text*/
     memset(dest, 0, sizeof(dest));

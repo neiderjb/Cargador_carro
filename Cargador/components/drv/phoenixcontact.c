@@ -235,18 +235,14 @@ void phoenix_task(void *arg)
             //ESP_LOGI(TAG, "Status Phoenix Charger: %x \n", PStatus);
             if (PStatus == 0x4331 || PStatus == 0x4332)
             {
-                ESP_LOGI(TAG, "------------C1- Cargando!!!!!!!!!!!!!!!!!!!!!!!\n");
-                PHour = (uint8_t)phoenixcontact_HoursCounterStatusC();
-                vTaskDelay(100 / portTICK_RATE_MS);
-                PMinute = (uint8_t)phoenixcontact_MinutesCounterSecondsStatusC() >> 8;
-                vTaskDelay(100 / portTICK_RATE_MS);
-                PSecond = (uint8_t)phoenixcontact_MinutesCounterSecondsStatusC();
+                ESP_LOGI(TAG, "------------C1- Cargando!!!!!!!!!!!!!!!!!!!!!!!\n");                
             }
 
             if (PStatus == 0x4231 || PStatus == 0x4232 || PStatus == 0x4131 )
             {
                 ESP_LOGI(TAG, "-------------B1 - Carga finalizada\n");
                 stop_charging();
+                ESP_ERROR_CHECK(esp_timer_stop(Timer_Charge_Control));
             }
 
             //phoenixcontact_Get_SettingMaximumPermissibleChargingCurrent();

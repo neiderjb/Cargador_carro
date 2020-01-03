@@ -38,7 +38,6 @@ uint16_t *buf1;
 static lv_disp_buf_t disp_buf;
 static void IRAM_ATTR lv_tick_task(void);
 
-
 static const char *TAG = "Main";
 
 void Network_Control(void *p)
@@ -61,13 +60,12 @@ void Network_Control(void *p)
 				mqtt_config();
 				mqtt_init("mqtt://platform.agrum.co", "airis/cc/01", "airis/cc/report");
 				network_signal = true;
-				
 			}
-			if (ready_information)
-			{
-				ReadInformation();	//Send data to MQTT
-				vTaskDelay(5000 / portTICK_RATE_MS);
-			}
+			// if (ready_information)
+			// {
+			// ReadInformation();	//Send data to MQTT
+			// 	vTaskDelay(5000 / portTICK_RATE_MS);
+			// }
 		}
 		vTaskDelay(100 / portTICK_RATE_MS);
 	}
@@ -95,7 +93,7 @@ void app_main()
 
 	//TimerControl
 	timer_begin();
-	
+
 	/*	//Codigo solo Probar Analizador de RED 
 	////Debug Analizer
 	//I2C config
@@ -113,7 +111,6 @@ void app_main()
 	}
 	//Debug Analizer
  	*/
-
 
 	//I2C config
 	sw_i2c_init(PIN_SDA, PIN_SCL);
@@ -183,14 +180,14 @@ void app_main()
 	xTaskCreatePinnedToCore(Network_Control, "Network_Control", 3072, NULL, 3, NULL, 1);
 
 	//LittleVgl Init
-	lv_init();	
-	#ifdef littleOpt
+	lv_init();
+#ifdef littleOpt
 	buf1 = heap_caps_malloc(120000, MALLOC_CAP_DMA);
 	lv_disp_buf_init(&disp_buf, buf1, NULL, 60000);
-	#else
+#else
 	buf1 = heap_caps_malloc(40001, MALLOC_CAP_DMA);
 	lv_disp_buf_init(&disp_buf, buf1, NULL, DISP_BUF_SIZE);
-	#endif
+#endif
 	//screen LittleVgl
 	lv_disp_drv_t disp_drv;
 	lv_disp_drv_init(&disp_drv);
@@ -214,7 +211,7 @@ void app_main()
 	// ready_information = true;
 
 	//Periodic Timer
-	ESP_ERROR_CHECK(esp_timer_start_periodic(Timer_Memory_Control, 10000000));
+	// ESP_ERROR_CHECK(esp_timer_start_periodic(Timer_Memory_Control, 10000000));
 
 	//Screen
 	while (1)

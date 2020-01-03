@@ -444,7 +444,7 @@ void responseModbus(uint8_t u8MBFunction, uint8_t *data_rd, bool coil)
     vTaskDelay(100 / portTICK_RATE_MS);
     uint8_t u8ModbusADU[20];
     uint8_t u8MBStatus = ku8MBSuccess;
-    uint8_t u8ModbusADUSize = 0;
+    int u8ModbusADUSize = 0;
     uint16_t u16CRC;
     bool crc = false;
     uint8_t i;

@@ -185,4 +185,11 @@ lv_obj_t *labelPhoenix;
 //timers
 esp_timer_handle_t Timer_Screen_Control;
 esp_timer_handle_t Timer_Memory_Control;
+esp_timer_handle_t Timer_Charge_Control;
 
+//power control
+int contador_power_read;
+float power_charge_value;
+float power_actual_value;
+float total_cost;
+#define PRICE_ENERGY	0.05
