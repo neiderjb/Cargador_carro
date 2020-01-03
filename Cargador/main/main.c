@@ -12,6 +12,7 @@
 #include "drv/spi_lib.h"
 #include "drv/wifi_lib.h"
 #include "drv/Mqtt_lib.h"
+
 //Driver-Hardware
 #include "drv/M90E32AS.h"
 #include "drv/SC18IS602B.h"
@@ -182,8 +183,10 @@ void app_main()
 	//LittleVgl Init
 	lv_init();
 #ifdef littleOpt
-	buf1 = heap_caps_malloc(120000, MALLOC_CAP_DMA);
-	lv_disp_buf_init(&disp_buf, buf1, NULL, 60000);
+	//buf1 = heap_caps_malloc(120000, MALLOC_CAP_DMA);
+	//lv_disp_buf_init(&disp_buf, buf1, NULL, 60000);
+	buf1 = heap_caps_malloc(40001, MALLOC_CAP_DMA);
+	lv_disp_buf_init(&disp_buf, buf1, NULL, DISP_BUF_SIZE);
 #else
 	buf1 = heap_caps_malloc(40001, MALLOC_CAP_DMA);
 	lv_disp_buf_init(&disp_buf, buf1, NULL, DISP_BUF_SIZE);
@@ -208,15 +211,19 @@ void app_main()
 	//Screen
 	esp_register_freertos_tick_hook(lv_tick_task);
 	cargador_create();
-	// ready_information = true;
-
+	vTaskDelay(1000);
+	spi_config(true);
 	//Periodic Timer
 	// ESP_ERROR_CHECK(esp_timer_start_periodic(Timer_Memory_Control, 10000000));
 
 	//Screen
 	while (1)
 	{
+		#ifdef littleOpt
+		vTaskDelay(portTICK_RATE_MS);
+		#else
 		vTaskDelay(1 / portTICK_RATE_MS);
+		#endif
 		lv_task_handler();
 	}
 }

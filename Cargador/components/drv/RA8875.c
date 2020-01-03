@@ -12,8 +12,6 @@
 
 #include "driver/spi_master.h"
 
-
-
 uint8_t readStatus(void)
 {
   uint8_t x = 0;
@@ -32,14 +30,23 @@ void writeCommand(uint8_t d)
 
 uint8_t readData(void)
 {
+#ifdef littleOpt
+  gpio_set_level(PIN_NUM_CS, 0);
+  vTaskDelay(10 / portTICK_RATE_MS);
+  send8(RA8875_DATAREAD);
+  uint8_t x = (uint8_t)read8();
+  vTaskDelay(10 / portTICK_RATE_MS);
+  gpio_set_level(PIN_NUM_CS, 1);
+  vTaskDelay(10 / portTICK_RATE_MS);
+  return x;
+#else
   uint8_t read;
   gpio_set_level(PIN_NUM_CS, 0);
   send8(RA8875_DATAREAD);
   //read = (uint8_t)read8();
   return (uint8_t)read8();
   gpio_set_level(PIN_NUM_CS, 1);
-  //vTaskDelay(10 / portTICK_RATE_MS);
-  //return read;
+#endif
 }
 
 void writeData(uint8_t d)
@@ -53,8 +60,22 @@ void writeData(uint8_t d)
 
 uint8_t readRegRA(uint8_t reg)
 {
+#ifdef littleOpt
+  gpio_set_level(PIN_NUM_CS, 0);
+  vTaskDelay(10 / portTICK_RATE_MS);
+  send8(RA8875_CMDWRITE);
+  send8(reg);
+  gpio_set_level(PIN_NUM_CS, 1);
+  gpio_set_level(PIN_NUM_CS, 0);
+  send8(RA8875_DATAREAD);
+  uint8_t x = (uint8_t)read8();
+  vTaskDelay(10 / portTICK_RATE_MS);
+  gpio_set_level(PIN_NUM_CS, 1);
+  return x; //readData();
+#else
   writeCommand(reg);
   return readData();
+#endif
 }
 
 void writeRegRA(uint8_t reg, uint8_t val)
@@ -77,14 +98,19 @@ void PLLinit(void)
     printf("pll 800x480");
     writeRegRA(RA8875_PLLC1, RA8875_PLLC1_PLLDIV1 + 11);
     vTaskDelay(10 / portTICK_RATE_MS);
+#ifdef littleOpt
+    writeRegRA(RA8875_PLLC2, RA8875_PLLC2_DIV2);
+#else
     writeRegRA(RA8875_PLLC2, RA8875_PLLC2_DIV1); //RA8875_PLLC2_DIV4
+#endif
+
     vTaskDelay(10 / portTICK_RATE_MS);
   }
 }
 
 void initialize(void)
 {
-  
+
   PLLinit();
   writeRegRA(RA8875_SYSR, RA8875_SYSR_16BPP | RA8875_SYSR_MCU8);
 
@@ -205,7 +231,7 @@ bool begin_RA8875(enum RA8875sizes s)
   _voffset = 0;
   //reset display
   // gpio_begin(TOUCH_RESET, 0);
-	// gpio_write(TOUCH_RESET, 0);
+  // gpio_write(TOUCH_RESET, 0);
   gpio_begin(PIN_RESET_SCREEN, 0);
   gpio_begin(PIN_NUM_CS, 0);
   gpio_write(PIN_NUM_CS, 1);
@@ -224,7 +250,7 @@ bool begin_RA8875(enum RA8875sizes s)
 
   initialize();
 
-  spi_config();
+  spi_config(false);
 
   return true;
 }
@@ -1033,7 +1059,6 @@ void drawPixels(uint16_t *p, uint32_t num, int16_t x, int16_t y)
   //spidrawpixels(p, num);
   spidrawpixels2(p, num, RA8875_DATAWRITE);
   gpio_set_level(PIN_NUM_CS, 1);
-
 }
 
 void drawPixels2(uint16_t *p, uint32_t num, int16_t x, int16_t y, int16_t x2, int16_t y2)
@@ -1060,10 +1085,9 @@ void drawPixels2(uint16_t *p, uint32_t num, int16_t x, int16_t y, int16_t x2, in
 
   writeCommand(RA8875_MRWC);
   gpio_set_level(PIN_NUM_CS, 0);
-  spidrawpixelsNew(p,num, RA8875_DATAWRITE);
+  spidrawpixelsNew(p, num, RA8875_DATAWRITE);
   gpio_set_level(PIN_NUM_CS, 1);
 }
-
 
 void init_screen()
 {
@@ -1077,11 +1101,10 @@ void init_screen()
   PWM1out(255);
   //printf("PWM1out!\n");
   vTaskDelay(100 / portTICK_RATE_MS);
-  #ifndef littleOpt
+#ifndef littleOpt
   fillScreen(RA8875_WHITE);
   printf("fillScreen White \n");
   vTaskDelay(100 / portTICK_RATE_MS);
-  #endif
+#endif
   printf("End Display initialized!\n");
 }
-

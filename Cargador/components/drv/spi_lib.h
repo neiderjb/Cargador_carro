@@ -14,4 +14,4 @@ void spidrawpixels2(uint16_t *p, uint32_t num, uint8_t command);
 void spidrawpixelsNew(uint16_t *p, uint32_t num, uint8_t command);
 
 void spi_begin();
-void spi_config();
+void spi_config(bool fast);
