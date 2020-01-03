@@ -135,7 +135,7 @@ void start_charging()
             update_conectado_carga_one(); //Actualiza la pantalla cuando se detecta la conexion con el carro
             break;
         }
-        vTaskDelay(200 / portTICK_RATE_MS);
+        // vTaskDelay(200 / portTICK_RATE_MS);
     }
 
     if ((PStatus == 0x4231 || PStatus == 0x4232) && tryConect > 0) //Una vez conectada se habilita

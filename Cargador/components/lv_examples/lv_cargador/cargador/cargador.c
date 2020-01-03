@@ -50,7 +50,7 @@ static void ta_event_cb(lv_obj_t *ta, lv_event_t event);
 lv_obj_t *scr1;
 
 char str1[] = {'1', '2', '3', '4', '\n'};
-char str2[] = {'0', '0', '0', '0', '\n'};
+char str2[20];
 
 bool welcome = false;
 bool EnableCharger = true;
@@ -278,14 +278,13 @@ void screen_init_carga()
 		lv_label_set_text(label, "   Carga terminada cerrando Ticket"); /*Set the text*/
 	}
 	lv_obj_align(label, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -120);
-	ESP_ERROR_CHECK(esp_timer_start_once(Timer_Screen_Control, 10000000));
+	ESP_ERROR_CHECK(esp_timer_start_once(Timer_Screen_Control, 1000000));
 
 	/*Create a Preloader object*/
 	lv_obj_t *preload = lv_preload_create(cont_screen_init, NULL);
 	lv_obj_set_size(preload, 100, 100);
 	lv_obj_align(preload, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -10);
 	lv_preload_set_style(preload, LV_PRELOAD_STYLE_MAIN, &stylepreload);
-
 }
 
 void screen_carga_one()
@@ -355,7 +354,6 @@ void screen_carga_one()
 	lv_label_set_text(labelVehiculo, ""); /*Set the text*/
 	lv_obj_align(labelVehiculo, NULL, LV_ALIGN_IN_LEFT_MID, 10, 70);
 
-
 	btnCancel2 = lv_btn_create(cont_screen_CharOne, NULL);
 	lv_obj_set_event_cb(btnCancel2, btn_event_cb);
 	lv_obj_set_size(btnCancel2, 400, 50);
@@ -364,7 +362,6 @@ void screen_carga_one()
 	lv_label_set_text(labelbtn, "CANCELAR");
 
 	// ready_information = true;
-	
 }
 
 //Al detectar la pistola actualiza el logo del carro, lo pasa de rojo a gris
@@ -408,16 +405,16 @@ void update_label_carga_one(float potencia, float carga, float coste, float tiem
 	char res[20];
 	char dest[20];
 
-    ftoa(potencia, res, 2);
-    strcpy(dest, " W");
-    //strcat(dest, res);
+	ftoa(potencia, res, 2);
+	strcpy(dest, " W");
+	//strcat(dest, res);
 	strcat(res, dest);
 	lv_label_set_text(labelPotencia, res); /*Set the text*/
 	memset(dest, 0, sizeof(dest));
 
 	ftoa(carga, res, 2);
-    strcpy(dest, " W/h");
-    strcat(res ,dest);
+	strcpy(dest, " W/h");
+	strcat(res, dest);
 	lv_label_set_text(labelCarga, res); /*Set the text*/
 	memset(dest, 0, sizeof(dest));
 
@@ -582,15 +579,18 @@ static void ta_event_cb(lv_obj_t *ta, lv_event_t event)
 	else if (event == LV_EVENT_INSERT)
 	{
 		const char *str = lv_event_get_data();
-		printf("Tecla %s \n", str);
+		printf("Tecla %s - %d\n", str, i);
 
 		str2[i] = str[0];
 		i++;
 
 		if (str[0] == 127)
 		{
-			i = 0;
-			memset(str2, 0, sizeof(str2));
+			if (i > 0)
+				i--;
+			else
+				i = 0;
+			str2[i] = 0x0A;
 		}
 
 		if (str[0] == '\n')

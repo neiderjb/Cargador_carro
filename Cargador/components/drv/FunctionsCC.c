@@ -263,7 +263,7 @@ void ReadInformation()
 	char *dataMQTTB = createjsonFaseB(voltageB, currentB, powerfactorB, powerB, powerReacB, powerAppB, (voltageB * currentB), temperature, PStatus, EStatus, PHour, PMinute, PSecond);
 	char *dataMQTTC = createjsonFaseC(voltageC, currentC, powerfactorC, powerC, powerReacC, powerAppC, (voltageC * currentC), temperature, PStatus, EStatus, PHour, PMinute, PSecond);
 
-	update_label_carga_one((float)GetApparentPowerA(),(float)GetApparentPowerA(),(float)3,(float)PMinute);
+	update_label_carga_one((float)GetApparentPowerA(), (float)GetApparentPowerA(), (float)3, (float)PMinute);
 
 	if (Isconnected())
 	{
@@ -440,6 +440,8 @@ bool compare_ticket(char *ticket)
 	root = cJSON_CreateObject();
 	root = cJSON_Parse(data);
 	ticket_json = cJSON_GetObjectItem(root, "ticket");
+	total_power = cJSON_GetObjectItem(root, "consumo")->valueint;
+	total_time = cJSON_GetObjectItem(root, "duracion")->valueint;
 	char *valid_ticket = cJSON_GetStringValue(ticket_json);
 	printf("valid ticket: %s\n", valid_ticket);
 

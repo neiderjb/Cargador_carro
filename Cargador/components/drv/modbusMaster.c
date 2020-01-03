@@ -351,7 +351,7 @@ Sequence:
 
 uint8_t ModbusMasterTransaction(uint8_t u8MBFunction)
 {
-    vTaskDelay(100);
+    vTaskDelay(20);
     uint8_t u8ModbusADU[64];
     uint8_t u8ModbusADUSize = 0;
     uint8_t i;

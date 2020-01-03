@@ -75,7 +75,7 @@ void Network_Control(void *p)
 void app_main()
 {
 	printf("----------Wait Initialize----------\n");
-	vTaskDelay(2000 / portTICK_RATE_MS);
+	vTaskDelay(20 / portTICK_RATE_MS);
 	detectAnalizer = false;
 	detectTouch = false;
 	detectRtc = false;
@@ -211,7 +211,7 @@ void app_main()
 	//Screen
 	esp_register_freertos_tick_hook(lv_tick_task);
 	cargador_create();
-	vTaskDelay(1000);
+	// vTaskDelay(1000);
 	spi_config(true);
 	//Periodic Timer
 	// ESP_ERROR_CHECK(esp_timer_start_periodic(Timer_Memory_Control, 10000000));
