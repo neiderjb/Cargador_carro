@@ -7,6 +7,7 @@
 #include "ZDU0210RJX.h"
 #include "modbusMaster.h"
 #include "EPLD.h"
+#include "M90E32AS.h"
 
 #include "Parameters.h"
 
@@ -162,6 +163,10 @@ void start_charging()
                 ESP_LOGI(TAG, "Status de vehiculo correcto para cargar !\n");
                 phoenixcontact_Digital_OutputBehaviorOut1(2);
                 charging = true;
+                // ESP_ERROR_CHECK(esp_timer_start_periodic(Timer_Charge_Control, 1000000));
+                power_actual_value = 0;
+                power_charge_value = 0;
+                contador_power_read = 0;
                 break;
             }
             vTaskDelay(200 / portTICK_RATE_MS);
@@ -190,6 +195,7 @@ void start_charging()
 
 void stop_charging()
 {
+    // ESP_ERROR_CHECK(esp_timer_stop(Timer_Charge_Control));
     charging = false;
     phoenixcontact_Digital_OutputBehaviorOut1(0);
     rele_state_maxV(1, 1); //Open rele
@@ -201,7 +207,7 @@ void stop_charging()
     }
     phoenixcontact_Set_Enable_charging_process(0); //Enabling the charging process
     phoenixcontact_Set_Controlling_Locking_Actuator(0);
-    close_carga_one();  
+    close_carga_one();
 }
 
 bool indicator = false;
@@ -224,7 +230,7 @@ void phoenix_task(void *arg)
         if (charging)
         {
             EStatus = phoenixcontact_error_status();
-            if (EStatus == 0x0004 || EStatus == 0x0002 || EStatus == 0x0008 || EStatus == 0x0800 )
+            if (EStatus == 0x0004 || EStatus == 0x0002 || EStatus == 0x0008 || EStatus == 0x0800)
             {
                 ESP_LOGI(TAG, "Status Error Phoenix: %x \n", EStatus);
                 update_error_carga_one();
@@ -235,20 +241,38 @@ void phoenix_task(void *arg)
             //ESP_LOGI(TAG, "Status Phoenix Charger: %x \n", PStatus);
             if (PStatus == 0x4331 || PStatus == 0x4332)
             {
-                ESP_LOGI(TAG, "------------C1- Cargando!!!!!!!!!!!!!!!!!!!!!!!\n");                
+                ESP_LOGI(TAG, "************C1- Cargando************");
+#ifdef FAKE_DATA
+                contador_power_read++;
+                power_actual_value = 5;
+                power_charge_value += power_actual_value;
+                total_cost = PRICE_ENERGY * power_charge_value;
+
+                update_label_carga_one(power_actual_value, power_charge_value, total_cost, contador_power_read);
+#else
+                contador_power_read = ((esp_timer_get_time() - contador_power_read) / 1000000) / 60;
+                power_actual_value = GetApparentPowerA() + GetApparentPowerB() + GetApparentPowerC();
+                power_charge_value += power_actual_value;
+                total_cost = PRICE_ENERGY * power_charge_value;
+
+                update_label_carga_one(power_actual_value, power_charge_value, total_cost, contador_power_read);
+#endif
+                if (power_charge_value >= total_power || contador_power_read >= total_time)
+                {
+                    ESP_LOGI(TAG, "************B1 - Carga finalizada************");
+                    stop_charging();
+                }
             }
 
-            if (PStatus == 0x4231 || PStatus == 0x4232 || PStatus == 0x4131 )
+            if (PStatus == 0x4231 || PStatus == 0x4232 || PStatus == 0x4131)
             {
-                ESP_LOGI(TAG, "-------------B1 - Carga finalizada\n");
+                ESP_LOGI(TAG, "************B1 - Carga finalizada************");
                 stop_charging();
-                ESP_ERROR_CHECK(esp_timer_stop(Timer_Charge_Control));
             }
 
             //phoenixcontact_Get_SettingMaximumPermissibleChargingCurrent();
         }
-
-        vTaskDelay(200 / portTICK_RATE_MS);
+        vTaskDelay(50 / portTICK_RATE_MS);
     }
 }
 

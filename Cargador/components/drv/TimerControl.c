@@ -22,14 +22,7 @@ void Timer_Memory_Control_callback(void *arg)
 
 void Timer_charge_Control_callback(void *arg)
 {
-    contador_power_read++;
-    power_actual_value = GetApparentPowerA() + GetApparentPowerB() + GetApparentPowerC();
-    power_charge_value += power_actual_value;   
-    total_cost = PRICE_ENERGY * power_charge_value; 
     
-    PMinute = (uint8_t)(phoenixcontact_MinutesCounterSecondsStatusC() >> 8);
-    
-    update_label_carga_one(power_actual_value, power_charge_value, total_cost, (float)PMinute);
 }
 
 void timer_begin()

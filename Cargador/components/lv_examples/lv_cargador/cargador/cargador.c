@@ -364,10 +364,7 @@ void screen_carga_one()
 	lv_label_set_text(labelbtn, "CANCELAR");
 
 	// ready_information = true;
-	ESP_ERROR_CHECK(esp_timer_start_periodic(Timer_Charge_Control, 1000000));
-	power_actual_value = 0;
-	power_charge_value = 0;
-	contador_power_read = 0;
+	
 }
 
 //Al detectar la pistola actualiza el logo del carro, lo pasa de rojo a gris
