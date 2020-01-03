@@ -29,6 +29,7 @@
 #define FIRMWARE_VERSION	0.1
 #define UPDATE_JSON_URL		"https://esp32tutorial.netsons.org/https_ota/firmwarex.json"
 
+#define littleOpt
 #define NUMBER_COMMANDS_QUEUE 32
 
 #define WIFI_SSID	"CEMUSA"

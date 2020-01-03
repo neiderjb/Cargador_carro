@@ -319,7 +319,7 @@ void screen_carga_one()
 	labelPotencia = lv_label_create(cont, NULL); /*First parameters (scr) is the parent*/
 	lv_label_set_style(labelPotencia, LV_LABEL_LONG_EXPAND, &styleLabel1);
 	lv_label_set_text(labelPotencia, "-- KW"); /*Set the text*/
-	lv_obj_align(labelPotencia, NULL, LV_ALIGN_IN_TOP_RIGHT, -80, 40);
+	lv_obj_align(labelPotencia, NULL, LV_ALIGN_IN_TOP_RIGHT, -110, 40);
 
 	label = lv_label_create(cont, NULL); /*First parameters (scr) is the parent*/
 	lv_label_set_style(label, LV_LABEL_LONG_EXPAND, &styleLabel1);
@@ -328,7 +328,7 @@ void screen_carga_one()
 	labelCarga = lv_label_create(cont, NULL); /*First parameters (scr) is the parent*/
 	lv_label_set_style(labelCarga, LV_LABEL_LONG_EXPAND, &styleLabel1);
 	lv_label_set_text(labelCarga, "-- KW/h"); /*Set the text*/
-	lv_obj_align(labelCarga, NULL, LV_ALIGN_IN_TOP_RIGHT, -80, 110);
+	lv_obj_align(labelCarga, NULL, LV_ALIGN_IN_TOP_RIGHT, -110, 110);
 
 	label = lv_label_create(cont, NULL); /*First parameters (scr) is the parent*/
 	lv_label_set_style(label, LV_LABEL_LONG_EXPAND, &styleLabel1);
@@ -337,7 +337,7 @@ void screen_carga_one()
 	labelCoste = lv_label_create(cont, NULL); /*First parameters (scr) is the parent*/
 	lv_label_set_style(labelCoste, LV_LABEL_LONG_EXPAND, &styleLabel1);
 	lv_label_set_text(labelCoste, "-- Euros"); /*Set the text*/
-	lv_obj_align(labelCoste, NULL, LV_ALIGN_IN_TOP_RIGHT, -80, 180);
+	lv_obj_align(labelCoste, NULL, LV_ALIGN_IN_TOP_RIGHT, -110, 180);
 
 	label = lv_label_create(cont, NULL); /*First parameters (scr) is the parent*/
 	lv_label_set_style(label, LV_LABEL_LONG_EXPAND, &styleLabel1);
@@ -346,7 +346,7 @@ void screen_carga_one()
 	labelTiempo = lv_label_create(cont, NULL); /*First parameters (scr) is the parent*/
 	lv_label_set_style(labelTiempo, LV_LABEL_LONG_EXPAND, &styleLabel1);
 	lv_label_set_text(labelTiempo, "-- Minutos"); /*Set the text*/
-	lv_obj_align(labelTiempo, NULL, LV_ALIGN_IN_TOP_RIGHT, -80, 250);
+	lv_obj_align(labelTiempo, NULL, LV_ALIGN_IN_TOP_RIGHT, -110, 250);
 
 	//-------------------------------------------------------------------------------//
 

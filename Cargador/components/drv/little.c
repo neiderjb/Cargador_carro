@@ -7,7 +7,6 @@
 #include "FT5206.h"
 #include "Parameters.h"
 
-
 void set_pixel_RA(int32_t x, int32_t y, uint16_t color)
 {
     drawPixel((int16_t)x, (int16_t)y, color);
@@ -19,7 +18,12 @@ uint32_t line_obj_y;
 uint8_t color_temp_size;
 void my_disp_flush(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_map)
 {
-    //printf("my_disp_flush\n");
+//printf("my_disp_flush\n");
+#ifdef littleOpt
+    uint32_t mat;
+    mat = (uint32_t)(((area->x2) - (area->x1) + 1) * ((area->y2) - (area->y1) + 1));
+    drawPixels2((uint16_t *)&color_map->full, mat, area->x1, area->y1, area->x2, area->y2);
+#else
     sizex = (uint32_t)(((area->x2) - (area->x1)) + 1);
     sizey = (uint32_t)((area->y2) - (area->y1));
     line_obj_y = 0;
@@ -32,6 +36,7 @@ void my_disp_flush(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_
         drawPixels((uint16_t *)&color_map[line_obj_y].full, sizex, area->x1, ((area->y1) + i));
         line_obj_y = line_obj_y + sizex;
     }
+#endif
 
     lv_disp_flush_ready(drv); /* Indicate you are ready with the flushing*/
 }
@@ -117,6 +122,3 @@ bool my_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
 
     return false;
 }
-
-
-
