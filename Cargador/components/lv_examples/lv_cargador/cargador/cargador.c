@@ -54,7 +54,6 @@ char str2[20];
 
 bool welcome = false;
 bool EnableCharger = true;
-bool StopCharger = false;
 
 lv_obj_t *cont_screen_welcome;
 
@@ -70,7 +69,6 @@ lv_obj_t *cont_screen_init;
 lv_obj_t *labelCon;
 lv_obj_t *reloj;
 lv_obj_t *btnCancel;
-lv_obj_t *btnContinuar;
 
 lv_obj_t *cont_screen_CharOne;
 // lv_obj_t* labelPotencia;
@@ -269,14 +267,48 @@ void screen_init_carga()
 	lv_obj_t *label = lv_label_create(cont_screen_init, NULL); /*First parameters (scr) is the parent*/
 	lv_obj_set_event_cb(label, btn_event_cb);
 	lv_label_set_style(label, LV_LABEL_LONG_EXPAND, &styleLabel1);
-	if (!StopCharger)
-	{
-		lv_label_set_text(label, "   Validando Ticket"); /*Set the text*/
-	}
-	else
-	{
-		lv_label_set_text(label, "   Carga terminada cerrando Ticket"); /*Set the text*/
-	}
+
+	lv_label_set_text(label, "   Validando Ticket"); /*Set the text*/
+
+	lv_obj_align(label, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -120);
+	ESP_ERROR_CHECK(esp_timer_start_once(Timer_Screen_Control, 3000000));
+
+	/*Create a Preloader object*/
+	lv_obj_t *preload = lv_preload_create(cont_screen_init, NULL);
+	lv_obj_set_size(preload, 100, 100);
+	lv_obj_align(preload, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -10);
+	lv_preload_set_style(preload, LV_PRELOAD_STYLE_MAIN, &stylepreload);
+}
+
+void screen_end_carga()
+{
+	cont_screen_init = lv_cont_create(lv_scr_act(), NULL);
+	lv_obj_set_auto_realign(cont_screen_init, true);
+	lv_obj_align_origo(cont_screen_init, NULL, LV_ALIGN_CENTER, 0, 0); /*This parametrs will be sued when realigned*/
+	lv_cont_set_fit(cont_screen_init, LV_FIT_FLOOD);
+	lv_cont_set_layout(cont_screen_init, LV_LAYOUT_OFF);
+
+	lv_obj_t *logosmall = lv_img_create(cont_screen_init, NULL);
+	lv_img_set_src(logosmall, &img_logo_small);
+	lv_obj_align(logosmall, NULL, LV_ALIGN_IN_TOP_RIGHT, -20, 10);
+
+	labelCon = lv_label_create(cont_screen_init, NULL); /*First parameters (scr) is the parent*/
+	lv_obj_set_event_cb(labelCon, btn_event_cb);
+	lv_label_set_style(labelCon, LV_LABEL_LONG_EXPAND, &styleLabel1);
+	lv_label_set_text(labelCon, "   Espere por favor\nrealizando conexion"); /*Set the text*/
+	lv_obj_align(labelCon, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
+
+	reloj = lv_img_create(cont_screen_init, NULL);
+	lv_obj_set_event_cb(reloj, btn_event_cb);
+	lv_img_set_src(reloj, &img_reloj);
+	lv_obj_align(reloj, NULL, LV_ALIGN_CENTER, 0, -40);
+
+	lv_obj_t *label = lv_label_create(cont_screen_init, NULL); /*First parameters (scr) is the parent*/
+	lv_obj_set_event_cb(label, btn_event_cb);
+	lv_label_set_style(label, LV_LABEL_LONG_EXPAND, &styleLabel1);
+
+	lv_label_set_text(label, "   Carga terminada cerrando Ticket"); /*Set the text*/
+
 	lv_obj_align(label, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -120);
 	ESP_ERROR_CHECK(esp_timer_start_once(Timer_Screen_Control, 1000000));
 
@@ -359,7 +391,7 @@ void screen_carga_one()
 	lv_obj_set_size(btnCancel2, 400, 50);
 	lv_obj_align(btnCancel2, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -20);
 	lv_obj_t *labelbtn = lv_label_create(btnCancel2, NULL);
-	lv_label_set_text(labelbtn, "CANCELAR");
+	lv_label_set_text(labelbtn, "DETENER CARGA");
 
 	// ready_information = true;
 }
@@ -434,10 +466,10 @@ void update_label_carga_one(float potencia, float carga, float coste, float tiem
 void close_carga_one()
 {
 	ready_information = false;
-	screen_welcome();
-	StopCharger = false;
-	EnableCharger = true;
+	EnableCharger = false;
 	welcome = false;
+
+	screen_end_carga();
 	lv_obj_del(cont_screen_CharOne);
 }
 
@@ -515,43 +547,26 @@ static void btn_event_cb(lv_obj_t *obj, lv_event_t event)
 			welcome = true;
 			screen_code();
 		}
-
 		else if (obj == cont_screen_code)
 		{
 			printf("Clicked Screen Code\n");
 		}
-
-		// else if (obj == btnContinuar && !StopCharger)
-		// {
-
-		// 	lv_obj_del(cont_screen_init);
-		// 	printf("Clicked Continue chargerOne\n");
-		// 	screen_carga_one();
-		// 	xSemaphoreGive(Semaphore_Start_Charging);
-		// }
-
-		else if (obj == btnContinuar && StopCharger)
-		{
-			screen_welcome();
-			StopCharger = false;
-			EnableCharger = true;
-			welcome = false;
-			lv_obj_del(cont_screen_init);
-		}
-
-		// else if (obj == btnCancel)
-		// {
-		// 	lv_obj_del(cont_screen_init);
-		// 	printf("Clicked Cancel Init\n");
-		// 	EnableCharger = false;
-		// 	screen_code();
-		// }
 		else if (obj == btnCancel2)
 		{
-			lv_obj_del(cont_screen_CharOne);
-			printf("Clicked Cancel CharOne\n");
+
+			xSemaphoreGive(Semaphore_Stop_Charging);
 			EnableCharger = false;
-			screen_code();
+			
+			// lv_obj_del(cont_screen_CharOne);
+			// printf("Clicked Cancel CharOne\n");
+			// EnableCharger = false;
+			// screen_end_carga();
+			//screen_code();
+		}
+		else if (obj == btnCancelConfig)
+		{
+			screen_welcome();
+			lv_obj_del(cont_screen_config);
 		}
 	}
 	else if (event == LV_EVENT_VALUE_CHANGED)
@@ -564,6 +579,18 @@ static void kb_event_cb(lv_obj_t *event_kb, lv_event_t event)
 {
 	/* Just call the regular event handler */
 	lv_kb_def_event_cb(event_kb, event);
+
+	if (event == LV_EVENT_CANCEL)
+	{
+		printf("cANCEL TECLADO");
+		welcome = false;
+		lv_obj_del(cont_screen_code);
+		screen_welcome();
+	}
+	if (event == LV_EVENT_APPLY)
+	{
+		printf("OK TECLADO");
+	}
 }
 
 int i = 0;
@@ -604,10 +631,7 @@ static void ta_event_cb(lv_obj_t *ta, lv_event_t event)
 			}
 			else
 			{
-				if (!EnableCharger)
-				{
-					StopCharger = true;
-				}
+
 				screen_init_carga();
 				lv_obj_del(cont_screen_code);
 			}
@@ -618,38 +642,48 @@ static void ta_event_cb(lv_obj_t *ta, lv_event_t event)
 
 void ChargeControlOne()
 {
-	bool response = compare_ticket(str2);
-	printf("Response : %d\n", (int)response);
-	// int tryBtoC = 20;
-	// while (tryBtoC != 0) //Realiza 20 Intentos para que el vehiculo cambie de estado B a C
-	// {
-	// 	tryBtoC--;
-	// 	vTaskDelay(200 / portTICK_RATE_MS);
-	// }
-	if (response)
+	if (!EnableCharger)
 	{
+		screen_welcome();
 		lv_obj_del(cont_screen_init);
-		printf("Clicked Continue chargerOne\n");
-		screen_carga_one();
-		xSemaphoreGive(Semaphore_Start_Charging);
+		EnableCharger = true;
 	}
 	else
 	{
-		EnableCharger = false;
-		lv_obj_del(cont_screen_init);
-		screen_code();
-		warning = lv_img_create(cont_screen_code, NULL);
-		lv_img_set_src(warning, &img_warning);
-		lv_obj_set_size(warning, 50, 45);
-		lv_obj_align(warning, NULL, LV_ALIGN_IN_TOP_MID, 0, 30);
 
-		lv_obj_align(label_codeStatus, NULL, LV_ALIGN_IN_TOP_MID, -65, 75);
-		lv_label_set_text(label_codeStatus, "Codigo erroneo");
+		bool response = compare_ticket(str2);
+		printf("Response : %d\n", (int)response);
+		// int tryBtoC = 20;
+		// while (tryBtoC != 0) //Realiza 20 Intentos para que el vehiculo cambie de estado B a C
+		// {
+		// 	tryBtoC--;
+		// 	vTaskDelay(200 / portTICK_RATE_MS);
+		// }
+		if (response)
+		{
+			lv_obj_del(cont_screen_init);
+			printf("Clicked Continue chargerOne\n");
+			screen_carga_one();
+			xSemaphoreGive(Semaphore_Start_Charging);
+		}
+		else
+		{
+			EnableCharger = false;
+			lv_obj_del(cont_screen_init);
+			screen_code();
+			warning = lv_img_create(cont_screen_code, NULL);
+			lv_img_set_src(warning, &img_warning);
+			lv_obj_set_size(warning, 50, 45);
+			lv_obj_align(warning, NULL, LV_ALIGN_IN_TOP_MID, 0, 30);
 
-		lv_obj_align(label_code, NULL, LV_ALIGN_IN_TOP_MID, -65, 130);
-		lv_label_set_text(label_code, "Por favor, introduzca el codigo correcto");
+			lv_obj_align(label_codeStatus, NULL, LV_ALIGN_IN_TOP_MID, -65, 75);
+			lv_label_set_text(label_codeStatus, "Codigo erroneo");
+
+			lv_obj_align(label_code, NULL, LV_ALIGN_IN_TOP_MID, -65, 130);
+			lv_label_set_text(label_code, "Por favor, introduzca el codigo correcto");
+		}
+		memset(str2, 0, sizeof(str2));
 	}
-	memset(str2, 0, sizeof(str2));
 }
 
 #endif /*LV_USE_DEMO*/

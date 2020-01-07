@@ -33,12 +33,13 @@ static const char *TAG = "ZDU0210RJX";
 uint8_t UART0_ConfigurationData[2] = {0x86, 0x30};
 uint8_t UART1_ConfigurationData[2] = {0x86, 0x30};
 
-uint8_t UART0_BaudrateData[2] = {0x00, 0x60}; //0x00, 0x60- 9600
-uint8_t UART1_BaudrateData[2] = {0x00, 0x60}; //0x04, 0x57- 115200
+uint8_t UART0_BaudrateData[2] = {0x00, 0x60}; //0x00, 0x60- 9600 //0x04, 0x57- 115200
+uint8_t UART1_BaudrateData[2] = {0x00, 0x60};
 
 uint8_t EnableUartData = 0x03; // Rx Tx Enable
 
-uint8_t UART_RESET_FIFO[2] = {0x06, 0x03}; //0x04, 0x57- 115200
+uint8_t UART_RESET_FIFO[2] = {0x06, 0x03};
+uint8_t UART_RESET[2] = {0x0A, 0x00};
 
 void begin_ZDU0210RJX(uint8_t gpio, uint8_t mode)
 {
@@ -75,7 +76,7 @@ void begin_ZDU0210RJX(uint8_t gpio, uint8_t mode)
     Enable_Uart_ZDU0210RJX(EnableUartData, 0);
     Enable_Uart_ZDU0210RJX(EnableUartData, 1);
 
-    Enable_Interrupts_ZDU0210RJX(0xFF, 1);
+    //Enable_Interrupts_ZDU0210RJX(0xFF, 1);
 
     ESP_LOGI(TAG, "begin_ZDU0210RJX OK");
 }
@@ -311,9 +312,9 @@ The maximum value is 64 and the minimum value is 0.
 RxTx= 0; Rx FIFO
 RxTx= 1; Tx FIFO
  */
-int Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(uint8_t uart, uint8_t RxTx)
+uint8_t Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(uint8_t uart, uint8_t RxTx)
 {
-    int dataout = 0;
+    uint8_t dataout = 0;
     if (uart == 0)
         uart = UART0_ReadReceiveTransmitFIFOLevelRegisters;
     else
@@ -322,15 +323,15 @@ int Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(uint8_t uart, uint8_t 
     uint8_t data[2];
     i2c_uart_read_16_ZDU0210RJX(ZDU0210RJX_address, data, uart);
 
+    if (data[0] > 64)
+        data[0] = 64;
+    else if (data[1] > 64)
+        data[1] = 64;
+
     if (RxTx == 0)
         dataout = data[0];
     else
         dataout = data[1];
-
-    if (dataout < 0)
-        dataout = 0;
-    else if (dataout > 64)
-        dataout = 64;
 
     return dataout;
 }
@@ -343,6 +344,16 @@ bool uart_reset_FIFO_ZDU0210RJX(uint8_t uart)
         uart = UART1_WriteConfiguration;
 
     return i2c_uart_write_ZDU0210RJX(ZDU0210RJX_address, UART_RESET_FIFO, sizeof(UART_RESET_FIFO), uart);
+}
+
+bool uart_reset_ZDU0210RJX(uint8_t uart)
+{
+    if (uart == 0)
+        uart = UART0_WriteConfiguration;
+    else
+        uart = UART1_WriteConfiguration;
+
+    return i2c_uart_write_ZDU0210RJX(ZDU0210RJX_address, UART_RESET, sizeof(UART_RESET), uart);
 }
 
 //---------------------------------

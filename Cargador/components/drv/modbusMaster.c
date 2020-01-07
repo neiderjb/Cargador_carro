@@ -441,10 +441,10 @@ uint8_t ModbusMasterTransaction(uint8_t u8MBFunction)
 
 void responseModbus(uint8_t u8MBFunction, uint8_t *data_rd, bool coil)
 {
-    vTaskDelay(100);
-    uint8_t u8ModbusADU[20];
+    vTaskDelay(50);
+    uint8_t u8ModbusADU[64];
     uint8_t u8MBStatus = ku8MBSuccess;
-    int u8ModbusADUSize = 0;
+    uint8_t u8ModbusADUSize = 0;
     uint16_t u16CRC;
     bool crc = false;
     uint8_t i;
@@ -455,11 +455,13 @@ void responseModbus(uint8_t u8MBFunction, uint8_t *data_rd, bool coil)
         size = 6;
 
     u8ModbusADUSize = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(0, 0);
+
     //printf("RX size MODBUS: %d \n", u8ModbusADUSize);
 
     if (u8ModbusADUSize > 0)
     {
         Read_Data_RX_FIFO_ZDU0210RJX(0, u8ModbusADU, u8ModbusADUSize);
+        uart_reset_FIFO_ZDU0210RJX(0);
         //printf("----------------------------------\n");
         //printf("Response Phoenix: \n");
         //for (int i = 0; i < u8ModbusADUSize; i++)
@@ -577,6 +579,13 @@ void responseModbus(uint8_t u8MBFunction, uint8_t *data_rd, bool coil)
             {
                 ESP_LOGI(TAG, "NO CRC-FAIL DATA MODBUS");
                 ESP_LOGI(TAG, "SizeBuffer:%d \n", u8ModbusADUSize);
+                if (u8ModbusADUSize == 64)
+                {
+                    ESP_LOGE(TAG, "ERROR MODBUS");
+                    uart_reset_ZDU0210RJX(0);
+                    vTaskDelay(100);
+                    begin_ZDU0210RJX(0xFF, 0xFF);
+                }
             }
             memset(u8ModbusADU, 0, sizeof(u8ModbusADU));
         }
@@ -585,6 +594,13 @@ void responseModbus(uint8_t u8MBFunction, uint8_t *data_rd, bool coil)
             memset(u8ModbusADU, 0, sizeof(u8ModbusADU));
             ESP_LOGI(TAG, "NO SIZE DATA MODBUS");
             ESP_LOGI(TAG, "SizeBuffer:%d \n", u8ModbusADUSize);
+            if (u8ModbusADUSize == 64)
+            {
+                ESP_LOGE(TAG, "ERROR MODBUS");
+                uart_reset_ZDU0210RJX(0);
+                vTaskDelay(100);
+                begin_ZDU0210RJX(0xFF, 0xFF);
+            }
             data_rd[0] = 0;
             data_rd[1] = 0;
         }
@@ -593,6 +609,14 @@ void responseModbus(uint8_t u8MBFunction, uint8_t *data_rd, bool coil)
     {
         ESP_LOGI(TAG, "NO DATA MODBUS");
         ESP_LOGI(TAG, "SizeBuffer:%d \n", u8ModbusADUSize);
+        uart_reset_FIFO_ZDU0210RJX(0);
+        if (u8ModbusADUSize == 64)
+        {
+            ESP_LOGE(TAG, "ERROR MODBUS");
+            uart_reset_ZDU0210RJX(0);
+            vTaskDelay(100);
+            begin_ZDU0210RJX(0xFF, 0xFF);
+        }
         data_rd[0] = 0;
         data_rd[1] = 0;
     }

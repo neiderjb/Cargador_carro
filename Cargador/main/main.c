@@ -81,6 +81,7 @@ void app_main()
 	detectRtc = false;
 	detectModbus = false;
 	charging = false;
+	SincI2C = false;
 
 	Semaphore_control_touch = xSemaphoreCreateBinary();
 	Semaphore_Start_Charging = xSemaphoreCreateBinary();

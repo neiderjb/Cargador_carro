@@ -157,10 +157,13 @@ bool salida;/// = false;
 bool check;// = false;
 bool state;// = false;
 
+bool SincI2C;
+
 //Phoenix Contact
 xSemaphoreHandle Semaphore_Start_Charging;
 xSemaphoreHandle Semaphore_Stop_Charging;
 xSemaphoreHandle Semaphore_Out_Phoenix;
+
 
 xSemaphoreHandle Semaphore_Out_Rele;
 xSemaphoreHandle Semaphore_Out_Led;

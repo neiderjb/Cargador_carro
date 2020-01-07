@@ -21,7 +21,6 @@
 #include "Parameters.h"
 #include "RA8875.h"
 
-
 static const char *TAG = "PCF85063TP";
 
 uint8_t decToBcd(uint8_t val)
@@ -196,32 +195,25 @@ void Time_Task_Control(void *p)
 {
     for (;;)
     {
-        if(read_time){
-            // getTime();
-            // printf("\033[0;32m");
-            // printf("System Time: %d:%d:%d \n", hour, minute, second);
-            // printf("\033[0m");
-            
-        }        
-        vTaskDelay(1000);
     }
+    vTaskDelay(1000);
 }
 
 void Set_Time_Reference(char *s)
 {
-	cJSON *root;    
-	root = cJSON_CreateObject();
-	root = cJSON_Parse(s);
-    if(root == NULL)
+    cJSON *root;
+    root = cJSON_CreateObject();
+    root = cJSON_Parse(s);
+    if (root == NULL)
     {
         printf("Comando no valido\n");
     }
     else
     {
         printf("TimeReferences: %s\n", cJSON_PrintUnformatted(root));
-        second = cJSON_GetObjectItem(root, "second") -> valueint;
-        minute = cJSON_GetObjectItem(root, "minute") -> valueint;
-        hour = cJSON_GetObjectItem(root, "hour") -> valueint;
+        second = cJSON_GetObjectItem(root, "second")->valueint;
+        minute = cJSON_GetObjectItem(root, "minute")->valueint;
+        hour = cJSON_GetObjectItem(root, "hour")->valueint;
         setTime();
     }
 }

@@ -787,149 +787,102 @@ void grid_analyzer_task(void *arg)
 
     for (;;)
     {
-        read_time = false;
-        unsigned short sys0 = GetSysStatus0();  //EMMState0
-        unsigned short sys1 = GetSysStatus1();  //EMMState1
-        unsigned short en0 = GetMeterStatus0(); //EMMIntState0
-        unsigned short en1 = GetMeterStatus1(); //EMMIntState1
+        if (!SincI2C)       //Only take value when  SincI2C = false
+        {                   //Sincronizate with Phoenix read task
 
-        //printf("Sys Status: S0:0x %d, S1:0x %d \n", sys0, sys1);
-        //printf("Meter Status: E0:0x %d, E1:0x %d \n", en0, en1);
-        vTaskDelay(10 / portTICK_RATE_MS);
+            unsigned short sys0 = GetSysStatus0();  //EMMState0
+            unsigned short sys1 = GetSysStatus1();  //EMMState1
+            unsigned short en0 = GetMeterStatus0(); //EMMIntState0
+            unsigned short en1 = GetMeterStatus1(); //EMMIntState1
 
-        //if true the MCU is not getting data from the energy meter
-        if (sys0 == 65535 || sys0 == 0)
-        {
-            // led_state_maxV(2, 2);
-            ESP_LOGI(TAG, "Error: Not receiving data from energy meter - check your connections \n");
-            voltageA = 0;
-            currentA = 0;
-            powerfactorA = 0;
-            powerA = 0;
-            powerReacA = 0;
-            powerAppA = 0;
-            voltageB = 0;
-            currentB = 0;
-            powerfactorB = 0;
-            powerB = 0;
-            powerReacB = 0;
-            powerAppB = 0;
-            voltageC = 0;
-            currentC = 0;
-            powerfactorC = 0;
-            powerC = 0;
-            powerReacC = 0;
-            powerAppC = 0;
-            temperature = 0;
+            //printf("Sys Status: S0:0x %d, S1:0x %d \n", sys0, sys1);
+            //printf("Meter Status: E0:0x %d, E1:0x %d \n", en0, en1);
+            vTaskDelay(10 / portTICK_RATE_MS);
+
+            //if true the MCU is not getting data from the energy meter
+            if (sys0 == 65535 || sys0 == 0)
+            {
+                // led_state_maxV(2, 2);
+                ESP_LOGI(TAG, "Error: Not receiving data from energy meter - check your connections \n");
+                voltageA = 0;
+                currentA = 0;
+                powerfactorA = 0;
+                powerA = 0;
+                powerReacA = 0;
+                powerAppA = 0;
+                voltageB = 0;
+                currentB = 0;
+                powerfactorB = 0;
+                powerB = 0;
+                powerReacB = 0;
+                powerAppB = 0;
+                voltageC = 0;
+                currentC = 0;
+                powerfactorC = 0;
+                powerC = 0;
+                powerReacC = 0;
+                powerAppC = 0;
+                temperature = 0;
+            }
+            else
+            {
+                voltageA = GetLineVoltageA();
+                voltageB = GetLineVoltageB();
+                voltageC = GetLineVoltageC();
+                currentA = GetLineCurrentA();
+                currentB = GetLineCurrentB();
+                currentC = GetLineCurrentC();
+                temperature = GetTemperature();
+                powerfactorA = GetPowerFactorA();
+                powerfactorB = GetPowerFactorB();
+                powerfactorC = GetPowerFactorC();
+                powerA = GetActivePowerA();
+                powerB = GetActivePowerB();
+                powerC = GetActivePowerC();
+                powerReacA = GetReactivePowerA();
+                powerReacB = GetReactivePowerB();
+                powerReacC = GetReactivePowerC();
+                powerAppA = GetApparentPowerA();
+                powerAppB = GetApparentPowerB();
+                powerAppC = GetApparentPowerC();
+
+                uint8_t dataTime[6];
+                getTime(dataTime);
+
+                #ifdef DEBUG
+                printf("\033[0;32m");
+                printf("System Time: %d:%d:%d \n", dataTime[2], dataTime[1], dataTime[0]);
+                printf("\033[0m");
+
+                printf("=============FASE A=============== \n");
+                printf("Voltage 1: %.1f [V] \n", voltageA);
+                printf("Current 1: %.1f [A] \n", currentA);
+                printf("Power 1: %.1f [W] \n", powerA);
+                printf("Factor 1: %.1f  \n", powerfactorA);
+                printf("PowerR 1: %.1f [VAR] \n", powerReacA);
+                printf("PowerApp 1: %.1f [VA] \n", powerAppA);
+                printf("=============FASE B=============== \n");
+                printf("Voltage 2: %.1f [V] \n", voltageB);
+                printf("Current 2: %.1f [A] \n", currentB);
+                printf("Power 2: %.1f [W] \n", powerB);
+                printf("Factor 2: %.1f [V] \n", powerfactorB);
+                printf("PowerR 2: %.1f [VAR] \n", powerReacB);
+                printf("PowerApp 2: %.1f [VA] \n", powerAppB);
+                printf("=============FASE C=============== \n");
+                printf("Voltage 3: %.1f [V] \n", voltageC);
+                printf("Current 3: %.1f [A] \n", currentC);
+                printf("Power 3: %.1f [W] \n", powerC);
+                printf("Factor 3: %.1f [V] \n", powerfactorC);
+                printf("PowerR 3: %.1f [VAR] \n", powerReacC);
+                printf("PowerApp 3: %.1f [VA] \n", powerAppC);
+                printf("============================== \n");
+                printf("Temperature: %.1f [C] \n", temperature);
+                printf("============================== \n");
+                #endif
+            }
+
+            SincI2C = true;
         }
-        else
-        {
-            voltageA = GetLineVoltageA();
-            voltageB = GetLineVoltageB();
-            voltageC = GetLineVoltageC();
-            currentA = GetLineCurrentA();
-            currentB = GetLineCurrentB();
-            currentC = GetLineCurrentC();
-            temperature = GetTemperature();
-            powerfactorA = GetPowerFactorA();
-            powerfactorB = GetPowerFactorB();
-            powerfactorC = GetPowerFactorC();
-            powerA = GetActivePowerA();
-            powerB = GetActivePowerB();
-            powerC = GetActivePowerC();
-            powerReacA = GetReactivePowerA();
-            powerReacB = GetReactivePowerB();
-            powerReacC = GetReactivePowerC();
-            powerAppA = GetApparentPowerA();
-            powerAppB = GetApparentPowerB();
-            powerAppC = GetApparentPowerC();
-
-            uint8_t dataTime[6];
-            getTime(dataTime);
-            
-            // if (charging)
-            // {
-            //     if (timestamp)
-            //     {
-            //         timestamp = false;
-            //         printf("\033[0;32m");
-            //         printf("Charger Time: %d:%d:%d \n", dataTime[2], dataTime[1], dataTime[0]);
-            //         printf("\033[0m");
-            //         secondChargerOld = dataTime[0];
-            //         minuteChargerOld = dataTime[1];
-            //         hourChargerOld = dataTime[2];
-            //     }
-
-            //     secondCharger = dataTime[0];
-            //     minuteCharger = dataTime[1];
-            //     hourCharger = dataTime[2];
-
-            //     PowerConsumeA = PowerConsumeA + powerA;
-            //     PowerConsumeB = PowerConsumeB + powerB;
-            //     PowerConsumeC = PowerConsumeC + powerC;
-
-            //     hourstamp = hourCharger - hourChargerOld;
-            //     minutestamp = minuteCharger - minuteChargerOld;
-            //     secondstamp = secondCharger - secondChargerOld;
-
-            //     if (hourCharger < 24 && minuteCharger < 60 && minutestamp <= -1)
-            //     {
-            //         minutestamp = minutestamp + 60;
-            //         hourstamp = hourstamp - 1;
-            //     }
-            //     if (hourCharger < 24 && secondCharger < 60 && secondstamp <= -1)
-            //     {
-            //         secondstamp = secondstamp + 60;
-            //         minutestamp = minutestamp - 1;
-            //     }
-            //     printf("Charger Time: %d:%d:%d \n", hourstamp, minutestamp, secondstamp);
-
-            //     if (minutestamp > minuteChargerOld + 1 && secondstamp >= secondChargerOld)
-            //     {
-            //         timestamp = true;
-            //         printf("Charger PowerConsumeA %.1f [W]\n", (PowerConsumeA / 3600));
-            //         printf("Charger PowerConsumeB %.1f [W]\n", (PowerConsumeB / 3600));
-            //         printf("Charger PowerConsumeB %.1f [W]\n", (PowerConsumeB / 3600));
-            //     }
-            //}
-            // if (ready_information)
-            // {
-            //     UpdateLabelsScreen(voltageA, currentA, temperature, powerAppA, dataTime);
-            // }
-
-#ifdef DEBUG
-            printf("\033[0;32m");
-            printf("System Time: %d:%d:%d \n", dataTime[2], dataTime[1], dataTime[0]);
-            printf("\033[0m");
-
-            printf("=============FASE A=============== \n");
-            printf("Voltage 1: %.1f [V] \n", voltageA);
-            printf("Current 1: %.1f [A] \n", currentA);
-            printf("Power 1: %.1f [W] \n", powerA);
-            printf("Factor 1: %.1f  \n", powerfactorA);
-            printf("PowerR 1: %.1f [VAR] \n", powerReacA);
-            printf("PowerApp 1: %.1f [VA] \n", powerAppA);
-            printf("=============FASE B=============== \n");
-            printf("Voltage 2: %.1f [V] \n", voltageB);
-            printf("Current 2: %.1f [A] \n", currentB);
-            printf("Power 2: %.1f [W] \n", powerB);
-            printf("Factor 2: %.1f [V] \n", powerfactorB);
-            printf("PowerR 2: %.1f [VAR] \n", powerReacB);
-            printf("PowerApp 2: %.1f [VA] \n", powerAppB);
-            printf("=============FASE C=============== \n");
-            printf("Voltage 3: %.1f [V] \n", voltageC);
-            printf("Current 3: %.1f [A] \n", currentC);
-            printf("Power 3: %.1f [W] \n", powerC);
-            printf("Factor 3: %.1f [V] \n", powerfactorC);
-            printf("PowerR 3: %.1f [VAR] \n", powerReacC);
-            printf("PowerApp 3: %.1f [VA] \n", powerAppC);
-            printf("============================== \n");
-            printf("Temperature: %.1f [C] \n", temperature);
-            printf("============================== \n");
-#endif
-        }
-
-        read_time = true;
-        vTaskDelay(2000 / portTICK_RATE_MS);
+        vTaskDelay(1000 / portTICK_RATE_MS);
     }
 }

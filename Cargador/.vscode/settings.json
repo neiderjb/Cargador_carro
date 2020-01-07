@@ -28,6 +28,13 @@
         "stdint.h": "c",
         "stdbool.h": "c",
         "timercontrol.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "functional": "c",
+        "system_error": "c",
+        "type_traits": "c",
+        "xlocmon": "c",
+        "xtr1common": "c",
+        "tuple": "c",
+        "utility": "c"
     }
 }
