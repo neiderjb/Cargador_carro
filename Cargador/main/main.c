@@ -87,6 +87,9 @@ void app_main()
 	Semaphore_Start_Charging = xSemaphoreCreateBinary();
 	Semaphore_Stop_Charging = xSemaphoreCreateBinary();
 	Semaphore_Out_Phoenix = xSemaphoreCreateBinary();
+	Semaphore_Reset_Phoenix = xSemaphoreCreateBinary();
+	Semaphore_Config = xSemaphoreCreateBinary();
+
 	Semaphore_Out_Rele = xSemaphoreCreateBinary();
 	Semaphore_Out_Led = xSemaphoreCreateBinary();
 

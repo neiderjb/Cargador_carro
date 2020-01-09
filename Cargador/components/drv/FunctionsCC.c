@@ -416,7 +416,7 @@ bool compare_ticket(char *ticket)
 	char data[50];
 	bool response;
 
-	if (strcmp("bbbb\n", ticket) == 0)
+	if (strcmp("bbbb", ticket) == 0)
 	{
 		total_power = 1000;
 		total_time = 1000;

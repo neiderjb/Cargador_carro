@@ -67,9 +67,10 @@ void begin_phoenixcontact()
     begin_modbusMaster(3);
     ESP_LOGI(TAG, "-----------------\n");
     phoenixcontact_Set_Reset(1);
-    vTaskDelay(500 / portTICK_RATE_MS);
-    phoenixcontact_resetBuffRx();
+    vTaskDelay(700 / portTICK_RATE_MS);
+    //phoenixcontact_resetBuffRx();
     phoenixcontact_error_status();
+    Serial_number();
     Year_manufacture();
     Date_manufacture();
     Hardware_version();
@@ -209,7 +210,21 @@ void stop_charging()
     }
     phoenixcontact_Set_Enable_charging_process(0); //Enabling the charging process
     phoenixcontact_Set_Controlling_Locking_Actuator(0);
+}
+
+void config_charging_Values()
+{
+    PSerial = Serial_number();    
+    PCurrent = phoenixcontact_max_CurrentS1();
+    EStatus = phoenixcontact_error_status();
+    PStatus = phoenixcontact_SystemStatus();
+
+    ESP_LOGI(TAG, "Phoenix Serial: %s ", PSerial);
+    ESP_LOGI(TAG, "Phoenix Current: %x ", PCurrent);
+    ESP_LOGI(TAG, "Phoenix Error: %x ", EStatus);
+    ESP_LOGI(TAG, "Phoenix Status: %x ", PStatus);
     
+    update_label_configuration(PSerial,PCurrent,EStatus,PStatus);
 }
 
 bool indicator = false;
@@ -228,11 +243,23 @@ void phoenix_task(void *arg)
         {
             start_charging();
         }
-        if(xSemaphoreTake(Semaphore_Stop_Charging, 10)){
+        if (xSemaphoreTake(Semaphore_Stop_Charging, 10))
+        {
             stop_charging();
         }
 
-        if (charging && SincI2C)    //Sincronizate with grid_analyzer_task
+        if (xSemaphoreTake(Semaphore_Reset_Phoenix, 10))
+        {
+            phoenixcontact_Set_Reset(1);
+        }
+
+        if (xSemaphoreTake(Semaphore_Config, 10))
+        {
+            config_charging_Values();
+        }
+        
+
+        if (charging && SincI2C) //Sincronizate with grid_analyzer_task
         {
             EStatus = phoenixcontact_error_status();
             if (EStatus == 0x0004 || EStatus == 0x0002 || EStatus == 0x0008 || EStatus == 0x0800)
@@ -248,21 +275,21 @@ void phoenix_task(void *arg)
             {
                 ESP_LOGI(TAG, "PStatus: %x", PStatus);
                 ESP_LOGI(TAG, "************C1- Cargando************");
-                #ifdef FAKE_DATA
+#ifdef FAKE_DATA
                 contador_power_read++;
                 power_actual_value = 5;
                 power_charge_value += power_actual_value;
                 total_cost = PRICE_ENERGY * power_charge_value;
 
                 update_label_carga_one(power_actual_value, power_charge_value, total_cost, contador_power_read);
-                #else
+#else
                 contador_power_read = ((esp_timer_get_time() - contador_power_read) / 1000000) / 60;
                 power_actual_value = GetApparentPowerA() + GetApparentPowerB() + GetApparentPowerC();
                 power_charge_value += power_actual_value;
                 total_cost = PRICE_ENERGY * power_charge_value;
 
                 update_label_carga_one(power_actual_value, power_charge_value, total_cost, contador_power_read);
-                #endif
+#endif
                 if (power_charge_value >= total_power || contador_power_read >= total_time)
                 {
                     ESP_LOGI(TAG, "************B1 - Carga finalizada************");
@@ -275,8 +302,9 @@ void phoenix_task(void *arg)
                 ESP_LOGI(TAG, "************B1 - Carga finalizada************");
                 stop_charging();
             }
-            
+
             SincI2C = false;
+            phoenixcontact_ChargingCurrentSpecificationCP();
             //phoenixcontact_Get_SettingMaximumPermissibleChargingCurrent();
         }
         vTaskDelay(500 / portTICK_RATE_MS);
@@ -285,6 +313,65 @@ void phoenix_task(void *arg)
 
 //Register MODBUS TYPE: INPUT = ReadInputRegisters 0x04
 //-------------------------------------------//
+char* Serial_number()
+{
+    char* SerialRes;
+    SerialRes = malloc (12*sizeof(char) );
+    if(SerialRes == NULL) return NULL;
+
+    readInputRegisters(SerialNumber1, 1);
+    uint8_t date[2];
+    responseModbus(ReadInputRegisters, date, false);
+    uint16_t value = ((uint16_t)date[0] << 8 | date[1]);
+    //ESP_LOGI(TAG, "Phoenix Serial1: %x ", value);
+    
+    readInputRegisters(SerialNumber2, 1);
+    uint8_t date2[2];
+    responseModbus(ReadInputRegisters, date2, false);
+    uint16_t value2 = ((uint16_t)date2[0] << 8 | date2[1]);
+    //ESP_LOGI(TAG, "Phoenix Serial2: %x ", value2);
+
+    readInputRegisters(SerialNumber3, 1);
+    uint8_t date3[2];
+    responseModbus(ReadInputRegisters, date3, false);
+    uint16_t value3 = ((uint16_t)date3[0] << 8 | date3[1]);
+    //ESP_LOGI(TAG, "Phoenix Serial3: %x ", value3);
+
+    readInputRegisters(SerialNumber4, 1);
+    uint8_t date4[2];
+    responseModbus(ReadInputRegisters, date4, false);
+    uint16_t value4 = ((uint16_t)date4[0] << 8 | date4[1]);
+    //ESP_LOGI(TAG, "Phoenix Serial4: %x ", value4);
+
+    readInputRegisters(SerialNumber5, 1);
+    uint8_t date5[2];
+    responseModbus(ReadInputRegisters, date5, false);
+    uint16_t value5 = ((uint16_t)date5[0] << 8 | date5[1]);
+    //ESP_LOGI(TAG, "Phoenix Serial5: %x ", value5);
+
+    readInputRegisters(SerialNumber6, 1);
+    uint8_t date6[2];
+    responseModbus(ReadInputRegisters, date6, false);
+    uint16_t value6 = ((uint16_t)date6[0] << 8 | date6[1]);
+    //ESP_LOGI(TAG, "Phoenix Serial6: %x ", value6);
+
+    SerialRes[0]=(char)date[0];
+    SerialRes[1]=(char)date[1];
+    SerialRes[2]=(char)date2[0];
+    SerialRes[3]=(char)date2[1];
+    SerialRes[4]=(char)date3[0];
+    SerialRes[5]=(char)date3[1];
+    SerialRes[6]=(char)date4[0];
+    SerialRes[7]=(char)date4[1];
+    SerialRes[8]=(char)date5[0];
+    SerialRes[9]=(char)date5[1];
+    SerialRes[10]=(char)date6[0];
+    SerialRes[11]=(char)date6[1];
+    //ESP_LOGI(TAG, "Phoenix Serial char: %s ", Serial);
+ 
+    return SerialRes;    
+}
+
 void Year_manufacture()
 {
     readInputRegisters(YearManufacture, 1);
@@ -501,13 +588,25 @@ uint16_t phoenixcontact_SystemStatus()
     return value;
 }
 
+
+
 uint16_t phoenixcontact_ChargingCurrentSpecificationCP()
 {
     readHoldingRegisters(ChargingCurrentSpecificationCP, 1);
     uint8_t data[2];
     responseModbus(ReadHoldingRegisters, data, false);
     uint16_t value = ((uint16_t)data[0] << 8 | data[1]);
-    ESP_LOGI(TAG, "phoenixcontact_ChargingCurrentSpecificationCP: %x", value);
+    ESP_LOGI(TAG, "phoenixcontact_ChargingCurrentSpecificationCP : %x", value);
+    return value;
+}
+
+uint16_t phoenixcontact_ChargingCurrentSpecificationCPA()
+{
+    readHoldingRegisters(ChargingCurrentSpecificationCPA, 1);
+    uint8_t data[2];
+    responseModbus(ReadHoldingRegisters, data, false);
+    uint16_t value = ((uint16_t)data[0] << 8 | data[1]);
+    //ESP_LOGI(TAG, "phoenixcontact_ChargingCurrentSpecificationCP: %x", value);
     return value;
 }
 
@@ -518,6 +617,16 @@ uint16_t phoenixcontact_error_status()
     responseModbus(ReadHoldingRegisters, data, false);
     uint16_t value = ((uint16_t)data[0] << 8 | data[1]);
     //ESP_LOGI(TAG, "phoenixcontact_error_status: %x", value);
+    return value;
+}
+
+uint16_t phoenixcontact_max_CurrentS1()
+{
+    readHoldingRegisters(MaximunCurrentS1, 1);
+    uint8_t data[2];
+    responseModbus(ReadHoldingRegisters, data, false);
+    uint16_t value = ((uint16_t)data[0] << 8 | data[1]);
+    //ESP_LOGI(TAG, "phoenixcontact_max_CurrentS1: %x", value);
     return value;
 }
 

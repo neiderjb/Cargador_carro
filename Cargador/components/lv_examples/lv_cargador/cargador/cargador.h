@@ -56,6 +56,7 @@ void close_carga_one(void);
 
 void screen_alert_info_outService(void);
 void screen_configuration(void);
+void update_label_configuration(char* serial, float corriente, uint16_t error, uint16_t status);
 void ChargeControlOne();
 
 /**********************

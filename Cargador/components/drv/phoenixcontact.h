@@ -17,6 +17,13 @@
 
 
 //INPUT READ   16bits
+#define SerialNumber1 0x03FD         //1021
+#define SerialNumber2 0x03FE        //1022
+#define SerialNumber3 0x03FF        //1023
+#define SerialNumber4 0x0400        //1024
+#define SerialNumber5 0x0401        //1025
+#define SerialNumber6 0x0402        //1026
+
 #define YearManufacture 0x0403      //1027
 #define ManufacturingDate 0x404     //1028
 #define HardwareIdentification 0x0405   //1029
@@ -78,10 +85,12 @@
 #define SettingDigitalOutputRegisterOutputCHG 0x59DA        //23002
 #define SettingDigitalOutputRegisterOutputCON 0x59DB        //23003
 #define SystemStatus 0x5DC0                                 //24000
-#define ChargingCurrentSpecificationCP 0x5DC2               //24002 
+#define ChargingCurrentSpecificationCP 0x5DC2               //24002
+ #define ChargingCurrentSpecificationCPA 0x5DC3              //24003
 #define MinutesCounterSecondsStatusC 0x5DD1                 //24017
 #define HoursCounterStatusC 0x5DD2                          //24018
 #define ErrorStatus 0x5DD9                                  //24025
+#define MaximunCurrentS1 0x5DDB                             //24027
 /*
 Function assignment of output registers
 The digital inputs can be assigned different functions by entering values according to
@@ -134,13 +143,14 @@ void begin_phoenixcontact();
 
 void start_charging();
 void stop_charging();
-
+void config_charging_Values();
 
 void phoenix_task(void *arg);
 
 
 //Register MODBUS TYPE: INPUT = ReadInputRegisters 0x04
 //-------------------------------------------//
+char* Serial_number();
 void Year_manufacture();
 void Date_manufacture();
 void Hardware_version();
@@ -172,7 +182,9 @@ uint16_t phoenixcontact_HoursCounterStatusC();
 
 uint16_t phoenixcontact_SystemStatus();
 uint16_t phoenixcontact_ChargingCurrentSpecificationCP();
+uint16_t phoenixcontact_ChargingCurrentSpecificationCPA();
 uint16_t phoenixcontact_error_status();
+uint16_t phoenixcontact_max_CurrentS1();
 
 void phoenixcontact_WeldedContactDetectionConfig();
 void phoenixcontact_WeldedContactDetectionDelayConfig();

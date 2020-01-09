@@ -29,7 +29,7 @@
 /**********************
  *  STATIC PROTOTYPES
  **********************/
-static void mbox_event_cb(lv_obj_t *obj, lv_event_t evt);
+//static void mbox_event_cb(lv_obj_t *obj, lv_event_t evt);
 static void btn_event_cb(lv_obj_t *obj, lv_event_t event);
 static void kb_event_cb(lv_obj_t *event_kb, lv_event_t event);
 static void ta_event_cb(lv_obj_t *ta, lv_event_t event);
@@ -54,6 +54,7 @@ char str2[20];
 
 bool welcome = false;
 bool EnableCharger = true;
+bool StopCharging = false;
 
 lv_obj_t *cont_screen_welcome;
 
@@ -63,6 +64,8 @@ lv_obj_t *label_codeStatus;
 lv_obj_t *label_code;
 lv_obj_t *ta_code;
 
+
+
 lv_obj_t *cont_screen_alert_info_outService;
 
 lv_obj_t *cont_screen_init;
@@ -70,11 +73,10 @@ lv_obj_t *labelCon;
 lv_obj_t *reloj;
 lv_obj_t *btnCancel;
 
+lv_obj_t *cont_screen_end;
+
 lv_obj_t *cont_screen_CharOne;
-// lv_obj_t* labelPotencia;
-// lv_obj_t* labelCarga;
-// lv_obj_t* labelCoste;
-// lv_obj_t* labelTiempo;
+
 lv_obj_t *labelVehiculo;
 lv_obj_t *conecte;
 lv_obj_t *conectado;
@@ -84,8 +86,16 @@ lv_obj_t *btnCancel2;
 lv_obj_t *btnCargar;
 
 lv_obj_t *cont_screen_config;
+lv_obj_t *labPhoenixVersion;
+lv_obj_t *labPhoenixCurrent;
+lv_obj_t *labPhoenixStatus;
+lv_obj_t *labPhoenixError;
+lv_obj_t *btnUpdatePhoe;
+lv_obj_t *btnResetPhoe;
 lv_obj_t *btnContinuarConfig;
 lv_obj_t *btnCancelConfig;
+lv_obj_t *ta_PASS;
+lv_obj_t *ta_SSID;
 
 lv_obj_t *btn_info;
 lv_obj_t *btn_config;
@@ -98,9 +108,9 @@ lv_coord_t vres;
 /**********************
  *  STATIC VARIABLES
  **********************/
-static lv_obj_t *mbox, *info;
-static lv_obj_t *chart;
-static lv_obj_t *ta; //Text Area
+//static lv_obj_t *mbox, *info;
+//static lv_obj_t *chart;
+//static lv_obj_t *ta; //Text Area
 static lv_obj_t *kb; //Teclado
 
 LV_IMG_DECLARE(img_logo_small)
@@ -125,6 +135,7 @@ LV_IMG_DECLARE(img_airis_logo)
 
 static lv_theme_t *th;
 static lv_style_t styleLabel1;
+static lv_style_t styleLabel2;
 static lv_style_t styleContent1;
 static lv_style_t stylepreload;
 
@@ -138,6 +149,9 @@ void cargador_create(void)
 
 	lv_style_copy(&styleLabel1, &lv_style_plain);
 	styleLabel1.text.font = &lv_font_roboto_28;
+
+	lv_style_copy(&styleLabel2, &lv_style_plain);
+	styleLabel2.text.font = &lv_font_roboto_22;
 
 	styleContent1.image.color = LV_COLOR_WHITE;
 
@@ -161,7 +175,7 @@ void cargador_create(void)
  */
 void screen_welcome(void)
 {
-
+	welcome = false;
 	cont_screen_welcome = lv_cont_create(lv_scr_act(), NULL);
 	//lv_cont_set_style(cont_screen_welcome, LV_CONT_STYLE_MAIN,&styleContent1);
 	lv_obj_set_event_cb(cont_screen_welcome, btn_event_cb);
@@ -282,38 +296,39 @@ void screen_init_carga()
 
 void screen_end_carga()
 {
-	cont_screen_init = lv_cont_create(lv_scr_act(), NULL);
-	lv_obj_set_auto_realign(cont_screen_init, true);
-	lv_obj_align_origo(cont_screen_init, NULL, LV_ALIGN_CENTER, 0, 0); /*This parametrs will be sued when realigned*/
-	lv_cont_set_fit(cont_screen_init, LV_FIT_FLOOD);
-	lv_cont_set_layout(cont_screen_init, LV_LAYOUT_OFF);
 
-	lv_obj_t *logosmall = lv_img_create(cont_screen_init, NULL);
+	cont_screen_end = lv_cont_create(lv_scr_act(), NULL);
+	lv_obj_set_auto_realign(cont_screen_end, true);
+	lv_obj_align_origo(cont_screen_end, NULL, LV_ALIGN_CENTER, 0, 0); /*This parametrs will be sued when realigned*/
+	lv_cont_set_fit(cont_screen_end, LV_FIT_FLOOD);
+	lv_cont_set_layout(cont_screen_end, LV_LAYOUT_OFF);
+
+	lv_obj_t *logosmall = lv_img_create(cont_screen_end, NULL);
 	lv_img_set_src(logosmall, &img_logo_small);
 	lv_obj_align(logosmall, NULL, LV_ALIGN_IN_TOP_RIGHT, -20, 10);
 
-	labelCon = lv_label_create(cont_screen_init, NULL); /*First parameters (scr) is the parent*/
+	labelCon = lv_label_create(cont_screen_end, NULL); /*First parameters (scr) is the parent*/
 	lv_obj_set_event_cb(labelCon, btn_event_cb);
 	lv_label_set_style(labelCon, LV_LABEL_LONG_EXPAND, &styleLabel1);
 	lv_label_set_text(labelCon, "   Espere por favor\nrealizando conexion"); /*Set the text*/
 	lv_obj_align(labelCon, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
 
-	reloj = lv_img_create(cont_screen_init, NULL);
+	reloj = lv_img_create(cont_screen_end, NULL);
 	lv_obj_set_event_cb(reloj, btn_event_cb);
 	lv_img_set_src(reloj, &img_reloj);
 	lv_obj_align(reloj, NULL, LV_ALIGN_CENTER, 0, -40);
 
-	lv_obj_t *label = lv_label_create(cont_screen_init, NULL); /*First parameters (scr) is the parent*/
+	lv_obj_t *label = lv_label_create(cont_screen_end, NULL); /*First parameters (scr) is the parent*/
 	lv_obj_set_event_cb(label, btn_event_cb);
 	lv_label_set_style(label, LV_LABEL_LONG_EXPAND, &styleLabel1);
 
 	lv_label_set_text(label, "   Carga terminada cerrando Ticket"); /*Set the text*/
 
 	lv_obj_align(label, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -120);
-	ESP_ERROR_CHECK(esp_timer_start_once(Timer_Screen_Control, 1000000));
+	ESP_ERROR_CHECK(esp_timer_start_once(Timer_Screen_Control, 5000000));
 
 	/*Create a Preloader object*/
-	lv_obj_t *preload = lv_preload_create(cont_screen_init, NULL);
+	lv_obj_t *preload = lv_preload_create(cont_screen_end, NULL);
 	lv_obj_set_size(preload, 100, 100);
 	lv_obj_align(preload, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -10);
 	lv_preload_set_style(preload, LV_PRELOAD_STYLE_MAIN, &stylepreload);
@@ -467,7 +482,7 @@ void close_carga_one()
 {
 	ready_information = false;
 	EnableCharger = false;
-	welcome = false;
+	StopCharging = true;
 
 	screen_end_carga();
 	lv_obj_del(cont_screen_CharOne);
@@ -515,6 +530,118 @@ void screen_configuration()
 	lv_label_set_text(label, "CONFIGURACION"); /*Set the text*/
 	lv_obj_align(label, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
 
+	//-------------------------------------------------------------------------------------//
+
+	lv_obj_t *labelPhoenix = lv_label_create(cont_screen_config, NULL); /*First parameters (scr) is the parent*/
+	lv_obj_set_event_cb(labelPhoenix, btn_event_cb);
+	lv_label_set_style(labelPhoenix, LV_LABEL_LONG_EXPAND, &styleLabel2);
+	lv_label_set_text(labelPhoenix, "Phoenix Contact"); /*Set the text*/
+	lv_obj_align(labelPhoenix, NULL, LV_ALIGN_IN_TOP_LEFT, 50, 65);
+
+	/*Create a drop down list*/
+	/*lv_obj_t* ddlist = lv_ddlist_create(cont_screen_config, NULL);
+	lv_ddlist_set_options(ddlist, "Potencia 1\n"
+		"Potencia 2\n"
+		"Potencia 3\n"
+		"Potencia 4\n"
+		"Potencia 5\n"
+		"Potencia 6");
+
+	lv_ddlist_set_fix_width(ddlist, 150);
+	lv_ddlist_set_draw_arrow(ddlist, true);
+	lv_obj_align(ddlist, NULL, LV_ALIGN_IN_TOP_LEFT, 50, 120);
+	lv_obj_set_event_cb(ddlist, list_event_handler);
+	*/
+	labPhoenixVersion = lv_label_create(cont_screen_config, NULL); /*First parameters (scr) is the parent*/
+	lv_obj_set_event_cb(labPhoenixVersion, btn_event_cb);
+	lv_label_set_style(labPhoenixVersion, LV_LABEL_LONG_EXPAND, &styleLabel2);
+	lv_label_set_text(labPhoenixVersion, "Serial Phoenix:"); /*Set the text*/
+	lv_obj_align(labPhoenixVersion, NULL, LV_ALIGN_IN_TOP_LEFT, 50, 110);
+
+	labPhoenixCurrent = lv_label_create(cont_screen_config, NULL); /*First parameters (scr) is the parent*/
+	lv_obj_set_event_cb(labPhoenixCurrent, btn_event_cb);
+	lv_label_set_style(labPhoenixCurrent, LV_LABEL_LONG_EXPAND, &styleLabel2);
+	lv_label_set_text(labPhoenixCurrent, "Current Max:"); /*Set the text*/
+	lv_obj_align(labPhoenixCurrent, NULL, LV_ALIGN_IN_TOP_LEFT, 50, 140);
+
+	labPhoenixStatus = lv_label_create(cont_screen_config, NULL); /*First parameters (scr) is the parent*/
+	lv_obj_set_event_cb(labPhoenixStatus, btn_event_cb);
+	lv_label_set_style(labPhoenixStatus, LV_LABEL_LONG_EXPAND, &styleLabel2);
+	lv_label_set_text(labPhoenixStatus, "Status IEC 6185-1:"); /*Set the text*/
+	lv_obj_align(labPhoenixStatus, NULL, LV_ALIGN_IN_TOP_LEFT, 50, 170);
+
+	labPhoenixError = lv_label_create(cont_screen_config, NULL); /*First parameters (scr) is the parent*/
+	lv_obj_set_event_cb(labPhoenixError, btn_event_cb);
+	lv_label_set_style(labPhoenixError, LV_LABEL_LONG_EXPAND, &styleLabel2);
+	lv_label_set_text(labPhoenixError, "Error Status:"); /*Set the text*/
+	lv_obj_align(labPhoenixError, NULL, LV_ALIGN_IN_TOP_LEFT, 50, 200);
+
+	btnUpdatePhoe = lv_btn_create(cont_screen_config, NULL);
+	lv_obj_set_event_cb(btnUpdatePhoe, btn_event_cb);
+	lv_obj_set_size(btnUpdatePhoe, 150, 30);
+	lv_obj_align(btnUpdatePhoe, NULL, LV_ALIGN_IN_TOP_LEFT, 50, 250);
+	lv_obj_t *labelbtnupdate = lv_label_create(btnUpdatePhoe, NULL);
+	lv_label_set_text(labelbtnupdate, "Datos Phoenix");
+
+	btnResetPhoe = lv_btn_create(cont_screen_config, NULL);
+	lv_obj_set_event_cb(btnResetPhoe, btn_event_cb);
+	lv_obj_set_size(btnResetPhoe, 150, 30);
+	lv_obj_align(btnResetPhoe, NULL, LV_ALIGN_IN_TOP_LEFT, 50, 300);
+	lv_obj_t *labelbtnreset = lv_label_create(btnResetPhoe, NULL);
+	lv_label_set_text(labelbtnreset, "Reiniciar Phoenix");
+
+	//-------------------------------------------------------------------------------------//
+
+
+	lv_obj_t *labelSSID = lv_label_create(cont_screen_config, NULL); /*First parameters (scr) is the parent*/
+	lv_label_set_style(labelSSID, LV_LABEL_LONG_EXPAND, &styleLabel2);
+	lv_label_set_text(labelSSID, "SSID:"); /*Set the text*/
+	lv_obj_align(labelSSID, NULL, LV_ALIGN_IN_TOP_LEFT, 450, 110);
+
+	ta_SSID = lv_ta_create(cont_screen_config, NULL);
+	lv_ta_set_text(ta_SSID, "Nombre de Red");
+	lv_ta_set_pwd_mode(ta_SSID, true);
+	lv_ta_set_one_line(ta_SSID, false);
+	lv_obj_set_size(ta_SSID, 300, 30);
+	lv_obj_align(ta_SSID, NULL, LV_ALIGN_IN_TOP_LEFT, 510, 110);
+	lv_obj_set_event_cb(ta_SSID, ta_event_cb);
+
+	lv_obj_t *labelPass = lv_label_create(cont_screen_config, NULL); /*First parameters (scr) is the parent*/
+	lv_label_set_style(labelPass, LV_LABEL_LONG_EXPAND, &styleLabel2);
+	lv_label_set_text(labelPass, "Pass:"); /*Set the text*/
+	lv_obj_align(labelPass, NULL, LV_ALIGN_IN_TOP_LEFT, 450, 150);
+
+	ta_PASS = lv_ta_create(cont_screen_config, NULL);
+	lv_ta_set_text(ta_PASS, "Contraseña de Red");
+	lv_ta_set_pwd_mode(ta_PASS, true);
+	lv_ta_set_one_line(ta_PASS, false);
+	lv_obj_set_size(ta_PASS, 300, 30);
+	lv_obj_align(ta_PASS, NULL, LV_ALIGN_IN_TOP_LEFT, 510, 150);
+	lv_obj_set_event_cb(ta_PASS, ta_event_cb);
+
+	lv_obj_t *labeltiempoEsp = lv_label_create(cont_screen_config, NULL); /*First parameters (scr) is the parent*/
+	lv_label_set_style(labeltiempoEsp, LV_LABEL_LONG_EXPAND, &styleLabel2);
+	lv_label_set_text(labeltiempoEsp, "Tiempo Espera Carga:"); /*Set the text*/
+	lv_obj_align(labeltiempoEsp, NULL, LV_ALIGN_IN_TOP_LEFT, 450, 200);
+
+	/*Create a drop down list*/
+	lv_obj_t* ddlist = lv_ddlist_create(cont_screen_config, NULL);
+	lv_ddlist_set_options(ddlist, "1 minuto\n"
+		"2 minutos\n"
+		"3 minutos\n"
+		"4 minutos\n"
+		"5 minutos\n"
+		"10 minutos");
+
+	lv_ddlist_set_fix_width(ddlist, 150);
+	lv_ddlist_set_draw_arrow(ddlist, true);
+	lv_obj_align(ddlist, NULL, LV_ALIGN_IN_TOP_LEFT, 450, 250);
+	//lv_obj_set_event_cb(ddlist, list_event_handler);
+	
+
+
+	//-------------------------------------------------------------------------------------//
+
 	btnCancelConfig = lv_btn_create(cont_screen_config, NULL);
 	lv_obj_set_event_cb(btnCancelConfig, btn_event_cb);
 	lv_obj_set_size(btnCancelConfig, 200, 50);
@@ -530,9 +657,99 @@ void screen_configuration()
 	lv_label_set_text(labelbtn, "CONTINUAR");
 }
 
+void update_label_configuration(char* serial, float corriente, uint16_t error, uint16_t status)
+{
+	char res[70];
+	char dest[70];
+
+	strcpy(res, serial);
+	strcpy(dest, "Serial Phoenix: ");
+	strcat(dest, res);
+	lv_label_set_text(labPhoenixVersion, dest); /*Set the text*/
+	memset(res, 0, sizeof(res));
+
+	ftoa(corriente, res, 2);
+	strcpy(dest, "Current Max: ");
+	strcat(dest, res);
+	lv_label_set_text(labPhoenixCurrent, dest); /*Set the text*/
+	memset(res, 0, sizeof(res));
+
+	if (status == 0x4331)
+	{
+		strcpy(res, "A- No hay pistola");
+	}
+	else if (status == 0x4232 || status == 0x4233)
+	{
+		strcpy(res, "B- Pistola conectada");
+	}
+	strcpy(dest, "Status IEC 6185-1: ");
+	strcat(dest, res);
+	lv_label_set_text(labPhoenixStatus, dest); /*Set the text*/
+	memset(dest, 0, sizeof(dest));
+
+	//ftoa(error, res, 2);
+	if (error == 0x0000)
+	{
+		strcpy(res, "No se detecta error");
+	}
+	else if (error == 0x0002)
+	{
+		strcpy(res, "Rejection of 13A cable");
+	}
+	else if (error == 0x0004)
+	{
+		strcpy(res, "Invalid PP Value");
+	}
+	else if (error == 0x0008)
+	{
+		strcpy(res, "Invalid CP Value");
+	}
+	else if (error == 0x0010)
+	{
+		strcpy(res, "Status F due to no Charging station");
+	}
+	else if (error == 0x0020)
+	{
+		strcpy(res, "locking");
+	}
+	else if (error == 0x0040)
+	{
+		strcpy(res, "unlocking");
+	}
+	else if (error == 0x0080) //bit 8
+	{
+		strcpy(res, "LD unavailable during locking");
+	}
+	else if (error == 0x0400) //bit 11
+	{
+		strcpy(res, "Status D, vehicle rejected");
+	}
+	else if (error == 0x0800) //bit 12
+	{
+		strcpy(res, "Charging contactor error");
+	}
+	else if (error == 0x1000) //bit 13
+	{
+		strcpy(res, "No diode in the control pilot circuit in the vehicle");
+	}
+	else if (error == 0x4000) //bit 15
+	{
+		strcpy(res, "EV-RCM residual currnet detection triggered");
+	}
+	else if (error == 0x8000) //bit 16
+	{
+		strcpy(res, "EV-RCM selftest error");
+	}
+	strcpy(dest, "Error Status: ");
+	strcat(dest, res);
+	lv_label_set_text(labPhoenixError, dest); /*Set the text*/
+	memset(dest, 0, sizeof(dest));
+}
+
 /**********************
  *   STATIC FUNCTIONS
  **********************/
+int i = 0;
 
 static void btn_event_cb(lv_obj_t *obj, lv_event_t event)
 {
@@ -547,26 +764,26 @@ static void btn_event_cb(lv_obj_t *obj, lv_event_t event)
 			welcome = true;
 			screen_code();
 		}
-		else if (obj == cont_screen_code)
-		{
-			printf("Clicked Screen Code\n");
-		}
+
 		else if (obj == btnCancel2)
 		{
-
 			xSemaphoreGive(Semaphore_Stop_Charging);
 			EnableCharger = false;
-			
-			// lv_obj_del(cont_screen_CharOne);
-			// printf("Clicked Cancel CharOne\n");
-			// EnableCharger = false;
-			// screen_end_carga();
-			//screen_code();
 		}
 		else if (obj == btnCancelConfig)
 		{
 			screen_welcome();
 			lv_obj_del(cont_screen_config);
+		}
+
+		else if (obj == btnResetPhoe)
+		{
+			xSemaphoreGive(Semaphore_Reset_Phoenix);
+		}
+
+		else if (obj == btnUpdatePhoe)
+		{
+			xSemaphoreGive(Semaphore_Config);
 		}
 	}
 	else if (event == LV_EVENT_VALUE_CHANGED)
@@ -582,18 +799,30 @@ static void kb_event_cb(lv_obj_t *event_kb, lv_event_t event)
 
 	if (event == LV_EVENT_CANCEL)
 	{
-		printf("cANCEL TECLADO");
-		welcome = false;
+		printf("CANCEL TECLADO");
 		lv_obj_del(cont_screen_code);
 		screen_welcome();
 	}
 	if (event == LV_EVENT_APPLY)
 	{
 		printf("OK TECLADO");
+		printf("ticket %s\n", str2);
+
+		if (strcmp("0000", str2) == 0)
+		{
+
+			screen_configuration();
+			lv_obj_del(cont_screen_code);
+		}
+		else
+		{
+			screen_init_carga();
+			lv_obj_del(cont_screen_code);
+		}
+		i = 0;
 	}
 }
 
-int i = 0;
 static void ta_event_cb(lv_obj_t *ta, lv_event_t event)
 {
 	if (event == LV_EVENT_CLICKED)
@@ -609,7 +838,7 @@ static void ta_event_cb(lv_obj_t *ta, lv_event_t event)
 		printf("Tecla %s - %d\n", str, i);
 
 		str2[i] = str[0];
-		i++;
+		//i++;
 
 		if (str[0] == 127)
 		{
@@ -619,46 +848,27 @@ static void ta_event_cb(lv_obj_t *ta, lv_event_t event)
 				i = 0;
 			str2[i] = 0x0A;
 		}
-
-		if (str[0] == '\n')
+		else
 		{
-			printf("ticket %s\n", str2);
-
-			if (strcmp("0000\n", str2) == 0)
-			{
-				screen_configuration();
-				lv_obj_del(cont_screen_code);
-			}
-			else
-			{
-
-				screen_init_carga();
-				lv_obj_del(cont_screen_code);
-			}
-			i = 0;
+			i++;
 		}
 	}
 }
 
 void ChargeControlOne()
 {
-	if (!EnableCharger)
+	if (!EnableCharger && StopCharging)
 	{
-		screen_welcome();
-		lv_obj_del(cont_screen_init);
 		EnableCharger = true;
+		screen_welcome();
+		lv_obj_del(cont_screen_end);
 	}
 	else
 	{
 
 		bool response = compare_ticket(str2);
 		printf("Response : %d\n", (int)response);
-		// int tryBtoC = 20;
-		// while (tryBtoC != 0) //Realiza 20 Intentos para que el vehiculo cambie de estado B a C
-		// {
-		// 	tryBtoC--;
-		// 	vTaskDelay(200 / portTICK_RATE_MS);
-		// }
+
 		if (response)
 		{
 			lv_obj_del(cont_screen_init);

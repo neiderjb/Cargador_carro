@@ -163,11 +163,15 @@ bool SincI2C;
 xSemaphoreHandle Semaphore_Start_Charging;
 xSemaphoreHandle Semaphore_Stop_Charging;
 xSemaphoreHandle Semaphore_Out_Phoenix;
+xSemaphoreHandle Semaphore_Reset_Phoenix;
+xSemaphoreHandle Semaphore_Config;
 
 
 xSemaphoreHandle Semaphore_Out_Rele;
 xSemaphoreHandle Semaphore_Out_Led;
 
+char* PSerial;
+uint16_t PCurrent;
 uint16_t PStatus;
 uint16_t EStatus;
 uint8_t PHour;
