@@ -159,6 +159,8 @@ bool state;// = false;
 
 bool SincI2C;
 
+int timeWaitCharger;
+
 //Phoenix Contact
 xSemaphoreHandle Semaphore_Start_Charging;
 xSemaphoreHandle Semaphore_Stop_Charging;
@@ -178,6 +180,8 @@ uint8_t PHour;
 uint8_t PMinute;
 uint8_t PSecond;
 bool charging;
+
+bool ScreenConfig;
 
 
 //LittleVgl 
@@ -204,3 +208,7 @@ float power_actual_value;
 float total_cost;
 #define PRICE_ENERGY	0.05
 #define FAKE_DATA
+
+bool Phase1;
+bool Phase2;
+bool Phase3;

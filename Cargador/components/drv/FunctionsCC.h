@@ -44,3 +44,5 @@ double ReadFrequency();
 void ReadInformation();
 void set_PhaseControl();
 bool compare_ticket(char *ticket);
+
+char *phoenixError(uint16_t error);

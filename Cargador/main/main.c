@@ -51,9 +51,12 @@ void Network_Control(void *p)
 		if (!Isconnected())
 		{
 			continue;
+			led_state_maxV(2, 1); //Wifi no connected
 		}
 		else
 		{
+
+			led_state_maxV(2, 2); //Wifi connected
 			if (!network_signal)
 			{
 				ResetCount();
@@ -82,6 +85,11 @@ void app_main()
 	detectModbus = false;
 	charging = false;
 	SincI2C = false;
+	ScreenConfig = false;
+
+	Phase1 = false;
+	Phase2 = false;
+	Phase3 = false;
 
 	Semaphore_control_touch = xSemaphoreCreateBinary();
 	Semaphore_Start_Charging = xSemaphoreCreateBinary();
@@ -156,6 +164,7 @@ void app_main()
 		//configuration analizer
 		begin_analizer();
 		begin_calibration_analizer(LineFreq, PGAGain, VoltageGain, CurrentGain, 60853, 63853);
+		read_initial_analyzer();
 	}
 
 	//RTC
@@ -179,7 +188,7 @@ void app_main()
 	if (detectModbus)
 	{
 		begin_phoenixcontact();
-		xTaskCreate(phoenix_task, "phoenix_task", 2048, NULL, 5, NULL);
+		xTaskCreate(phoenix_task, "phoenix_task", 3072, NULL, 5, NULL);
 	}
 	//xTaskCreate(Time_Task_Control, "Time_Task_Control", 2048, NULL, 1, NULL);
 	xTaskCreatePinnedToCore(Network_Control, "Network_Control", 3072, NULL, 3, NULL, 1);
@@ -220,14 +229,24 @@ void app_main()
 	//Periodic Timer
 	// ESP_ERROR_CHECK(esp_timer_start_periodic(Timer_Memory_Control, 10000000));
 
+	//Firmware INIT OK
+	for (int a = 0; a < 3; a++)
+	{
+		led_state_maxV(1, 2);
+		vTaskDelay(200 / portTICK_RATE_MS);
+		led_state_maxV(1, 0);
+		vTaskDelay(200 / portTICK_RATE_MS);
+	}
+	led_state_maxV(1, 2);
+
 	//Screen
 	while (1)
 	{
-		#ifdef littleOpt
+#ifdef littleOpt
 		vTaskDelay(portTICK_RATE_MS);
-		#else
+#else
 		vTaskDelay(1 / portTICK_RATE_MS);
-		#endif
+#endif
 		lv_task_handler();
 	}
 }

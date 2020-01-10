@@ -445,5 +445,6 @@ unsigned short GetMeterStatus1();
 /* Checksum Function */
 bool calibrationError();
 
+void read_initial_analyzer();
 /* grid_analyzer_task */
 void grid_analyzer_task(void *arg);

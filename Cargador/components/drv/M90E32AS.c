@@ -265,6 +265,14 @@ double GetLineVoltageA()
     unsigned short voltageLSB = CommEnergyIC(READ, UrmsALSB, 0xFFFF);
     voltageLSB = voltageLSB << 8 | voltageLSB >> 8;
     double voltageRMS = (voltage * 0.01) + (((double)voltageLSB * 0.01) / 256);
+    if (voltageRMS < 0)
+    {
+        voltageRMS = 0;
+    }
+    else if (voltageRMS > 65535)
+    {
+        voltageRMS = 65535;
+    }
     return voltageRMS;
 }
 
@@ -277,8 +285,16 @@ double GetLineVoltageB()
     unsigned short voltage = CommEnergyIC(READ, UrmsB, 0xFFFF);
     unsigned short voltageLSB = CommEnergyIC(READ, UrmsBLSB, 0xFFFF);
     voltageLSB = voltageLSB << 8 | voltageLSB >> 8;
-    unsigned short voltageRMS = (voltage * 0.01) + ((voltageLSB * 0.01) / 256);
-    return (double)voltageRMS;
+    double voltageRMS = (voltage * 0.01) + ((voltageLSB * 0.01) / 256);
+    if (voltageRMS < 0)
+    {
+        voltageRMS = 0;
+    }
+    else if (voltageRMS > 65535)
+    {
+        voltageRMS = 65535;
+    }
+    return voltageRMS;
 }
 
 /*! \brief This function get Voltage Line C.
@@ -290,7 +306,15 @@ double GetLineVoltageC()
     unsigned short voltage = CommEnergyIC(READ, UrmsC, 0xFFFF);
     unsigned short voltageLSB = CommEnergyIC(READ, UrmsCLSB, 0xFFFF);
     voltageLSB = voltageLSB << 8 | voltageLSB >> 8;
-    unsigned short voltageRMS = (voltage * 0.01) + ((voltageLSB * 0.01) / 256);
+    double voltageRMS = (voltage * 0.01) + ((voltageLSB * 0.01) / 256);
+    if (voltageRMS < 0)
+    {
+        voltageRMS = 0;
+    }
+    else if (voltageRMS > 65535)
+    {
+        voltageRMS = 65535;
+    }
     return (double)voltageRMS;
 }
 
@@ -304,6 +328,14 @@ double GetLineCurrentA()
     unsigned short currentLSB = CommEnergyIC(READ, IrmsALSB, 0xFFFF);
     currentLSB = currentLSB << 8 | currentLSB >> 8;
     double currentRMS = (current * 0.001) + ((currentLSB * 0.001) / 256);
+    if (currentRMS < 0)
+    {
+        currentRMS = 0;
+    }
+    else if (currentRMS > 65535)
+    {
+        currentRMS = 65535;
+    }
     return currentRMS;
 }
 
@@ -317,6 +349,14 @@ double GetLineCurrentB()
     unsigned short currentLSB = CommEnergyIC(READ, IrmsBLSB, 0xFFFF);
     currentLSB = currentLSB << 8 | currentLSB >> 8;
     double currentRMS = (current * 0.001) + ((currentLSB * 0.001) / 256);
+    if (currentRMS < 0)
+    {
+        currentRMS = 0;
+    }
+    else if (currentRMS > 65535)
+    {
+        currentRMS = 65535;
+    }
     return currentRMS;
 }
 
@@ -330,6 +370,14 @@ double GetLineCurrentC()
     unsigned short currentLSB = CommEnergyIC(READ, IrmsCLSB, 0xFFFF);
     currentLSB = currentLSB << 8 | currentLSB >> 8;
     double currentRMS = (current * 0.001) + ((currentLSB * 0.001) / 256);
+    if (currentRMS < 0)
+    {
+        currentRMS = 0;
+    }
+    else if (currentRMS > 65535)
+    {
+        currentRMS = 65535;
+    }
     return currentRMS;
 }
 
@@ -508,17 +556,23 @@ double GetTotalPowerFactor()
 // MEAN PHASE ANGLE
 double GetPhaseA()
 {
-    unsigned short angleA = (unsigned short)CommEnergyIC(READ, PAngleA, 0xFFFF);
+    //unsigned short angleA = (unsigned short)CommEnergyIC(READ, PAngleA, 0xFFFF);
+    unsigned short angleA = (unsigned short)CommEnergyIC(READ, UangleA, 0xFFFF);
+
     return (double)angleA / 10;
 }
 double GetPhaseB()
 {
-    unsigned short angleB = (unsigned short)CommEnergyIC(READ, PAngleB, 0xFFFF);
+    //unsigned short angleB = (unsigned short)CommEnergyIC(READ, PAngleB, 0xFFFF);
+    unsigned short angleB = (unsigned short)CommEnergyIC(READ, UangleB, 0xFFFF);
+
     return (double)angleB / 10;
 }
 double GetPhaseC()
 {
-    unsigned short angleC = (unsigned short)CommEnergyIC(READ, PAngleC, 0xFFFF);
+    //unsigned short angleC = (unsigned short)CommEnergyIC(READ, PAngleC, 0xFFFF);
+    unsigned short angleC = (unsigned short)CommEnergyIC(READ, UangleC, 0xFFFF);
+
     return (double)angleC / 10;
 }
 
@@ -776,6 +830,97 @@ uint8_t secondCharger, minuteCharger, hourCharger, secondChargerOld, minuteCharg
 uint8_t hourstamp, minutestamp, secondstamp;
 bool timestamp = true;
 
+void read_initial_analyzer()
+{
+    double PhaseA = 0;
+    double PhaseB = 0;
+    double PhaseC = 0;
+
+    if (!SincI2C) //Only take value when  SincI2C = false
+    {             //Sincronizate with Phoenix read task
+
+        unsigned short sys0 = GetSysStatus0();  //EMMState0
+        unsigned short sys1 = GetSysStatus1();  //EMMState1
+        unsigned short en0 = GetMeterStatus0(); //EMMIntState0
+        unsigned short en1 = GetMeterStatus1(); //EMMIntState1
+
+        //printf("Sys Status: S0:0x %d, S1:0x %d \n", sys0, sys1);
+        //printf("Meter Status: E0:0x %d, E1:0x %d \n", en0, en1);
+        vTaskDelay(10 / portTICK_RATE_MS);
+
+        //if true the MCU is not getting data from the energy meter
+        if (sys0 == 65535 || sys0 == 0)
+        {
+            // led_state_maxV(2, 2);
+            ESP_LOGI(TAG, "Error: Not receiving data from energy meter - check your connections \n");
+            voltageA = 0;
+            currentA = 0;
+            powerfactorA = 0;
+            powerA = 0;
+            powerReacA = 0;
+            powerAppA = 0;
+            voltageB = 0;
+            currentB = 0;
+            powerfactorB = 0;
+            powerB = 0;
+            powerReacB = 0;
+            powerAppB = 0;
+            voltageC = 0;
+            currentC = 0;
+            powerfactorC = 0;
+            powerC = 0;
+            powerReacC = 0;
+            powerAppC = 0;
+            temperature = 0;
+        }
+        else
+        {
+            voltageA = GetLineVoltageA();
+            voltageB = GetLineVoltageB();
+            voltageC = GetLineVoltageC();
+            PhaseA = GetPhaseA();
+            PhaseB = GetPhaseB();
+            PhaseC = GetPhaseC();
+
+            printf("Voltage A: %.1f [V] \n", voltageA);
+            printf("Voltage B: %.1f [V] \n", voltageB);
+            printf("Voltage C: %.1f [V] \n", voltageC);
+
+            printf("PhaseAngle A: %f [°] \n", PhaseA);
+            printf("PhaseAngle B: %f [°] \n", PhaseB);
+            printf("PhaseAngle C: %f [°] \n", PhaseC);
+
+            if (voltageA < 100)
+            {
+                printf("No se detecto la Fase 1");
+                Phase1 = false;
+            }
+            else
+            {
+                Phase1 = true;
+            }
+            if (voltageB < 100)
+            {
+                printf("No se detecto la Fase 2");
+                Phase2 = false;
+            }
+            else
+            {
+                Phase2 = true;
+            }
+            if (voltageC < 100)
+            {
+                printf("No se detecto la Fase 3");
+                Phase3 = false;
+            }
+            else
+            {
+                Phase3 = true;
+            }
+        }
+    }
+}
+
 void grid_analyzer_task(void *arg)
 {
     ESP_LOGI(TAG, "Initiation grid_analyzer_task");
@@ -787,8 +932,8 @@ void grid_analyzer_task(void *arg)
 
     for (;;)
     {
-        if (!SincI2C)       //Only take value when  SincI2C = false
-        {                   //Sincronizate with Phoenix read task
+        if (!SincI2C) //Only take value when  SincI2C = false
+        {             //Sincronizate with Phoenix read task
 
             unsigned short sys0 = GetSysStatus0();  //EMMState0
             unsigned short sys1 = GetSysStatus1();  //EMMState1
@@ -849,7 +994,35 @@ void grid_analyzer_task(void *arg)
                 uint8_t dataTime[6];
                 getTime(dataTime);
 
-                #ifdef DEBUG
+                if (voltageA < 100)
+                {
+                    printf("No se detecto la Fase 1");
+                    Phase1 = false;
+                }
+                else
+                {
+                    Phase1 = true;
+                }
+                if (voltageB < 100)
+                {
+                    printf("No se detecto la Fase 2");
+                    Phase2 = false;
+                }
+                else
+                {
+                    Phase2 = true;
+                }
+                if (voltageC < 100)
+                {
+                    printf("No se detecto la Fase 3");
+                    Phase3 = false;
+                }
+                else
+                {
+                    Phase3 = true;
+                }
+
+#ifdef DEBUG
                 printf("\033[0;32m");
                 printf("System Time: %d:%d:%d \n", dataTime[2], dataTime[1], dataTime[0]);
                 printf("\033[0m");
@@ -878,7 +1051,7 @@ void grid_analyzer_task(void *arg)
                 printf("============================== \n");
                 printf("Temperature: %.1f [C] \n", temperature);
                 printf("============================== \n");
-                #endif
+#endif
             }
 
             SincI2C = true;

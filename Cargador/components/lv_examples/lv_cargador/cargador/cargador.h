@@ -49,14 +49,14 @@ void screen_end_carga(void);
 void screen_carga_one(void);
 void update_conectado_carga_one(void);
 void update_cargando_carga_one(void);
-void update_error_carga_one();
+void update_error_carga_one(uint16_t Error);
 void update_label_carga_one(float potencia, float carga, float coste, float tiempo);
 void close_carga_one(void);
 
 
 void screen_alert_info_outService(void);
 void screen_configuration(void);
-void update_label_configuration(char* serial, float corriente, uint16_t error, uint16_t status);
+void update_label_configuration(char *serial, float corriente, uint16_t error, uint16_t status, bool fase1, bool fase2, bool fase3);
 void ChargeControlOne();
 
 /**********************

@@ -374,11 +374,16 @@ void begin_calibration_analizer()
 {
 	vTaskDelay(200 / portTICK_RATE_MS);
 	frequencyValue = ReadFrequency();
-
+	int tryAnalizer = 20;
 	while (frequencyValue < 49 || frequencyValue > 61)
 	{
-		frequencyValue = ReadFrequency();
 
+		if(tryAnalizer == 0){
+			break;
+		}
+		tryAnalizer --;
+
+		frequencyValue = ReadFrequency();
 		printf("\033[1;31m");
 		printf("FrequencyValue = %f\n", frequencyValue);
 		printf("\033[0m");
@@ -468,3 +473,67 @@ bool compare_ticket(char *ticket)
 	cJSON_Delete(root);
 	return response;
 }
+
+char *phoenixError(uint16_t error)
+{
+    char *res;
+    res = malloc(50 * sizeof(char));
+    if (res == NULL)
+        return NULL;
+
+    //ftoa(error, res, 2);
+    if (error == 0x0000)
+    {
+        strcpy(res, "No se detecta error");
+    }
+    else if (error == 0x0002)
+    {
+        strcpy(res, "Rejection of 13A cable");
+    }
+    else if (error == 0x0004)
+    {
+        strcpy(res, "Invalid PP Value");
+    }
+    else if (error == 0x0008)
+    {
+        strcpy(res, "Invalid CP Value");
+    }
+    else if (error == 0x0010)
+    {
+        strcpy(res, "Status F due to no Charging station");
+    }
+    else if (error == 0x0020)
+    {
+        strcpy(res, "locking");
+    }
+    else if (error == 0x0040)
+    {
+        strcpy(res, "unlocking");
+    }
+    else if (error == 0x0080) //bit 8
+    {
+        strcpy(res, "LD unavailable during locking");
+    }
+    else if (error == 0x0400) //bit 11
+    {
+        strcpy(res, "Status D, vehicle rejected");
+    }
+    else if (error == 0x0800) //bit 12
+    {
+        strcpy(res, "Charging contactor error");
+    }
+    else if (error == 0x1000) //bit 13
+    {
+        strcpy(res, "No diode in the control pilot circuit in the vehicle");
+    }
+    else if (error == 0x4000) //bit 15
+    {
+        strcpy(res, "EV-RCM residual currnet detection triggered");
+    }
+    else if (error == 0x8000) //bit 16
+    {
+        strcpy(res, "EV-RCM selftest error");
+    }
+    return res;
+}
+

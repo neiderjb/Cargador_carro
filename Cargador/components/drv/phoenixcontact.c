@@ -3,6 +3,7 @@
 #include <freertos/task.h>
 #include <stdio.h>
 
+#include "FunctionsCC.h"
 #include "phoenixcontact.h"
 #include "ZDU0210RJX.h"
 #include "modbusMaster.h"
@@ -75,12 +76,12 @@ void begin_phoenixcontact()
     Date_manufacture();
     Hardware_version();
     Firmware_version();
+    timeWaitCharger = 1000000;
     ESP_LOGI(TAG, "begin_Phoenix OK");
 }
 
 void start_charging()
 {
-
     phoenixcontact_Digital_OutputBehaviorOut1(1);
     ESP_LOGI(TAG, "----------------------------\n");
     ESP_LOGI(TAG, "Start charging INIT Register\n");
@@ -117,18 +118,21 @@ void start_charging()
     phoenixcontact_error_status();
 
     //Credenciales del ticket Aca
-    int tryConect = 20;
+    long last = esp_timer_get_time();
+    long now = 0;
     while (1) //Realiza 20 Intentos para que conecten la pistola
     {
-        tryConect--;
-        if (tryConect == 0)
+        now = esp_timer_get_time();
+        if (now - last > timeWaitCharger)
         {
+            ESP_LOGI(TAG, "Time OUT No Pistola\n");
             break;
         }
+
         PStatus = phoenixcontact_SystemStatus();
         if (PStatus == 0x4131)
         {
-            ESP_LOGI(TAG, "A1- Socket libre desconectado- Try: %d \n", tryConect);
+            ESP_LOGI(TAG, "A1- Socket libre desconectado\n");
         }
         else if (PStatus == 0x4231 || PStatus == 0x4232)
         {
@@ -139,7 +143,7 @@ void start_charging()
         // vTaskDelay(200 / portTICK_RATE_MS);
     }
 
-    if ((PStatus == 0x4231 || PStatus == 0x4232) && tryConect > 0) //Una vez conectada se habilita
+    if ((PStatus == 0x4231 || PStatus == 0x4232)) //Una vez conectada se habilita
     {                                                              //Potencia y se coloca el seguro
         phoenixcontact_Set_Controlling_Locking_Actuator(1);
         //Enabling the charging process
@@ -149,12 +153,16 @@ void start_charging()
         rele_state_maxV(1, 0); ////Open rele signal security
 
         vTaskDelay(100 / portTICK_RATE_MS);
-        int tryBtoC = 20;
+
+        last = esp_timer_get_time();
+        now = 0;
+
         while (1) //Realiza 20 Intentos para que el vehiculo cambie de estado B a C
         {
-            tryBtoC--;
-            if (tryBtoC == 0)
+            now = esp_timer_get_time();
+            if (now - last > timeWaitCharger)
             {
+                ESP_LOGI(TAG, "Time OUT no cambio estado B a C\n");
                 break;
             }
             PStatus = phoenixcontact_SystemStatus();
@@ -173,7 +181,7 @@ void start_charging()
             vTaskDelay(200 / portTICK_RATE_MS);
         }
 
-        if (PStatus != 0x4331 && PStatus != 0x4332 && tryBtoC == 0)
+        if (PStatus != 0x4331 && PStatus != 0x4332)
         {
             ESP_LOGE(TAG, "No se Cambio el estado del carro\n");
             charging = false;
@@ -214,22 +222,15 @@ void stop_charging()
 
 void config_charging_Values()
 {
-    PSerial = Serial_number();    
+    PSerial = Serial_number();
     PCurrent = phoenixcontact_max_CurrentS1();
     EStatus = phoenixcontact_error_status();
     PStatus = phoenixcontact_SystemStatus();
-
-    ESP_LOGI(TAG, "Phoenix Serial: %s ", PSerial);
-    ESP_LOGI(TAG, "Phoenix Current: %x ", PCurrent);
-    ESP_LOGI(TAG, "Phoenix Error: %x ", EStatus);
-    ESP_LOGI(TAG, "Phoenix Status: %x ", PStatus);
-    
-    update_label_configuration(PSerial,PCurrent,EStatus,PStatus);
+    // ESP_LOGI(TAG, "Phoenix Serial: %s ", PSerial);
+    // ESP_LOGI(TAG, "Phoenix Current: %x ", PCurrent);
+    // ESP_LOGI(TAG, "Phoenix Error: %x ", EStatus);
+    // ESP_LOGI(TAG, "Phoenix Status: %x ", PStatus);
 }
-
-bool indicator = false;
-bool rele = false;
-bool led = false;
 
 void phoenix_task(void *arg)
 {
@@ -253,11 +254,14 @@ void phoenix_task(void *arg)
             phoenixcontact_Set_Reset(1);
         }
 
-        if (xSemaphoreTake(Semaphore_Config, 10))
+        if (!charging && SincI2C) //take variables PHOENIX contact
         {
             config_charging_Values();
+            if (ScreenConfig)
+            {
+                update_label_configuration(PSerial, PCurrent, EStatus, PStatus, Phase1, Phase2, Phase3);
+            }
         }
-        
 
         if (charging && SincI2C) //Sincronizate with grid_analyzer_task
         {
@@ -265,7 +269,7 @@ void phoenix_task(void *arg)
             if (EStatus == 0x0004 || EStatus == 0x0002 || EStatus == 0x0008 || EStatus == 0x0800)
             {
                 ESP_LOGI(TAG, "EStatus: %x", EStatus);
-                update_error_carga_one();
+                update_error_carga_one(EStatus);
                 stop_charging();
             }
             //vTaskDelay(100 / portTICK_RATE_MS);
@@ -313,18 +317,19 @@ void phoenix_task(void *arg)
 
 //Register MODBUS TYPE: INPUT = ReadInputRegisters 0x04
 //-------------------------------------------//
-char* Serial_number()
+char *Serial_number()
 {
-    char* SerialRes;
-    SerialRes = malloc (12*sizeof(char) );
-    if(SerialRes == NULL) return NULL;
+    char *SerialRes;
+    SerialRes = malloc(12 * sizeof(char));
+    if (SerialRes == NULL)
+        return NULL;
 
     readInputRegisters(SerialNumber1, 1);
     uint8_t date[2];
     responseModbus(ReadInputRegisters, date, false);
     uint16_t value = ((uint16_t)date[0] << 8 | date[1]);
     //ESP_LOGI(TAG, "Phoenix Serial1: %x ", value);
-    
+
     readInputRegisters(SerialNumber2, 1);
     uint8_t date2[2];
     responseModbus(ReadInputRegisters, date2, false);
@@ -355,21 +360,21 @@ char* Serial_number()
     uint16_t value6 = ((uint16_t)date6[0] << 8 | date6[1]);
     //ESP_LOGI(TAG, "Phoenix Serial6: %x ", value6);
 
-    SerialRes[0]=(char)date[0];
-    SerialRes[1]=(char)date[1];
-    SerialRes[2]=(char)date2[0];
-    SerialRes[3]=(char)date2[1];
-    SerialRes[4]=(char)date3[0];
-    SerialRes[5]=(char)date3[1];
-    SerialRes[6]=(char)date4[0];
-    SerialRes[7]=(char)date4[1];
-    SerialRes[8]=(char)date5[0];
-    SerialRes[9]=(char)date5[1];
-    SerialRes[10]=(char)date6[0];
-    SerialRes[11]=(char)date6[1];
+    SerialRes[0] = (char)date[0];
+    SerialRes[1] = (char)date[1];
+    SerialRes[2] = (char)date2[0];
+    SerialRes[3] = (char)date2[1];
+    SerialRes[4] = (char)date3[0];
+    SerialRes[5] = (char)date3[1];
+    SerialRes[6] = (char)date4[0];
+    SerialRes[7] = (char)date4[1];
+    SerialRes[8] = (char)date5[0];
+    SerialRes[9] = (char)date5[1];
+    SerialRes[10] = (char)date6[0];
+    SerialRes[11] = (char)date6[1];
     //ESP_LOGI(TAG, "Phoenix Serial char: %s ", Serial);
- 
-    return SerialRes;    
+
+    return SerialRes;
 }
 
 void Year_manufacture()
@@ -587,8 +592,6 @@ uint16_t phoenixcontact_SystemStatus()
     //ESP_LOGI(TAG, "phoenixcontact_SystemStatus: %x", value);
     return value;
 }
-
-
 
 uint16_t phoenixcontact_ChargingCurrentSpecificationCP()
 {
