@@ -76,12 +76,14 @@ void begin_phoenixcontact()
     Date_manufacture();
     Hardware_version();
     Firmware_version();
-    timeWaitCharger = 1000000;
+    timeWaitCharger = 10000000;
     ESP_LOGI(TAG, "begin_Phoenix OK");
 }
 
 void start_charging()
 {
+    ReportStatusCharger("valid_ticket", phoenixError(EStatus));
+
     phoenixcontact_Digital_OutputBehaviorOut1(1);
     ESP_LOGI(TAG, "----------------------------\n");
     ESP_LOGI(TAG, "Start charging INIT Register\n");
@@ -136,6 +138,8 @@ void start_charging()
         }
         else if (PStatus == 0x4231 || PStatus == 0x4232)
         {
+            ReportStatusCharger("connected_plug", phoenixError(EStatus));
+
             ESP_LOGI(TAG, "B1 o B2- Socket conectado pero no cargando\n");
             update_conectado_carga_one(); //Actualiza la pantalla cuando se detecta la conexion con el carro
             break;
@@ -144,14 +148,18 @@ void start_charging()
     }
 
     if ((PStatus == 0x4231 || PStatus == 0x4232)) //Una vez conectada se habilita
-    {                                                              //Potencia y se coloca el seguro
+    {                                             //Potencia y se coloca el seguro
+        ReportStatusCharger("charging", phoenixError(EStatus));
+
         phoenixcontact_Set_Controlling_Locking_Actuator(1);
         //Enabling the charging process
         phoenixcontact_Set_Enable_charging_process(1);
+
         vTaskDelay(500 / portTICK_RATE_MS);
         rele_state_maxV(1, 2); //Close rele
+        vTaskDelay(100);
         rele_state_maxV(1, 0); ////Open rele signal security
-
+        rele_state_maxV(1, 0); ////Open rele signal security
         vTaskDelay(100 / portTICK_RATE_MS);
 
         last = esp_timer_get_time();
@@ -184,8 +192,10 @@ void start_charging()
         if (PStatus != 0x4331 && PStatus != 0x4332)
         {
             ESP_LOGE(TAG, "No se Cambio el estado del carro\n");
+            ReportStatusCharger("disconected", phoenixError(EStatus));
             charging = false;
-            close_carga_one();
+            //close_carga_one();
+            stop_charging();
             //Devolverse a la pantalla de INICIO
         }
         vTaskDelay(300 / portTICK_RATE_MS);
@@ -193,8 +203,10 @@ void start_charging()
     else
     {
         ESP_LOGE(TAG, "A1 No se conecto la pistola reintente la carga\n");
+        ReportStatusCharger("disconected", phoenixError(EStatus));
         charging = false;
-        close_carga_one();
+        //close_carga_one();
+        stop_charging();
         //Devolverse a la pantalla de INICIO
     }
 
@@ -206,11 +218,14 @@ void stop_charging()
 {
     // ESP_ERROR_CHECK(esp_timer_stop(Timer_Charge_Control));
     charging = false;
-    close_carga_one();
-
     phoenixcontact_Digital_OutputBehaviorOut1(0);
+
+    vTaskDelay(500 / portTICK_RATE_MS);
     rele_state_maxV(1, 1); //Open rele
+    vTaskDelay(100);
     rele_state_maxV(1, 0); ////Open rele signal security
+    rele_state_maxV(1, 0); ////Open rele signal security
+    vTaskDelay(100 / portTICK_RATE_MS);
 
     if (phoenixcontact_Get_EnableChargingConfig() != 3) //Config register 4000 for com via modbus
     {
@@ -218,6 +233,9 @@ void stop_charging()
     }
     phoenixcontact_Set_Enable_charging_process(0); //Enabling the charging process
     phoenixcontact_Set_Controlling_Locking_Actuator(0);
+
+    close_carga_one();
+    ReportStatusCharger("end_charge", phoenixError(EStatus));
 }
 
 void config_charging_Values()
@@ -249,6 +267,11 @@ void phoenix_task(void *arg)
             stop_charging();
         }
 
+        // if(enterStopMqtt){
+        //     enterStopMqtt = false;
+        //     stop_charging();
+        // }
+
         if (xSemaphoreTake(Semaphore_Reset_Phoenix, 10))
         {
             phoenixcontact_Set_Reset(1);
@@ -263,13 +286,22 @@ void phoenix_task(void *arg)
             }
         }
 
+        if (enterTicketMqtt)
+        {
+            enterTicketMqtt = false;
+            external_ticket();
+        }
+
         if (charging && SincI2C) //Sincronizate with grid_analyzer_task
         {
             EStatus = phoenixcontact_error_status();
-            if (EStatus == 0x0004 || EStatus == 0x0002 || EStatus == 0x0008 || EStatus == 0x0800)
+            if (EStatus != 0x0000)
             {
                 ESP_LOGI(TAG, "EStatus: %x", EStatus);
+                ESP_LOGI(TAG, "EStatus: %s", phoenixError(EStatus));
+                ReportStatusCharger("Error", phoenixError(EStatus));
                 update_error_carga_one(EStatus);
+                vTaskDelay(1000); //Wait view error to screen
                 stop_charging();
             }
             //vTaskDelay(100 / portTICK_RATE_MS);
@@ -286,6 +318,8 @@ void phoenix_task(void *arg)
                 total_cost = PRICE_ENERGY * power_charge_value;
 
                 update_label_carga_one(power_actual_value, power_charge_value, total_cost, contador_power_read);
+                ReportCharger(power_actual_value, power_charge_value, total_cost, contador_power_read);
+                //ReportStatusCharger("charging", phoenixError(EStatus));
 #else
                 contador_power_read = ((esp_timer_get_time() - contador_power_read) / 1000000) / 60;
                 power_actual_value = GetApparentPowerA() + GetApparentPowerB() + GetApparentPowerC();
@@ -297,6 +331,7 @@ void phoenix_task(void *arg)
                 if (power_charge_value >= total_power || contador_power_read >= total_time)
                 {
                     ESP_LOGI(TAG, "************B1 - Carga finalizada************");
+                    //ReportStatusCharger("end_charge", phoenixError(EStatus));
                     stop_charging();
                 }
             }
@@ -304,12 +339,14 @@ void phoenix_task(void *arg)
             if (PStatus == 0x4231 || PStatus == 0x4232 || PStatus == 0x4131)
             {
                 ESP_LOGI(TAG, "************B1 - Carga finalizada************");
+                ReportStatusCharger("end_charge", phoenixError(EStatus));
+
                 stop_charging();
             }
 
-            SincI2C = false;
             phoenixcontact_ChargingCurrentSpecificationCP();
             //phoenixcontact_Get_SettingMaximumPermissibleChargingCurrent();
+            SincI2C = false;
         }
         vTaskDelay(500 / portTICK_RATE_MS);
     }

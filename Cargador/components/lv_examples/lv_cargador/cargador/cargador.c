@@ -38,7 +38,7 @@ static void ta_event_cb(lv_obj_t *ta, lv_event_t event);
 lv_obj_t *scr1;
 
 char str1[] = {'1', '2', '3', '4', '\n'};
-char str2[20];
+//char str2[20];
 
 bool welcome = false;
 bool EnableCharger = true;
@@ -53,6 +53,7 @@ lv_obj_t *label_code;
 lv_obj_t *ta_code;
 
 lv_obj_t *cont_screen_alert_info_outService;
+lv_obj_t *labelError;
 
 lv_obj_t *cont_screen_init;
 lv_obj_t *labelCon;
@@ -155,7 +156,26 @@ void cargador_create(void)
 
 	scr1 = lv_page_create(NULL, NULL);
 	lv_disp_load_scr(scr1);
-	screen_welcome();
+	if (!detectTouch && !detectModbus && !detectAnalizer)
+	{
+		screen_alert_info_outService();
+		if (!detectTouch)
+		{
+			update_label_alert_info_outService("No se detecto el touch");
+		}
+		if (!detectModbus)
+		{
+			update_label_alert_info_outService("No se detecto Phoenix Contact");
+		}
+		if (!detectAnalizer)
+		{
+			update_label_alert_info_outService("No se detecto Analizador de Red");
+		}
+	}
+	else
+	{
+		screen_welcome();
+	}
 }
 
 /**
@@ -390,6 +410,9 @@ void screen_carga_one()
 	lv_obj_align(labelVehiculo, NULL, LV_ALIGN_IN_LEFT_MID, 10, 70);
 
 	btnCancel2 = lv_btn_create(cont_screen_CharOne, NULL);
+	lv_btn_set_state(btnCancel2, LV_BTN_STATE_INA);
+	//lv_btn_set_style(btnCancel2, LV_BTN_STYLE_INA);
+	//lv_btn_set_toggle(btnCancel2, false);
 	lv_obj_set_event_cb(btnCancel2, btn_event_cb);
 	lv_obj_set_size(btnCancel2, 400, 50);
 	lv_obj_align(btnCancel2, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -20);
@@ -421,11 +444,13 @@ void update_cargando_carga_one()
 
 	lv_label_set_text(labelVehiculo, " Vehiculo\nCargando"); /*Set the text*/
 	lv_obj_align(labelVehiculo, NULL, LV_ALIGN_CENTER, -270, -120);
+	lv_btn_set_state(btnCancel2, LV_BTN_STATE_REL);
+	//lv_btn_set_toggle(btnCancel2, true);
+	//lv_btn_set_style(btnCancel2, LV_BTN_STYLE_REL);
 }
 
 void update_error_carga_one(uint16_t Error)
 {
-
 	lv_obj_del(cargando);
 	error = lv_img_create(cont_screen_CharOne, NULL);
 	lv_img_set_src(conecte, &img_error);
@@ -468,7 +493,7 @@ void update_label_carga_one(float potencia, float carga, float coste, float tiem
 
 void close_carga_one()
 {
-	ready_information = false;
+	//ready_information = false;
 	EnableCharger = false;
 	StopCharging = true;
 
@@ -478,7 +503,7 @@ void close_carga_one()
 
 void screen_alert_info_outService()
 {
-	ready_information = false;
+	//ready_information = false;
 	cont_screen_alert_info_outService = lv_cont_create(lv_scr_act(), NULL);
 	lv_obj_set_auto_realign(cont_screen_alert_info_outService, true);
 	lv_obj_align_origo(cont_screen_alert_info_outService, NULL, LV_ALIGN_CENTER, 0, 0); /*This parametrs will be sued when realigned*/
@@ -494,10 +519,20 @@ void screen_alert_info_outService()
 	lv_img_set_src(logo, &img_airis_logo);
 	lv_obj_align(logo, NULL, LV_ALIGN_CENTER, 0, -20);
 
+	labelError = lv_label_create(cont_screen_alert_info_outService, NULL); /*First parameters (scr) is the parent*/
+	lv_label_set_style(labelError, LV_LABEL_LONG_EXPAND, &styleLabel1);
+	lv_label_set_text(labelError, ""); /*Set the text*/
+	lv_obj_align(labelError, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -50);
+
 	lv_obj_t *label2 = lv_label_create(cont_screen_alert_info_outService, NULL); /*First parameters (scr) is the parent*/
 	lv_label_set_style(label2, LV_LABEL_LONG_EXPAND, &styleLabel1);
 	lv_label_set_text(label2, "DISCULPE LAS MOLESTIAS"); /*Set the text*/
 	lv_obj_align(label2, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -20);
+}
+
+void update_label_alert_info_outService(char *error)
+{
+	lv_label_set_text(labelError, ""); /*Set the text*/
 }
 
 void screen_configuration()
@@ -631,6 +666,9 @@ void screen_configuration()
 	cb_fase3 = lv_cb_create(contConf2, NULL);
 	lv_cb_set_text(cb_fase3, "Fase 3");
 	lv_obj_align(cb_fase3, NULL, LV_ALIGN_IN_TOP_LEFT, 200, 250);
+	lv_cb_set_inactive(cb_fase1);
+	lv_cb_set_inactive(cb_fase2);
+	lv_cb_set_inactive(cb_fase3);
 
 	//-------------------------------------------------------------------------------------//
 
@@ -656,12 +694,12 @@ void update_label_configuration(char *serial, float corriente, uint16_t error, u
 	char res[70];
 	char dest[70];
 
-
 	char delimitador[] = " ";
-    char *token = strtok(serial, delimitador);
-    if(token != NULL){
-        //printf("Encontramos un token: %s", token);
-    }
+	char *token = strtok(serial, delimitador);
+	if (token != NULL)
+	{
+		//printf("Encontramos un token: %s", token);
+	}
 	strcpy(res, token);
 	strcpy(dest, "-Serial Phoenix: ");
 	strcat(dest, res);
@@ -696,6 +734,14 @@ void update_label_configuration(char *serial, float corriente, uint16_t error, u
 	lv_cb_set_checked(cb_fase1, fase1);
 	lv_cb_set_checked(cb_fase2, fase2);
 	lv_cb_set_checked(cb_fase3, fase3);
+}
+
+void external_ticket()
+{
+	printf("External ticket MQTT %s\n", str2);
+	//str2 = ticketMqtt;
+	screen_init_carga();
+	lv_obj_del(cont_screen_code);
 }
 
 /**********************
@@ -838,10 +884,16 @@ static void ta_event_cb(lv_obj_t *ta, lv_event_t event)
 		if (str[0] == 127)
 		{
 			if (i > 0)
+			{
+				str2[i] = 0x00;
 				i--;
+				str2[i] = 0x00;
+				printf("Tecla %s - %d\n", str, i);
+				printf("ticket %s\n", str2);
+			}
 			else
 				i = 0;
-			str2[i] = 0x0A;
+			//str2[i] = 0x0A;
 		}
 		else
 		{
@@ -860,7 +912,6 @@ void ChargeControlOne()
 	}
 	else
 	{
-
 		bool response = compare_ticket(str2);
 		printf("Response : %d\n", (int)response);
 

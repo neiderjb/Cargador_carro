@@ -46,3 +46,8 @@ void set_PhaseControl();
 bool compare_ticket(char *ticket);
 
 char *phoenixError(uint16_t error);
+
+char *createjsonReport(float potencia, float carga, float coste, float tiempo);
+void ReportCharger(float potencia, float carga, float coste, float tiempo);
+void ReportStatusCharger(char* status, char* error);
+void GetCommandsMqtt(char *s);

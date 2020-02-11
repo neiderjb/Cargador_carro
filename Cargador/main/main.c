@@ -7,11 +7,14 @@
 #include "esp_system.h"
 #include "esp_log.h"
 #include "esp_freertos_hooks.h"
+
 //Driver-Comunication
 #include "drv/software_i2c.h"
 #include "drv/spi_lib.h"
 #include "drv/wifi_lib.h"
 #include "drv/Mqtt_lib.h"
+#include "drv/Bt_lib.h"
+#include "drv/Sim800L.h"
 
 //Driver-Hardware
 #include "drv/M90E32AS.h"
@@ -20,22 +23,26 @@
 #include "drv/ZDU0210RJX.h"
 #include "drv/EPLD.h"
 #include "drv/gpio_lib.h"
+
 //Library Firmware
 #include "drv/Parameters.h"
 #include "drv/FunctionsCC.h"
+
 //Driver-External HW
 #include "drv/phoenixcontact.h"
 #include "drv/RA8875.h"
 #include "drv/FT5206.h"
 #include "drv/little.h"
+
 //library LittleVgl
 #include "../components/lvgl/lvgl.h"
 #include "lv_examples/lv_cargador/cargador/cargador.h"
+
 //TimerControl
 #include "drv/TimerControl.h"
 
 //LittleVgl Variables
-uint16_t *buf1;
+static uint16_t *buf1;
 static lv_disp_buf_t disp_buf;
 static void IRAM_ATTR lv_tick_task(void);
 
@@ -44,6 +51,18 @@ static const char *TAG = "Main";
 void Network_Control(void *p)
 {
 	ESP_LOGI(TAG, "Initiation Network task");
+
+	//initialize flash memory to WIFI and BT
+	//nvs_flash_init();
+
+	bt_config("ESP_CC_SPAIN");
+	bt_init();
+
+	//Wifi Configuration
+	// wifi_begin(ConfigurationObject.ssid, ConfigurationObject.password);
+	//pwifi_begin("CEMUSA", "Ofiled@8031");
+	wifi_begin("DeepSea Developments", "hexaverse"); //ISSUE cuando no tiene red falla
+
 	vTaskDelay(5000 / portTICK_RATE_MS);
 	bool network_signal = false;
 	for (;;)
@@ -51,18 +70,18 @@ void Network_Control(void *p)
 		if (!Isconnected())
 		{
 			continue;
-			led_state_maxV(2, 1); //Wifi no connected
+			//led_state_maxV(2, 1); //Wifi no connected
 		}
 		else
 		{
 
-			led_state_maxV(2, 2); //Wifi connected
+			//led_state_maxV(2, 2); //Wifi connected
 			if (!network_signal)
 			{
 				ResetCount();
 				//configuration MQTT and BT
 				mqtt_config();
-				mqtt_init("mqtt://platform.agrum.co", "airis/cc/01", "airis/cc/report");
+				mqtt_init("mqtt://platform.agrum.co", "airis/cc0001/commands", "airis/cc0001/report");
 				network_signal = true;
 			}
 			// if (ready_information)
@@ -78,7 +97,8 @@ void Network_Control(void *p)
 void app_main()
 {
 	printf("----------Wait Initialize----------\n");
-	vTaskDelay(20 / portTICK_RATE_MS);
+	vTaskDelay(300);
+
 	detectAnalizer = false;
 	detectTouch = false;
 	detectRtc = false;
@@ -103,6 +123,7 @@ void app_main()
 
 	//EPLD
 	begin_maxV();
+
 
 	//TimerControl
 	timer_begin();
@@ -173,25 +194,18 @@ void app_main()
 		begin_PCF85063TP();
 		calibratBySeconds(0, -0.000041);
 	}
-
-	//initialize flash memory
-	nvs_flash_init();
-
-	//Wifi Configuration
-	// wifi_begin(ConfigurationObject.ssid, ConfigurationObject.password);
-	//pwifi_begin("CEMUSA", "Ofiled@8031");
-	wifi_begin("DeepSea Developments", "hexaverse"); //ISSUE cuando no tiene red falla
+	
 	if (detectAnalizer)
 	{
-		xTaskCreate(grid_analyzer_task, "grid_analyzer_task", 2048, NULL, 5, NULL);
+		xTaskCreate(grid_analyzer_task, "grid_analyzer_task", 2048, NULL, 5, &TaskHandle_Analizer);
 	}
 	if (detectModbus)
 	{
 		begin_phoenixcontact();
-		xTaskCreate(phoenix_task, "phoenix_task", 3072, NULL, 5, NULL);
+		xTaskCreate(phoenix_task, "phoenix_task", 3072, NULL, 5, &TaskHandle_Phoenix);
 	}
 	//xTaskCreate(Time_Task_Control, "Time_Task_Control", 2048, NULL, 1, NULL);
-	xTaskCreatePinnedToCore(Network_Control, "Network_Control", 3072, NULL, 3, NULL, 1);
+	xTaskCreatePinnedToCore(Network_Control, "Network_Control", 3072, NULL, 3, &TaskHandle_Network, 1);
 
 	//LittleVgl Init
 	lv_init();
@@ -201,7 +215,7 @@ void app_main()
 	buf1 = heap_caps_malloc(40001, MALLOC_CAP_DMA);
 	lv_disp_buf_init(&disp_buf, buf1, NULL, DISP_BUF_SIZE);
 #else
-	buf1 = heap_caps_malloc(40001, MALLOC_CAP_DMA);
+	buf1 = heap_caps_malloc(40001, MALLOC_CAP_DMA);	//40001
 	lv_disp_buf_init(&disp_buf, buf1, NULL, DISP_BUF_SIZE);
 #endif
 	//screen LittleVgl
@@ -223,7 +237,9 @@ void app_main()
 	}
 	//Screen
 	esp_register_freertos_tick_hook(lv_tick_task);
+
 	cargador_create();
+
 	// vTaskDelay(1000);
 	spi_config(true);
 	//Periodic Timer
@@ -232,12 +248,12 @@ void app_main()
 	//Firmware INIT OK
 	for (int a = 0; a < 3; a++)
 	{
-		led_state_maxV(1, 2);
+		//led_state_maxV(1, 2);
 		vTaskDelay(200 / portTICK_RATE_MS);
-		led_state_maxV(1, 0);
+		//led_state_maxV(1, 0);
 		vTaskDelay(200 / portTICK_RATE_MS);
 	}
-	led_state_maxV(1, 2);
+	//led_state_maxV(1, 2);
 
 	//Screen
 	while (1)

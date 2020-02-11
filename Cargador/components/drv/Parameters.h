@@ -161,6 +161,10 @@ bool SincI2C;
 
 int timeWaitCharger;
 
+TaskHandle_t TaskHandle_Phoenix;
+TaskHandle_t TaskHandle_Network;
+TaskHandle_t TaskHandle_Analizer;
+
 //Phoenix Contact
 xSemaphoreHandle Semaphore_Start_Charging;
 xSemaphoreHandle Semaphore_Stop_Charging;
@@ -198,6 +202,11 @@ lv_obj_t *labelPhoenix;
 esp_timer_handle_t Timer_Screen_Control;
 esp_timer_handle_t Timer_Memory_Control;
 esp_timer_handle_t Timer_Charge_Control;
+
+bool enterTicketMqtt;
+bool enterStopMqtt;
+char* ticketMqtt;
+char str2[20];
 
 //power control
 float total_time;

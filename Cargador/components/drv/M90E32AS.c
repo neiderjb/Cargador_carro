@@ -80,7 +80,6 @@ static const char *TAG = "M90E32AS";
 unsigned short CommEnergyIC(bool RW, uint8_t address, unsigned short val)
 {
     unsigned char *data = (unsigned char *)&val;
-    unsigned char *adata = (unsigned char *)&address;
     unsigned short output = 0;
     uint8_t datos[4] = {0x80, 0x00, 0x00, 0x00};
 
@@ -841,8 +840,8 @@ void read_initial_analyzer()
 
         unsigned short sys0 = GetSysStatus0();  //EMMState0
         unsigned short sys1 = GetSysStatus1();  //EMMState1
-        unsigned short en0 = GetMeterStatus0(); //EMMIntState0
-        unsigned short en1 = GetMeterStatus1(); //EMMIntState1
+        // unsigned short en0 = GetMeterStatus0(); //EMMIntState0
+        // unsigned short en1 = GetMeterStatus1(); //EMMIntState1
 
         //printf("Sys Status: S0:0x %d, S1:0x %d \n", sys0, sys1);
         //printf("Meter Status: E0:0x %d, E1:0x %d \n", en0, en1);

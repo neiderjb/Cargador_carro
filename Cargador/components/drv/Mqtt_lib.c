@@ -44,10 +44,13 @@ esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 
 		msg_id = esp_mqtt_client_subscribe(client, input, 0);
 		ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
-
+		/*
 		msg_id = esp_mqtt_client_subscribe(client, "airis/cc/start", 1);
 		ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
-		/* 
+
+		msg_id = esp_mqtt_client_subscribe(client, "airis/cc0001/commands", 1);
+		ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
+		 
 		msg_id = esp_mqtt_client_unsubscribe(client, "/topic/qos1");
 		ESP_LOGI(TAG, "sent unsubscribe successful, msg_id=%d", msg_id);*/
 		break;
@@ -70,8 +73,7 @@ esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 	case MQTT_EVENT_DATA:
 		ESP_LOGI(TAG, "MQTT_EVENT_DATA");
 		char *s = event->data;
-		Set_Time_Reference(s);
-		free(s);
+		GetCommandsMqtt(s);
 		break;
 	case MQTT_EVENT_ERROR:
 		ESP_LOGI(TAG, "MQTT_EVENT_ERROR");

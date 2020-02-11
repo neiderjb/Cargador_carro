@@ -53,6 +53,7 @@
 
 static const char *TAG = "FunctionsCC";
 static char topic[] = "airis/1155/power_analizer";
+static char topicreport[] = "airis/cc0001/reports";
 
 esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 {
@@ -278,6 +279,93 @@ void ReadInformation()
 	ready_information = true;
 }
 
+char *createjsonReport(float potencia, float carga, float coste, float tiempo)
+{
+	cJSON *root;
+	static char *datatoreturn;
+
+	root = cJSON_CreateObject();
+
+	double _pot = round(potencia * 100) / 100.0;
+	double _car = round(carga * 100) / 100.0;
+	double _cos = round(coste * 100) / 100.0;
+	double _time = round(tiempo * 100) / 100.0;
+
+	cJSON_AddStringToObject(root, "type", "measurement");
+	cJSON_AddItemToObject(root, "Pot", cJSON_CreateNumber(_pot));
+	cJSON_AddItemToObject(root, "Char", cJSON_CreateNumber(_car));
+	cJSON_AddItemToObject(root, "Cos", cJSON_CreateNumber(_cos));
+	cJSON_AddItemToObject(root, "Time", cJSON_CreateNumber(_time));
+
+	datatoreturn = cJSON_PrintUnformatted(root);
+	cJSON_Delete(root);
+	return datatoreturn;
+	//sendMessage(datatoreturn, "airis/1155/power_analizer");
+}
+
+void ReportCharger(float potencia, float carga, float coste, float tiempo)
+{
+	char *dataMQTT = createjsonReport(potencia, carga, coste, tiempo);
+	if (Isconnected())
+	{
+		sendMessage(dataMQTT, topicreport);
+	}
+	free(dataMQTT);
+}
+
+void ReportStatusCharger(char *status, char *error)
+{
+	cJSON *root;
+	static char *datatoreturn;
+	root = cJSON_CreateObject();
+	cJSON_AddStringToObject(root, "state_charger", status);
+	cJSON_AddStringToObject(root, "erro_state_charger", error);
+	datatoreturn = cJSON_PrintUnformatted(root);
+	cJSON_Delete(root);
+
+	char *dataMQTT = datatoreturn;
+	if (Isconnected())
+	{
+		sendMessage(dataMQTT, topicreport);
+	}
+	free(dataMQTT);
+}
+
+void GetCommandsMqtt(char *s)
+{
+	char *dataarray;
+	char *dataarrayEnd;
+	cJSON *root;
+	root = cJSON_CreateObject();
+	root = cJSON_Parse(s);
+	if (root == NULL)
+	{
+		printf("Comando no valido\n");
+	}
+	else
+	{
+		printf("commands mqtt: %s\n", cJSON_PrintUnformatted(root));
+
+		dataarray = cJSON_GetStringValue(cJSON_GetObjectItem(root, "ticket"));
+		printf("DataArray mqtt: %s\n", dataarray);
+		strcpy(str2, dataarray);
+		enterTicketMqtt = true;
+		
+		//dataarrayEnd = cJSON_GetStringValue(cJSON_GetObjectItem(root, "type"));
+		//printf("dataarrayEnd mqtt: %s\n", dataarrayEnd);
+
+		// if (dataarrayEnd != NULL)
+		// {
+		// 	if (strcmp("end_charge", dataarrayEnd) == 0)
+		// 	{
+		// 			printf("END charging mqt");
+		// 	}
+		// 	enterStopMqtt = true;
+		// }
+	}
+	cJSON_Delete(root);
+}
+
 double ReadFrequency()
 {
 	return GetFrequency();
@@ -378,10 +466,12 @@ void begin_calibration_analizer()
 	while (frequencyValue < 49 || frequencyValue > 61)
 	{
 
-		if(tryAnalizer == 0){
+		if (tryAnalizer == 0)
+		{
+			detectAnalizer = false;
 			break;
 		}
-		tryAnalizer --;
+		tryAnalizer--;
 
 		frequencyValue = ReadFrequency();
 		printf("\033[1;31m");
@@ -423,8 +513,8 @@ bool compare_ticket(char *ticket)
 
 	if (strcmp("bbbb", ticket) == 0)
 	{
-		total_power = 1000;
-		total_time = 1000;
+		total_power = 50;
+		total_time = 50;
 		printf("ticket default: %s\n", ticket);
 		response = true;
 		return true;
@@ -476,64 +566,63 @@ bool compare_ticket(char *ticket)
 
 char *phoenixError(uint16_t error)
 {
-    char *res;
-    res = malloc(50 * sizeof(char));
-    if (res == NULL)
-        return NULL;
+	char *res;
+	res = malloc(50 * sizeof(char));
+	if (res == NULL)
+		return NULL;
 
-    //ftoa(error, res, 2);
-    if (error == 0x0000)
-    {
-        strcpy(res, "No se detecta error");
-    }
-    else if (error == 0x0002)
-    {
-        strcpy(res, "Rejection of 13A cable");
-    }
-    else if (error == 0x0004)
-    {
-        strcpy(res, "Invalid PP Value");
-    }
-    else if (error == 0x0008)
-    {
-        strcpy(res, "Invalid CP Value");
-    }
-    else if (error == 0x0010)
-    {
-        strcpy(res, "Status F due to no Charging station");
-    }
-    else if (error == 0x0020)
-    {
-        strcpy(res, "locking");
-    }
-    else if (error == 0x0040)
-    {
-        strcpy(res, "unlocking");
-    }
-    else if (error == 0x0080) //bit 8
-    {
-        strcpy(res, "LD unavailable during locking");
-    }
-    else if (error == 0x0400) //bit 11
-    {
-        strcpy(res, "Status D, vehicle rejected");
-    }
-    else if (error == 0x0800) //bit 12
-    {
-        strcpy(res, "Charging contactor error");
-    }
-    else if (error == 0x1000) //bit 13
-    {
-        strcpy(res, "No diode in the control pilot circuit in the vehicle");
-    }
-    else if (error == 0x4000) //bit 15
-    {
-        strcpy(res, "EV-RCM residual currnet detection triggered");
-    }
-    else if (error == 0x8000) //bit 16
-    {
-        strcpy(res, "EV-RCM selftest error");
-    }
-    return res;
+	//ftoa(error, res, 2);
+	if (error == 0x0000)
+	{
+		strcpy(res, "No error");
+	}
+	else if (error == 0x0002)
+	{
+		strcpy(res, "Rejection \nof 13A cable");
+	}
+	else if (error == 0x0004)
+	{
+		strcpy(res, "Invalid PP \nValue");
+	}
+	else if (error == 0x0008)
+	{
+		strcpy(res, "Invalid CP \nValue");
+	}
+	else if (error == 0x0010)
+	{
+		strcpy(res, "Status F \ndue to no \nCharging station");
+	}
+	else if (error == 0x0020)
+	{
+		strcpy(res, "locking");
+	}
+	else if (error == 0x0040)
+	{
+		strcpy(res, "unlocking");
+	}
+	else if (error == 0x0080) //bit 8
+	{
+		strcpy(res, "LD unavailable \nduring locking");
+	}
+	else if (error == 0x0400) //bit 11
+	{
+		strcpy(res, "Status D, \nvehicle rejected");
+	}
+	else if (error == 0x0800) //bit 12
+	{
+		strcpy(res, "Charging \ncontactor error");
+	}
+	else if (error == 0x1000) //bit 13
+	{
+		strcpy(res, "No diode in the \ncontrol pilot \ncircuit in the \nvehicle");
+	}
+	else if (error == 0x4000) //bit 15
+	{
+		strcpy(res, "EV-RCM \nresidual currnet \ndetection triggered");
+	}
+	else if (error == 0x8000) //bit 16
+	{
+		strcpy(res, "EV-RCM \nselftest error");
+	}
+	return res;
 }
-

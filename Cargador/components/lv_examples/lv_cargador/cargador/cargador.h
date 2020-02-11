@@ -55,9 +55,14 @@ void close_carga_one(void);
 
 
 void screen_alert_info_outService(void);
+void update_label_alert_info_outService(char *error);
+
 void screen_configuration(void);
 void update_label_configuration(char *serial, float corriente, uint16_t error, uint16_t status, bool fase1, bool fase2, bool fase3);
 void ChargeControlOne();
+
+void external_ticket();
+
 
 /**********************
  *      MACROS

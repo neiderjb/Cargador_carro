@@ -99,8 +99,8 @@ void begin_ZDU0210RJX( uint8_t gpio, uint8_t mode);
 
 bool Enable_Interrupts_ZDU0210RJX(uint8_t data, uint8_t uart);
 
-bool i2c_gpio_write_ZDU0210RJX(uint8_t gpio, uint8_t state);
-uint8_t i2c_gpio_read_ZDU0210RJX();
+bool gpio_write_ZDU0210RJX(uint8_t gpio, uint8_t state);
+uint8_t gpio_read_ZDU0210RJX();
 
 bool Read_UART_STATUS_REGISTER_ZDU0210RJX(uint8_t uart, uint8_t *dataRead);
 bool Interrupt_Status_Register_ZDU0210RJX(uint8_t uart, uint8_t *dataRead);

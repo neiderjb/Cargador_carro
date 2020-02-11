@@ -18,43 +18,102 @@ void begin_maxV()
     gpio_begin(AD2, 3);
     gpio_begin(AD3, 3);
     //GPIO input
-    gpio_begin(AD4, 1);
-    gpio_begin(AD5, 1);
-    gpio_begin(AD6, 1);
+    // gpio_begin(AD4, 1);
+    // gpio_begin(AD5, 1);
+    // gpio_begin(AD6, 1);
     gpio_begin(AD7, 1);
 
     //GPIO output
     gpio_begin(ALE, 0);
     gpio_begin(RW, 0);
     gpio_begin(CS, 0);
-    
-    // ESP_LOGI(TAG, "begin_maxV Set Ouput 0");
-    // gpio_write(RW, 0);
-    // gpio_write(CS, 0);
-    // gpio_write(ALE, 0);
-    // gpio_write(AD0, 0);
-    // gpio_write(AD1, 0);
-    // gpio_write(AD2, 0);
-    // gpio_write(AD3, 0);
-    // gpio_write(ALE, 0);
-    // vTaskDelay(10 / portTICK_RATE_MS);
+
+    ESP_LOGI("EPLD", "Begin Bus OK");
+
+    rele_state_maxV(1, 1); //Open Rele
+    vTaskDelay(50);
+    rele_state_maxV(1, 0); //State secure rele
 
     led_state_maxV(1, 1);
     led_state_maxV(2, 1);
-    //led_state_maxV(3, 1);
-    rele_state_maxV(1, 1); //Open rele
-    rele_state_maxV(1, 0); //Open rele signal security
 
     vTaskDelay(200 / portTICK_RATE_MS);
     led_state_maxV(1, 2);
     led_state_maxV(2, 2);
-    //led_state_maxV(3, 2);
 
     vTaskDelay(200 / portTICK_RATE_MS);
     led_state_maxV(1, 0);
     led_state_maxV(2, 0);
-    //led_state_maxV(3, 0);
+
     ESP_LOGI(TAG, "begin_maxV OK");
+}
+
+void RelesControl(int state)
+{
+
+    if (state == 1)
+    {
+        gpio_write(ALE, 1);
+        gpio_write(AD0, 1);
+        gpio_write(AD1, 1);
+        gpio_write(AD2, 0);
+        gpio_write(AD3, 0);
+        gpio_write(ALE, 0);
+
+        gpio_write(AD0, 0);
+        gpio_write(AD1, 1);
+        gpio_write(RW, 0);
+        gpio_write(CS, 0);
+        gpio_write(RW, 1);
+        vTaskDelay(170);
+    }
+    else if (state == 0)
+    {
+        gpio_write(ALE, 1);
+        gpio_write(AD0, 1);
+        gpio_write(AD1, 1);
+        gpio_write(AD2, 0);
+        gpio_write(AD3, 0);
+        gpio_write(ALE, 0);
+
+        gpio_write(AD0, 1);
+        gpio_write(AD1, 0);
+        gpio_write(RW, 0);
+        gpio_write(CS, 0);
+        gpio_write(RW, 1);
+        vTaskDelay(170);
+    }
+    else
+    {
+        gpio_write(ALE, 1);
+        gpio_write(AD0, 1);
+        gpio_write(AD1, 1);
+        gpio_write(AD2, 0);
+        gpio_write(AD3, 0);
+        gpio_write(ALE, 0);
+
+        gpio_write(AD0, 0);
+        gpio_write(AD1, 0);
+        gpio_write(RW, 0);
+        gpio_write(CS, 0);
+        gpio_write(RW, 1);
+        vTaskDelay(170);
+    }
+
+    printf("off signal reles");
+    gpio_write(ALE, 1);
+    gpio_write(AD0, 1);
+    gpio_write(AD1, 1);
+    gpio_write(AD2, 0);
+    gpio_write(AD3, 0);
+    gpio_write(ALE, 0);
+
+    gpio_write(AD0, 0);
+    gpio_write(AD1, 0);
+    gpio_write(RW, 0);
+    gpio_write(CS, 0);
+    gpio_write(RW, 1);
+    vTaskDelay(170);
 }
 
 /*Control on Leds, Set number of led and state (1 = on, 0 = off) */
@@ -567,6 +626,7 @@ void rele_state_maxV(int number, int state)
             gpio_write(RW, 1);
             gpio_write(CS, 1);
             vTaskDelay(800 / portTICK_RATE_MS);
+            printf("RELE 0");
         }
 
         else if (state == 1)
@@ -581,6 +641,7 @@ void rele_state_maxV(int number, int state)
             gpio_write(RW, 1);
             gpio_write(CS, 1);
             vTaskDelay(800 / portTICK_RATE_MS);
+            printf("RELE 1");
 
             gpio_write(AD0, 0);
             gpio_write(AD1, 0);
@@ -590,7 +651,8 @@ void rele_state_maxV(int number, int state)
             vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
-            vTaskDelay(10 / portTICK_RATE_MS);
+            vTaskDelay(800 / portTICK_RATE_MS);
+            printf("RELE 1-0");
         }
         else if (state == 2)
         {
@@ -604,6 +666,7 @@ void rele_state_maxV(int number, int state)
             gpio_write(RW, 1);
             gpio_write(CS, 1);
             vTaskDelay(800 / portTICK_RATE_MS);
+            printf("RELE 2");
 
             gpio_write(AD0, 0);
             gpio_write(AD1, 0);
@@ -613,8 +676,19 @@ void rele_state_maxV(int number, int state)
             vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
-            vTaskDelay(10 / portTICK_RATE_MS);
+            vTaskDelay(800 / portTICK_RATE_MS);
+            printf("RELE 2-0");
         }
+
+        gpio_write(AD0, 0);
+        gpio_write(AD1, 0);
+        vTaskDelay(10 / portTICK_RATE_MS);
+        gpio_write(RW, 0);
+        gpio_write(CS, 0);
+        vTaskDelay(10 / portTICK_RATE_MS);
+        gpio_write(RW, 1);
+        gpio_write(CS, 1);
+        vTaskDelay(800 / portTICK_RATE_MS);
     }
     else if (number == 2) //RELE Optocoplado 1
     {

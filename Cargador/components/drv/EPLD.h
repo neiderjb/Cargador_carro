@@ -20,3 +20,4 @@ void begin_maxV();
 void led_state_maxV(int number, int state);
 void rele_state_maxV(int number, int state);
 void esp_out_maxV(int number, int state);
+void RelesControl(int state);
