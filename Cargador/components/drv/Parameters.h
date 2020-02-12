@@ -40,6 +40,8 @@
 uint8_t ZDU0210RJX_address; 	//0x5c     //58    //59  //5c  //5b   //5f
 uint8_t ZDU0210RJX_address1; 	//0x54    //50    //51  //54  //53   //57
 
+uint8_t ZDU0210RJX_address2G; 	//0x5c     //58    //59  //5c  //5b   //5f
+uint8_t ZDU0210RJX_address2G1; 	//0x54    //50    //51  //54  //53   //57
 
 //Touch screen
 #define GPIO_INPUT_IO_1     13	//14 // 15
@@ -59,6 +61,7 @@ bool detectAnalizer;
 bool detectTouch;
 bool detectRtc;
 bool detectModbus;
+bool detect2G;
 
 
 
@@ -173,8 +176,6 @@ xSemaphoreHandle Semaphore_Reset_Phoenix;
 xSemaphoreHandle Semaphore_Config;
 
 
-xSemaphoreHandle Semaphore_Out_Rele;
-xSemaphoreHandle Semaphore_Out_Led;
 
 char* PSerial;
 uint16_t PCurrent;

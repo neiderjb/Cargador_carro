@@ -168,7 +168,7 @@ uint8_t maskWriteRegister(uint16_t, uint16_t, uint16_t);
 uint8_t readWriteMultipleRegistersAdd(uint16_t, uint16_t, uint16_t, uint16_t);
 uint8_t readWriteMultipleRegisters(uint16_t, uint16_t);
 
-void resetBufferTx();
+void resetBufferTx(uint8_t ZDUAddr);
 
 
 //Stream *_serial;                               ///< reference to serial port object

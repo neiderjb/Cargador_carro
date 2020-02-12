@@ -30,9 +30,9 @@
 
 //Driver-External HW
 #include "drv/phoenixcontact.h"
-#include "drv/RA8875.h"
-#include "drv/FT5206.h"
-#include "drv/little.h"
+#include "drv/RA8875.h" //Driver Screen
+#include "drv/FT5206.h" //Driver Touch
+#include "drv/little.h" //Driver Screen+touch
 
 //library LittleVgl
 #include "../components/lvgl/lvgl.h"
@@ -53,29 +53,30 @@ void Network_Control(void *p)
 	ESP_LOGI(TAG, "Initiation Network task");
 
 	//initialize flash memory to WIFI and BT
-	//nvs_flash_init();
+	nvs_flash_init();
 
-	bt_config("ESP_CC_SPAIN");
-	bt_init();
+	//bt_config("ESP_CC_SPAIN");
+	//bt_init();
 
 	//Wifi Configuration
 	// wifi_begin(ConfigurationObject.ssid, ConfigurationObject.password);
 	//pwifi_begin("CEMUSA", "Ofiled@8031");
 	wifi_begin("DeepSea Developments", "hexaverse"); //ISSUE cuando no tiene red falla
 
-	vTaskDelay(5000 / portTICK_RATE_MS);
+	vTaskDelay(1000);
 	bool network_signal = false;
-	for (;;)
+
+	while (1)
 	{
 		if (!Isconnected())
 		{
 			continue;
-			//led_state_maxV(2, 1); //Wifi no connected
+			led_state_maxV(2, 1); //Wifi no connected
 		}
 		else
 		{
 
-			//led_state_maxV(2, 2); //Wifi connected
+			led_state_maxV(2, 2); //Wifi connected
 			if (!network_signal)
 			{
 				ResetCount();
@@ -84,13 +85,8 @@ void Network_Control(void *p)
 				mqtt_init("mqtt://platform.agrum.co", "airis/cc0001/commands", "airis/cc0001/report");
 				network_signal = true;
 			}
-			// if (ready_information)
-			// {
-			// ReadInformation();	//Send data to MQTT
-			// 	vTaskDelay(5000 / portTICK_RATE_MS);
-			// }
 		}
-		vTaskDelay(100 / portTICK_RATE_MS);
+		vTaskDelay(500);
 	}
 }
 
@@ -103,6 +99,7 @@ void app_main()
 	detectTouch = false;
 	detectRtc = false;
 	detectModbus = false;
+	detect2G = false;
 	charging = false;
 	SincI2C = false;
 	ScreenConfig = false;
@@ -118,12 +115,11 @@ void app_main()
 	Semaphore_Reset_Phoenix = xSemaphoreCreateBinary();
 	Semaphore_Config = xSemaphoreCreateBinary();
 
-	Semaphore_Out_Rele = xSemaphoreCreateBinary();
-	Semaphore_Out_Led = xSemaphoreCreateBinary();
-
 	//EPLD
 	begin_maxV();
 
+	//SD-CARD
+	//begin_sdcard
 
 	//TimerControl
 	timer_begin();
@@ -176,7 +172,12 @@ void app_main()
 	init_screen();
 
 	//I2C-UART
-	begin_ZDU0210RJX(0xFF, 0xFF);
+	begin_ZDU0210RJX();
+	if (detect2G)
+	{
+		sim800l_PowerOn();
+		sim800l_begin();
+	}
 
 	//I2C-SPI
 	if (detectAnalizer)
@@ -194,7 +195,7 @@ void app_main()
 		begin_PCF85063TP();
 		calibratBySeconds(0, -0.000041);
 	}
-	
+
 	if (detectAnalizer)
 	{
 		xTaskCreate(grid_analyzer_task, "grid_analyzer_task", 2048, NULL, 5, &TaskHandle_Analizer);
@@ -209,15 +210,9 @@ void app_main()
 
 	//LittleVgl Init
 	lv_init();
-#ifdef littleOpt
-	//buf1 = heap_caps_malloc(120000, MALLOC_CAP_DMA);
-	//lv_disp_buf_init(&disp_buf, buf1, NULL, 60000);
 	buf1 = heap_caps_malloc(40001, MALLOC_CAP_DMA);
 	lv_disp_buf_init(&disp_buf, buf1, NULL, DISP_BUF_SIZE);
-#else
-	buf1 = heap_caps_malloc(40001, MALLOC_CAP_DMA);	//40001
-	lv_disp_buf_init(&disp_buf, buf1, NULL, DISP_BUF_SIZE);
-#endif
+
 	//screen LittleVgl
 	lv_disp_drv_t disp_drv;
 	lv_disp_drv_init(&disp_drv);
@@ -243,17 +238,17 @@ void app_main()
 	// vTaskDelay(1000);
 	spi_config(true);
 	//Periodic Timer
-	// ESP_ERROR_CHECK(esp_timer_start_periodic(Timer_Memory_Control, 10000000));
+	ESP_ERROR_CHECK(esp_timer_start_periodic(Timer_Memory_Control, 10000000));
 
 	//Firmware INIT OK
 	for (int a = 0; a < 3; a++)
 	{
-		//led_state_maxV(1, 2);
+		led_state_maxV(1, 2);
 		vTaskDelay(200 / portTICK_RATE_MS);
-		//led_state_maxV(1, 0);
+		led_state_maxV(1, 0);
 		vTaskDelay(200 / portTICK_RATE_MS);
 	}
-	//led_state_maxV(1, 2);
+	led_state_maxV(1, 2);
 
 	//Screen
 	while (1)

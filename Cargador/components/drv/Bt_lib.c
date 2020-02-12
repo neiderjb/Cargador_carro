@@ -62,9 +62,12 @@ void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
 	case ESP_SPP_CL_INIT_EVT:
 		ESP_LOGI(SPP_TAG, "ESP_SPP_CL_INIT_EVT");
 		break;
-	case ESP_SPP_DATA_IND_EVT:				//Send data to BT
+	case ESP_SPP_DATA_IND_EVT: //Send data to BT
+#if (SPP_SHOW_MODE == SPP_SHOW_DATA)
 		ESP_LOGI(SPP_TAG, "ESP_SPP_DATA_IND_EVT len=%d handle=%d",
 				 param->data_ind.len, param->data_ind.handle);
+		esp_log_buffer_hex("", param->data_ind.data, param->data_ind.len);
+#endif
 		break;
 	case ESP_SPP_CONG_EVT:
 		ESP_LOGI(SPP_TAG, "ESP_SPP_CONG_EVT");
@@ -162,13 +165,40 @@ void bt_config(char *name)
 
 	ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_BLE));
 	esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-	ret = esp_bt_controller_init(&bt_cfg);
-	ret = esp_bt_controller_enable(ESP_BT_MODE_CLASSIC_BT);
-	ret = esp_bluedroid_init();
-	ret = esp_bluedroid_enable();
-	ret = esp_bt_gap_register_callback(esp_bt_gap_cb);
-	ret = esp_spp_register_callback(esp_spp_cb);
-	ret = esp_spp_init(esp_spp_mode);
+	if ((ret = esp_bt_controller_init(&bt_cfg)) != ESP_OK)
+	{
+		ESP_LOGE(SPP_TAG, "%s initialize controller failed: %s\n", __func__, esp_err_to_name(ret));
+		return;
+	}
+	if ((ret = esp_bt_controller_enable(ESP_BT_MODE_CLASSIC_BT)) != ESP_OK)
+	{
+		ESP_LOGE(SPP_TAG, "%s enable controller failed: %s\n", __func__, esp_err_to_name(ret));
+		return;
+	}
+	if ((ret = esp_bluedroid_init()) != ESP_OK)
+	{
+		ESP_LOGE(SPP_TAG, "%s initialize bluedroid failed: %s\n", __func__, esp_err_to_name(ret));
+		return;
+	}
+	if ((ret = esp_bluedroid_enable()) != ESP_OK) {
+        ESP_LOGE(SPP_TAG, "%s enable bluedroid failed: %s\n", __func__, esp_err_to_name(ret));
+        return;
+    }
+	if ((ret = esp_bt_gap_register_callback(esp_bt_gap_cb)) != ESP_OK) {
+        ESP_LOGE(SPP_TAG, "%s gap register failed: %s\n", __func__, esp_err_to_name(ret));
+        return;
+    }
+
+    if ((ret = esp_spp_register_callback(esp_spp_cb)) != ESP_OK) {
+        ESP_LOGE(SPP_TAG, "%s spp register failed: %s\n", __func__, esp_err_to_name(ret));
+        return;
+    }
+
+    if ((ret = esp_spp_init(esp_spp_mode)) != ESP_OK) {
+        ESP_LOGE(SPP_TAG, "%s spp init failed: %s\n", __func__, esp_err_to_name(ret));
+        return;
+    }
+
 	ESP_LOGI(SPP_TAG, "Initiation Bluetooth");
 }
 

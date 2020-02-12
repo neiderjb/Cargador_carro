@@ -3,6 +3,9 @@
 #include "uart_lib.h"
 #include "ZDU0210RJX.h"
 #include "Functions.h"
+#include <esp_log.h>
+
+static const char *TAG = "SIM800";
 
 
 bool sendCommandATToken(char *command, char *responsecommand)
@@ -11,16 +14,16 @@ bool sendCommandATToken(char *command, char *responsecommand)
     uint8_t rx_size = 0;
 
     printf("Command to send: %s\n", command);
-    Write_Multiple_Data_TX_FIFO_ZDU0210RJX((uint8_t *)command, strlen(command), 0);
+    Write_Multiple_Data_TX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, (uint8_t *)command, strlen(command), 0);
     
-    rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(0, 0);
+    rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G,0, 0);
     while (rx_size == 0)
     {
-        rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(0, 0);
+        rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G,0, 0);
         vTaskDelay(50);
     }
     printf("RX size AT: %d \n", rx_size);
-    Read_Data_RX_FIFO_ZDU0210RJX(0, dataRxGPRS, rx_size);   
+    Read_Data_RX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, 0, dataRxGPRS, rx_size);   
 
     char *ReadValue = substring((char *)dataRxGPRS,3,(rx_size-4));
     
@@ -48,16 +51,16 @@ bool sendCommandATSize(char *command, int MinimunSize)
     uint8_t rx_size = 0;
 
     printf("Command to send: %s\n", command);
-    Write_Multiple_Data_TX_FIFO_ZDU0210RJX((uint8_t *)command, strlen(command), 0);
+    Write_Multiple_Data_TX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, (uint8_t *)command, strlen(command), 0);
     
-    rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(0, 0);
+    rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G,0, 0);
     while (rx_size == 0)
     {
-        rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(0, 0);
+        rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G,0, 0);
         vTaskDelay(50);
     }
     printf("RX size AT: %d \n", rx_size);
-    Read_Data_RX_FIFO_ZDU0210RJX(0, dataRxGPRS, rx_size);   
+    Read_Data_RX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, 0, dataRxGPRS, rx_size);   
 
     char *ReadValue = substring((char *)dataRxGPRS,3,(rx_size-4));
     
@@ -80,21 +83,24 @@ bool sendCommandATSize(char *command, int MinimunSize)
 
 void sendATValue(char *value, int sizeCommand)
 {
-    Write_Multiple_Data_TX_FIFO_ZDU0210RJX((uint8_t *)value, sizeCommand, 0);
+    Write_Multiple_Data_TX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, (uint8_t *)value, sizeCommand, 0);
 }
 
 void sim800l_PowerOn()
 {
     //start sim800l
-    gpio_write_ZDU0210RJX(0x08, 0x08);
+    gpio_write_ZDU0210RJX(ZDU0210RJX_address2G,0x08, 0x08);
     vTaskDelay(100);
-    gpio_write_ZDU0210RJX(0x08, 0x00);    
+    gpio_write_ZDU0210RJX(ZDU0210RJX_address2G,0x08, 0x00);    
     vTaskDelay(1000);
-    gpio_write_ZDU0210RJX(0x80, 0x80);
+    gpio_write_ZDU0210RJX(ZDU0210RJX_address2G,0x80, 0x80);
+    ESP_LOGI(TAG, "POWER ON sim800");
+
 }
 
 void sim800l_begin()
 {
+    ESP_LOGI(TAG, "Init BEGIN sim800");
     // char CommandToSendx[] = "ATE0\n";
     // sendCommandATSize(CommandToSendx, 6);
     char CommandToSendy[] = "AT\n";
@@ -122,11 +128,13 @@ void sim800l_begin()
     sendCommandATToken(CommandToSend1, "OK");
     char CommandToSend2[] = "AT+CIPMUX=0\n";
     sendCommandATToken(CommandToSend2, "OK");
+    char CommandToSend3[] = "AT+CGDCONT=1,\"IP\",\"internet.comcel.com.co\"\n"; //cambiar por APN del operador
     //char CommandToSend3[] = "AT+CGDCONT=1,\"IP\",\"web.colombiamovil.com.co\"\n"; //cambiar por APN del operador
-    char CommandToSend3[] = "AT+CGDCONT=1,\"IP\",\"telefonica.es\"\n"; //cambiar por APN del operador
+    //char CommandToSend3[] = "AT+CGDCONT=1,\"IP\",\"telefonica.es\"\n"; //cambiar por APN del operador
     sendCommandATToken(CommandToSend3,"OK");
+    char CommandToSend4[] = "AT+CSTT=\"internet.comcel.com.co\"\n"; //cambiar por APN del operador
     //char CommandToSend4[] = "AT+CSTT=\"web.colombiamovil.com.co\"\n"; //cambiar por APN del operador
-    char CommandToSend4[] = "AT+CSTT=\"telefonica.es\"\n"; //cambiar por APN del operador
+    //char CommandToSend4[] = "AT+CSTT=\"telefonica.es\"\n"; //cambiar por APN del operador
     sendCommandATToken(CommandToSend4,"OK");
     char CommandToSend5[] = "AT+CIICR\n";
     sendCommandATToken(CommandToSend5,"OK");
@@ -134,7 +142,7 @@ void sim800l_begin()
     sendCommandATSize(CommandToSend6,10);
     char CommandToSend7[] = "AT+CIPSTATUS\n";
     sendCommandATSize(CommandToSend7,20);
-    gpio_write_ZDU0210RJX(0x40, 0x40);
+    gpio_write_ZDU0210RJX(ZDU0210RJX_address2G,0x40, 0x40);
 }
 
 void subscribeTopic()

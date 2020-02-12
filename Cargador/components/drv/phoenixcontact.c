@@ -942,5 +942,5 @@ uint8_t phoenixcontact_Get_Reset()
 
 void phoenixcontact_resetBuffRx()
 {
-    resetBufferTx();
+    resetBufferTx(ZDU0210RJX_address);
 }

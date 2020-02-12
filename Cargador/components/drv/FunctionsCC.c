@@ -98,6 +98,8 @@ void decodeCommand(char *s)
 		values[i] = (cJSON_GetArrayItem(dataarray, i)->valueint);
 		printf("Send to Queue %d: %d\n", i, values[i]);
 	}
+	cJSON_Delete(root);
+	cJSON_Delete(dataarray);
 }
 
 void SearchCommand(uint8_t *data)
@@ -107,6 +109,8 @@ void SearchCommand(uint8_t *data)
 	printf("topic: %s\n", topic);
 	printf("command: %s\n", command);
 	decodeCommand(command);
+	free(topic);
+	free(command);
 }
 
 // void postMQTT(char *topic, int TopicSize, char *data, int DataSize)
@@ -549,7 +553,7 @@ bool compare_ticket(char *ticket)
 	total_time = cJSON_GetObjectItem(root, "duracion")->valueint;
 	char *valid_ticket = cJSON_GetStringValue(ticket_json);
 	printf("valid ticket: %s\n", valid_ticket);
-
+	free(valid_ticket);
 	if (strcmp(cJSON_GetStringValue(ticket_json), ticket) == 0)
 	{
 		printf("ticket: %s\n", ticket);
@@ -561,12 +565,13 @@ bool compare_ticket(char *ticket)
 		response = false;
 	}
 	cJSON_Delete(root);
+	cJSON_Delete(ticket_json);
 	return response;
 }
 
 char *phoenixError(uint16_t error)
 {
-	char *res;
+	static char *res;
 	res = malloc(50 * sizeof(char));
 	if (res == NULL)
 		return NULL;

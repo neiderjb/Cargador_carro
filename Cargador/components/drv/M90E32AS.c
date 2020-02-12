@@ -100,6 +100,7 @@ unsigned short CommEnergyIC(bool RW, uint8_t address, unsigned short val)
         datos[3] = data[0];
         //printf("WRITE  Data 0: %x , Data 1: %x \n", datos[2], datos[3]);
         i2c_write_SC18IS602B(0x01, datos, sizeof(datos));
+        //free (data);
         vTaskDelay(10 / portTICK_RATE_MS);
     }
 

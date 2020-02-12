@@ -358,9 +358,9 @@ void sw_i2c_master_scan()
             }
             else if (address == 0x53)
             {
-                ZDU0210RJX_address1 = 0x53;
-                ZDU0210RJX_address = 0x5b;
-                detectModbus = true;
+                ZDU0210RJX_address2G1 = 0x53;
+                ZDU0210RJX_address2G = 0x5b;
+                detect2G = true;
             }
             else if (address == 0x54)
             {

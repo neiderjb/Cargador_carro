@@ -95,33 +95,33 @@
 
 
 
-void begin_ZDU0210RJX( uint8_t gpio, uint8_t mode);
+void begin_ZDU0210RJX();
 
-bool Enable_Interrupts_ZDU0210RJX(uint8_t data, uint8_t uart);
+bool Enable_Interrupts_ZDU0210RJX(uint8_t ZDUAddr, uint8_t data, uint8_t uart);
 
-bool gpio_write_ZDU0210RJX(uint8_t gpio, uint8_t state);
-uint8_t gpio_read_ZDU0210RJX();
+bool gpio_write_ZDU0210RJX(uint8_t ZDUAddr, uint8_t gpio, uint8_t state);
+uint8_t gpio_read_ZDU0210RJX(uint8_t ZDUAddr);
 
-bool Read_UART_STATUS_REGISTER_ZDU0210RJX(uint8_t uart, uint8_t *dataRead);
-bool Interrupt_Status_Register_ZDU0210RJX(uint8_t uart, uint8_t *dataRead);
+bool Read_UART_STATUS_REGISTER_ZDU0210RJX(uint8_t ZDUAddr, uint8_t uart, uint8_t *dataRead);
+bool Interrupt_Status_Register_ZDU0210RJX(uint8_t ZDUAddr, uint8_t uart, uint8_t *dataRead);
 
-bool Write_Data_TX_FIFO_ZDU0210RJX(uint8_t data, uint8_t uart);
-bool Write_Multiple_Data_TX_FIFO_ZDU0210RJX(uint8_t *data, int count, uint8_t uart);
-bool Write_Read_Data_TX_FIFO_ZDU0210RJX(uint8_t *dataWrite, int countWrite, uint8_t *dataRead, int countRead , uint8_t uart);
+bool Write_Data_TX_FIFO_ZDU0210RJX(uint8_t ZDUAddr, uint8_t data, uint8_t uart);
+bool Write_Multiple_Data_TX_FIFO_ZDU0210RJX(uint8_t ZDUAddr, uint8_t *data, int count, uint8_t uart);
+bool Write_Read_Data_TX_FIFO_ZDU0210RJX(uint8_t ZDUAddr, uint8_t *dataWrite, int countWrite, uint8_t *dataRead, int countRead , uint8_t uart);
 
-uint8_t Read_Data_RX_FIFO_ZDU0210RJX(uint8_t uart, uint8_t *data, int count);
+uint8_t Read_Data_RX_FIFO_ZDU0210RJX(uint8_t ZDUAddr, uint8_t uart, uint8_t *data, int count);
 
-bool Write_Baud_Rate_Register_ZDU0210RJX(uint8_t *data, uint8_t uart);
-uint8_t Read_Actual_baud_Rate_ZDU0210RJX(uint8_t *data, uint8_t uart);
-bool Write_Configuration_ZDU0210RJX(uint8_t *data, uint8_t uart);
-uint8_t Read_Configuration_ZDU0210RJX(uint8_t *data, uint8_t uart);
-bool Write_Transmit_Watermark_Register_ZDU0210RJX(uint8_t *data, uint8_t uart);
-uint8_t Read_Transmit_Watermark_Register_ZDU0210RJX(uint8_t uart);
-bool Write_Receive_Watermark_Register_ZDU0210RJX(uint8_t *data, uint8_t uart);
-uint8_t Read_Receive_Watermark_Register_ZDU0210RJX(uint8_t uart);
+bool Write_Baud_Rate_Register_ZDU0210RJX(uint8_t ZDUAddr, uint8_t *data, uint8_t uart);
+uint8_t Read_Actual_baud_Rate_ZDU0210RJX(uint8_t ZDUAddr, uint8_t *data, uint8_t uart);
+bool Write_Configuration_ZDU0210RJX(uint8_t ZDUAddr, uint8_t *data, uint8_t uart);
+uint8_t Read_Configuration_ZDU0210RJX(uint8_t ZDUAddr, uint8_t *data, uint8_t uart);
+bool Write_Transmit_Watermark_Register_ZDU0210RJX(uint8_t ZDUAddr, uint8_t *data, uint8_t uart);
+uint8_t Read_Transmit_Watermark_Register_ZDU0210RJX(uint8_t ZDUAddr, uint8_t uart);
+bool Write_Receive_Watermark_Register_ZDU0210RJX(uint8_t ZDUAddr, uint8_t *data, uint8_t uart);
+uint8_t Read_Receive_Watermark_Register_ZDU0210RJX(uint8_t ZDUAddr, uint8_t uart);
 
-bool Enable_Uart_ZDU0210RJX(uint8_t data, uint8_t uart);
+bool Enable_Uart_ZDU0210RJX(uint8_t ZDUAddr, uint8_t data, uint8_t uart);
 
-uint8_t Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(uint8_t uart, uint8_t RxTx);
-bool uart_reset_FIFO_ZDU0210RJX(uint8_t uart);
-bool uart_reset_ZDU0210RJX(uint8_t uart);
+uint8_t Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(uint8_t ZDUAddr, uint8_t uart, uint8_t RxTx);
+bool uart_reset_FIFO_ZDU0210RJX(uint8_t ZDUAddr, uint8_t uart);
+bool uart_reset_ZDU0210RJX(uint8_t ZDUAddr, uint8_t uart);
