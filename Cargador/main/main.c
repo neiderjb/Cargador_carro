@@ -90,6 +90,26 @@ void Network_Control(void *p)
 	}
 }
 
+void gprs_task(void *p)
+{
+	ESP_LOGI(TAG, "Initiation Gprs Task");
+
+	while (1)
+	{
+		//Keep Alive
+		if (SincI2C)
+		{
+			SincI2C = false;
+			printf("Publish GPRS \n");
+			postMQTT2G("airis/1155/command/", strlen("airis/1155/command/"), "connected", strlen("connected"));
+			printf("Read GPRS \n");
+			readDataMQTT2G();
+			SincI2C = true;
+		}
+		vTaskDelay(200);
+	}
+}
+
 void app_main()
 {
 	printf("----------Wait Initialize----------\n");
@@ -101,7 +121,7 @@ void app_main()
 	detectModbus = false;
 	detect2G = false;
 	charging = false;
-	SincI2C = false;
+	SincI2C = true;
 	ScreenConfig = false;
 
 	Phase1 = false;
@@ -177,6 +197,13 @@ void app_main()
 	{
 		sim800l_PowerOn();
 		sim800l_begin();
+		StartGPRSMQTTConnection();
+		//subscribeTopic();
+		postMQTT2G("airis/1155/command", strlen("airis/1155/command"), "connected ", strlen("connected"));
+		postMQTT2G("airis/1155/command", strlen("airis/1155/command"), "connected2 ", strlen("connected"));
+		postMQTT2G("airis/1155/command", strlen("airis/1155/command"), "connected3 ", strlen("connected"));
+		
+		xTaskCreatePinnedToCore(gprs_task, "gprs_task", 2048, NULL, 3, NULL, 1);
 	}
 
 	//I2C-SPI

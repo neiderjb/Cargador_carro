@@ -25,6 +25,8 @@
 #include "driver/spi_master.h"
 #include <math.h>
 
+#include "Sim800L.h"
+
 
 
 void decodeCommand(char *s);
@@ -33,6 +35,8 @@ void postMQTT(char *topic, int TopicSize, char *data, int DataSize);
 char * createjsonFaseA(double volA, double currA, double factor, double potenA, double potenR, double potenApp, double potenMat, double temp, uint16_t Psta, uint16_t Esta, uint8_t phour, uint8_t pminute, uint8_t psecond);
 char * createjsonFaseB(double volB, double currB, double factor, double potenB, double potenR, double potenApp, double potenMat, double temp, uint16_t Psta, uint16_t Esta, uint8_t phour, uint8_t pminute, uint8_t psecond);
 char * createjsonFaseC(double volC, double currC, double factor, double potenC, double potenR, double potenApp, double potenMat, double temp, uint16_t Psta, uint16_t Esta, uint8_t phour, uint8_t pminute, uint8_t psecond);
+
+void postMQTT2G(char *topic, int TopicSize, char *data, int DataSize);
 
 int *decToBinary(int n);
 void SearchCommand(uint8_t *data);

@@ -8,7 +8,7 @@
 
 char *substring(char *string, int position, int length)
 {
-	static char *pointer;
+	char *pointer;
 	int c;
 
 	pointer = malloc(length + 1);

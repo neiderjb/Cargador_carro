@@ -836,9 +836,9 @@ void read_initial_analyzer()
     double PhaseB = 0;
     double PhaseC = 0;
 
-    if (!SincI2C) //Only take value when  SincI2C = false
+    if (SincI2C) //Only take value when  SincI2C = false
     {             //Sincronizate with Phoenix read task
-
+        SincI2C = false;
         unsigned short sys0 = GetSysStatus0();  //EMMState0
         unsigned short sys1 = GetSysStatus1();  //EMMState1
         // unsigned short en0 = GetMeterStatus0(); //EMMIntState0
@@ -918,6 +918,7 @@ void read_initial_analyzer()
                 Phase3 = true;
             }
         }
+        SincI2C = true;
     }
 }
 
@@ -932,9 +933,9 @@ void grid_analyzer_task(void *arg)
 
     for (;;)
     {
-        if (!SincI2C) //Only take value when  SincI2C = false
+        if (SincI2C) //Only take value when  SincI2C = false
         {             //Sincronizate with Phoenix read task
-
+            SincI2C = false;
             unsigned short sys0 = GetSysStatus0();  //EMMState0
             unsigned short sys1 = GetSysStatus1();  //EMMState1
             unsigned short en0 = GetMeterStatus0(); //EMMIntState0

@@ -279,11 +279,13 @@ void phoenix_task(void *arg)
 
         if (!charging && SincI2C) //take variables PHOENIX contact
         {
+            SincI2C = false;
             config_charging_Values();
             if (ScreenConfig)
             {
                 update_label_configuration(PSerial, PCurrent, EStatus, PStatus, Phase1, Phase2, Phase3);
             }
+            SincI2C = true;
         }
 
         if (enterTicketMqtt)
@@ -294,6 +296,7 @@ void phoenix_task(void *arg)
 
         if (charging && SincI2C) //Sincronizate with grid_analyzer_task
         {
+            SincI2C = false;
             EStatus = phoenixcontact_error_status();
             if (EStatus != 0x0000)
             {
@@ -346,7 +349,7 @@ void phoenix_task(void *arg)
 
             phoenixcontact_ChargingCurrentSpecificationCP();
             //phoenixcontact_Get_SettingMaximumPermissibleChargingCurrent();
-            SincI2C = false;
+            SincI2C = true;
         }
         vTaskDelay(500 / portTICK_RATE_MS);
     }

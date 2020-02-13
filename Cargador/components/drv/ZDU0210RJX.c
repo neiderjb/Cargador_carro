@@ -72,6 +72,8 @@ void begin_ZDU0210RJX()
         value = baudUart1[0] << 8 | baudUart1[1];
         printf("Baudrate UART0: %d\n", value);
 
+        i2c_gpio_configuration(ZDU0210RJX_address, 0xFF, 0xFF);
+
         Enable_Uart_ZDU0210RJX(ZDU0210RJX_address, EnableUartData, 0);
         Enable_Uart_ZDU0210RJX(ZDU0210RJX_address, EnableUartData, 1);
         //Enable_Interrupts_ZDU0210RJX(0xFF, 1);
@@ -104,8 +106,7 @@ void begin_ZDU0210RJX()
         value_2G = baudUart1_2G[0] << 8 | baudUart1_2G[1];
         printf("Baudrate UART0: %d\n", value_2G);
 
-        //i2c_gpio_configuration(I2C_NUM_0, ZDU0210RJX_address, _gpio, _mode);
-
+        i2c_gpio_configuration(ZDU0210RJX_address2G, 0xFF, 0xFF);
 
         Enable_Uart_ZDU0210RJX(ZDU0210RJX_address2G, EnableUartData, 0);
         Enable_Uart_ZDU0210RJX(ZDU0210RJX_address2G, EnableUartData, 1);
