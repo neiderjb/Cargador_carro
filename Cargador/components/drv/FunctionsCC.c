@@ -262,7 +262,7 @@ void postMQTT2G(char *topic, int TopicSize, char *data, int DataSize)
 {
 	//ready = false;
 	char command2[] = "AT+CIPSEND\n";
-	sendATValue(command2, strlen(command2));
+	sendATValue(command2, strlen(command2), true);
 	vTaskDelay(200); //No es necesario en la version i2c-uart
 
 	//30 13 00 08 76 61 6C 65 74 72 6F 6E 68 65 6C 6C 6F 72 61 76 69 1A ---Publish
@@ -271,17 +271,17 @@ void postMQTT2G(char *topic, int TopicSize, char *data, int DataSize)
 	headPub[1] = (char)DataSize + TopicSize + 2;
 	headPub[2] = (char)TopicSize >> 8;
 	headPub[3] = (char)TopicSize;//- 1
-	sendATValue(headPub, sizeof(headPub)); //CAMBIAR POR LA INSTRUCCION ANTERIOR DE SEND AT
+	sendATValue(headPub, sizeof(headPub),true); //CAMBIAR POR LA INSTRUCCION ANTERIOR DE SEND AT
 	vTaskDelay(100);					   //No es necesario en la version i2c-uart
 
-	sendATValue(topic, TopicSize); //CAMBIAR POR LA INSTRUCCION ANTERIOR DE SEND AT
+	sendATValue(topic, TopicSize,true); //CAMBIAR POR LA INSTRUCCION ANTERIOR DE SEND AT
 	vTaskDelay(100);			   //No es necesario en la version i2c-uart
 
-	sendATValue(data, DataSize); //CAMBIAR POR LA INSTRUCCION ANTERIOR DE SEND AT
+	sendATValue(data, DataSize, true); //CAMBIAR POR LA INSTRUCCION ANTERIOR DE SEND AT
 	vTaskDelay(100);			 //No es necesario en la version i2c-uart
 
 	char FinPub[2] = {0x1A, 0x0D};
-	sendATValue(FinPub, sizeof(FinPub)); //CAMBIAR POR LA INSTRUCCION ANTERIOR DE SEND AT
+	sendATValue(FinPub, sizeof(FinPub),true); //CAMBIAR POR LA INSTRUCCION ANTERIOR DE SEND AT
 	//ready = true;						 ///solo valida que el dato ya se envio
 }
 
