@@ -1101,6 +1101,9 @@ void init_screen()
   PWM1out(255);
   //printf("PWM1out!\n");
   vTaskDelay(100 / portTICK_RATE_MS);
+  fillScreen(RA8875_WHITE);
+  textSetCursor(100,100);
+  textWrite("INICIANDO",strlen("INICIANDO"));
 #ifndef littleOpt
   fillScreen(RA8875_WHITE);
   printf("fillScreen White \n");

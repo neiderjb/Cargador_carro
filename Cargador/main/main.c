@@ -93,7 +93,6 @@ void Network_Control(void *p)
 void gprs_task(void *p)
 {
 	ESP_LOGI(TAG, "Initiation Gprs Task");
-
 	while (1)
 	{
 		//Keep Alive
@@ -101,7 +100,11 @@ void gprs_task(void *p)
 		{
 			SincI2C = false;
 			printf("Publish GPRS \n");
-			postMQTT2G("airis/cc/command/", strlen("airis/cc/report"), "keepAlive", strlen("keepAlive"));
+
+			//postMQTT2G("airis/cc/report/", strlen("airis/cc/report"), "keepAliveCC", strlen("keepAliveCC"));
+			//PublishMqtt2GOLD("airis/1155/report", strlen("airis/1155/report"), "keepAliveCC1", strlen("keepAliveCC1"));
+			PublishMqtt2G("airis/cc/report", strlen("airis/cc/report"), "keepAliveCC1", strlen("keepAliveCC1"));
+
 			printf("Read GPRS \n");
 			readDataMQTT2G();
 			SincI2C = true;
@@ -202,11 +205,21 @@ void app_main()
 		{
 			if (sim800l_begin())
 			{
-				if (StartGPRSMQTTConnection())
+				if (StartGPRSMQTTConnectionNew())
 				{
-					PublishMqtt2G("airis/cc/command", strlen("airis/cc/command"), "connected1", strlen("connected"));
+					//StartGPRSMQTTConnection();
+					//postMQTT2G("airis/cc/report", strlen("airis/cc/report"), "connected ", strlen("connected"));
+					// PublishMqtt2G("airis/cc/report", strlen("airis/cc/report"), "connected", strlen("connected"));
+					// PublishMqtt2GOLD("airis/1155/report", strlen("airis/1155/report"), "connected1", strlen("connected1"));
+					// PublishMqtt2GOLD("airis/1155/report", strlen("airis/1155/report"), "connected2", strlen("connected2"));
+
 					subscribeTopic();
-					PublishMqtt2G("airis/cc/command", strlen("airis/cc/command"), "connected2", strlen("connected"));
+					//postMQTT2G("airis/cc/report", strlen("airis/cc/report"), "connected ", strlen("connected"));
+					PublishMqtt2G("airis/1155/command", strlen("airis/1155/command"), "connected ", strlen("connected"));
+					PublishMqtt2G("airis/1155/command", strlen("airis/1155/command"), "connected2 ", strlen("connected"));
+					subscribeTopic();
+					PublishMqtt2G("airis/1155/command", strlen("airis/1155/command"), "connected3 ", strlen("connected"));
+					// PublishMqtt2GOLD("airis/1155/report", strlen("airis/1155/report"), "connected", strlen("connected"));
 
 					xTaskCreatePinnedToCore(gprs_task, "gprs_task", 2048, NULL, 3, NULL, 1);
 					try
@@ -226,6 +239,11 @@ void app_main()
 					--;
 			}
 		}
+	}
+
+	while (1)
+	{
+		vTaskDelay(100);
 	}
 
 	//I2C-SPI

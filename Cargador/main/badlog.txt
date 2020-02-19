@@ -1,0 +1,402 @@
+I (13251) ZDU0210RJX: begin_ZDU0210RJX OK
+I (24251) SIM800: POWER ON sim800
+I (24251) SIM800: sim800l_begin
+I (24251) SIM800: Init BEGIN sim800
+
+Command to sendCommandATToken: AT+CPIN?
+Response AT Hex:da2b4350494e3a205245414459dada4f4bda
+Response AT COMPLETE ASCII: +CPIN: READY
+
+OK
+
+Response AT ASCII: +CPIN: READY
+Response sendCommandATToken AT OK
+
+
+Command to sendCommandATToken: AT+CSQ
+Response AT Hex:da2b4353513a2031372c30dada4f4bda
+Response AT COMPLETE ASCII: +CSQ: 17,0
+
+OK
+
+Response AT ASCII: +CSQ:
+Response sendCommandATToken AT OK
+
+
+Command to sendCommandATToken: AT+CREG?
+Response AT Hex:da2b435245473a20302c31dada4f4bda
+Response AT COMPLETE ASCII: +CREG: 0,1
+
+OK
+
+Response AT ASCII: +CREG:
+Response sendCommandATToken AT OK
+
+
+Command to sendCommandATToken: AT+CGATT?
+Response AT Hex:da2b43474154543a2031dada4f4bda
+Response AT COMPLETE ASCII: +CGATT: 1
+
+OK
+
+Response AT ASCII: +CGATT:
+Response sendCommandATToken AT OK
+
+
+Command to sendCommandATToken: AT+CIPMUX?
+Response AT Hex:da2b4349504d55583a2030dada4f4bda
+Response AT COMPLETE ASCII: +CIPMUX: 0
+
+OK
+
+Response AT ASCII: +CIPMUX:
+Response sendCommandATToken AT OK
+
+
+Command to sendCommandATToken: AT+CCID=?
+Response AT Hex:da4f4bda
+Response AT COMPLETE ASCII: OK
+
+Response AT ASCII: OK
+Response sendCommandATToken AT OK
+
+
+Command to sendCommandATToken: AT+CFUN=1
+Response AT Hex:da4f4bda
+Response AT COMPLETE ASCII: OK
+
+Response AT ASCII: OK
+Response sendCommandATToken AT OK
+
+
+Command to sendCommandATToken: AT+CREG=1
+Response AT Hex:da4f4bda
+Response AT COMPLETE ASCII: OK
+
+Response AT ASCII: OK
+Response sendCommandATToken AT OK
+
+
+Command to sendCommandATToken: AT+CIPMUX=0
+Response AT Hex:da4f4bda
+Response AT COMPLETE ASCII: OK
+
+Response AT ASCII: OK
+Response sendCommandATToken AT OK
+
+
+Command to sendCommandATToken: AT+CIPRXGET=1
+Response AT Hex:da4f4bda
+Response AT COMPLETE ASCII: OK
+
+Response AT ASCII: OK
+Response sendCommandATToken AT OK
+
+
+Command to sendCommandATToken: AT+CGATT?
+Response AT Hex:da2b43474154543a2031dada4f4bda
+Response AT COMPLETE ASCII: +CGATT: 1
+
+OK
+
+Response AT ASCII: +CGATT: 1
+Response sendCommandATToken AT OK
+
+I (53321) SIM800: +CGATT: 1 CONECTION GPRS
+
+Command to sendCommandATToken: AT+CIPSTATUS
+Response AT Hex:da4f4bdada53544154453a20495020494e495449414cda
+Response AT COMPLETE ASCII: OK
+
+STATE: IP INITIAL
+
+Response AT ASCII: OK
+Response sendCommandATToken AT OK
+
+
+Command to sendCommandATToken: AT+CGDCONT=1,"IP","internet.comcel.com.co"
+Response AT Hex:da4f4bda
+Response AT COMPLETE ASCII: OK
+
+Response AT ASCII: OK
+Response sendCommandATToken AT OK
+
+
+Command to sendCommandATToken: AT+CSTT="internet.comcel.com.co"
+Response AT Hex:da4f4bda
+Response AT COMPLETE ASCII: OK
+
+Response AT ASCII: OK
+Response sendCommandATToken AT OK
+
+
+Command to sendCommandATToken: AT+CIPSTATUS
+Response AT Hex:da4f4bdada53544154453a204950205354415254da
+Response AT COMPLETE ASCII: OK
+
+STATE: IP START
+
+Response AT ASCII: OK
+Response sendCommandATToken AT OK
+
+
+Command to sendCommandATToken: AT+CIICR
+Response AT Hex:da4f4bda
+Response AT COMPLETE ASCII: OK
+
+Response AT ASCII: OK
+Response sendCommandATToken AT OK
+
+
+Command to sendCommandATToken: AT+CIPSTATUS
+Response AT Hex:da4f4bdada53544154453a2049502047505253414354da
+Response AT COMPLETE ASCII: OK
+
+STATE: IP GPRSACT
+
+Response AT ASCII: OK
+Response sendCommandATToken AT OK
+
+
+Command to sendCommandATSize: AT+CIFSR
+Response AT Hex:da31302e3230372e3133332e313334da
+Response AT Complete ASCII: 10.207.133.134
+
+Response AT ASCII: 10.207.133.134
+Response sendCommandATSize AT OK
+
+
+Command to sendCommandATToken: AT+CIPSTATUS
+Response AT Hex:da4f4bdada53544154453a20495020535441545553da
+Response AT COMPLETE ASCII: OK
+
+STATE: IP STATUS
+
+Response AT ASCII: OK
+Response sendCommandATToken AT OK
+
+I (82441) SIM800: CONECTION GPRS OK
+I (82441) SIM800:
+-------Init StartGPRSMQTT ---------
+
+
+Command to sendCommandATToken: AT+CIPSTART="TCP","platform.agrum.co","1883"
+Response AT Hex:da4f4bda
+Response AT COMPLETE ASCII: OK
+
+Response AT ASCII: OK
+Response sendCommandATToken AT OK
+
+
+Command to sendCommandATToken: AT+CIPSEND
+Response AT Hex:da434f4e4e454354204f4bdada3e20
+Response AT COMPLETE ASCII: CONNECT OK
+
+>
+Response AT ASCII: CONNECT OK
+Response sendCommandATToken AT OK
+
+
+Command to sendATValue: Response MQTT Hex:da53454e44204f4bdada2b43495052584745543a2031da
+Response MQTT Complete ASCII: SEND OK
+
++CIPRXGET: 1
+
+Response MQTT ASCII: SEND OK
+Response sendCommandATToken AT OK
+
+I (96471) SIM800: Connected TCP BROKER
+
+
+Command to sendCommandATSize: AT+CIPSEND
+Response MQTT Hex:da3e20
+Response MQTT ASCII: > @
+
+Command to sendCommandATSize: 0Response MQTT Hex:
+Response MQTT ASCII:
+
+Command to sendCommandATSize: airis/cc/reportResponse MQTT Hex:
+Response MQTT ASCII:
+
+Command to sendCommandATSize: connected Response MQTT Hex:da53454e44204f4bda
+Response MQTT ASCII: SEND OK
+
+
+Rommand to sendCommandATSize:
+Response MQTT Hex:
+Response MQTT ASCII:
+I (104981) SIM800: --------Init Publish-------------
+
+
+Command to sendCommandATToken: AT+CIPSEND
+Response AT Hex:da3e20
+Response AT COMPLETE ASCII: > p
+Response AT ASCII: >
+Response sendCommandATToken AT OK
+
+
+Command to sendATValue: 0Response MQTT Hex:
+Response MQTT ASCII:
+
+Command to sendATValue: airis/cc/reportResponse MQTT Hex:
+Response MQTT ASCII:
+
+Command to sendATValue: subscribeTopicResponse MQTT Hex:
+Response MQTT ASCII:
+
+Rommand to sendATValue:
+Response MQTT Hex:da53454e44204f4bda
+Response MQTT Complete ASCII: SEND OK
+
+Response MQTT ASCII: SEND OK
+Response sendCommandATToken AT OK
+
+I (112481) SIM800: Publish OK
+I (114481) Main: Initiation Gprs Task
+Publish GPRS
+I (114481) SIM800: --------Init Publish-------------
+
+
+Command to sendCommandATToken: AT+CIPSEND
+Response AT Hex:da3e20
+Response AT COMPLETE ASCII: >
+Response AT ASCII: >
+Response sendCommandATToken AT OK
+
+
+Command to sendATValue: 0Response MQTT Hex:
+Response MQTT ASCII:
+
+Command to sendATValue: airis/cc/reportResponse MQTT Hex:
+Response MQTT ASCII:
+
+Command to sendATValue: keepAliveCC1Response MQTT Hex:
+Response MQTT ASCII:
+
+0`?Response MQTT Hex:da53454e44204f4bda
+Response MQTT Complete ASCII: SEND OK
+
+Response MQTT ASCII: SEND OK
+Response sendCommandATToken AT OK
+
+I (122011) SIM800: Publish OK
+Read GPRS
+I (126011) SIM800: --------READ DATA ¡¡¡¡¡-------------
+
+Response MQTT Hex:da434c4f534544da
+Response MQTT ASCII: CLOSED
+Publish GPRS
+I (128011) SIM800: --------Init Publish-------------
+
+
+Command to sendCommandATToken: AT+CIPSEND
+Response AT Hex:da4552524f52da
+Response AT COMPLETE ASCII: ERROR
+
+Response AT ASCII: E
+Response sendCommandATToken AT ERROR
+
+
+Command to sendCommandATToken: AT+CIPSEND
+Response AT Hex:da4552524f52da
+Response AT COMPLETE ASCII: ERROR
+
+Response AT ASCII: E
+Response sendCommandATToken AT ERROR
+
+
+Command to sendCommandATToken: AT+CIPSEND
+Response AT Hex:da4552524f52da
+Response AT COMPLETE ASCII: ERROR
+
+Response AT ASCII: E
+Response sendCommandATToken AT ERROR
+
+
+Command to sendCommandATToken: AT+CIPSEND
+Response AT Hex:da4552524f52da
+Response AT COMPLETE ASCII: ERROR
+
+Response AT ASCII: E
+Response sendCommandATToken AT ERROR
+
+I (140011) SIM800: PublishMqtt2G ERROR AT+CIPSEND
+Read GPRS
+I (142521) SIM800: NO DATA MQTT
+
+Publish GPRS
+I (144521) SIM800: --------Init Publish-------------
+
+
+Command to sendCommandATToken: AT+CIPSEND
+Response AT Hex:da4552524f52da
+Response AT COMPLETE ASCII: ERROR
+
+Response AT ASCII: E
+Response sendCommandATToken AT ERROR
+
+
+Command to sendCommandATToken: AT+CIPSEND
+Response AT Hex:da4552524f52da
+Response AT COMPLETE ASCII: ERROR
+
+Response AT ASCII: E
+Response sendCommandATToken AT ERROR
+
+
+Command to sendCommandATToken: AT+CIPSEND
+Response AT Hex:da4552524f52da
+Response AT COMPLETE ASCII: ERROR
+
+Response AT ASCII: E
+Response sendCommandATToken AT ERROR
+
+
+Command to sendCommandATToken: AT+CIPSEND
+Response AT Hex:da4552524f52da
+Response AT COMPLETE ASCII: ERROR
+
+Response AT ASCII: E
+Response sendCommandATToken AT ERROR
+
+I (156521) SIM800: PublishMqtt2G ERROR AT+CIPSEND
+Read GPRS
+I (159031) SIM800: NO DATA MQTT
+
+Publish GPRS
+I (161031) SIM800: --------Init Publish-------------
+
+
+Command to sendCommandATToken: AT+CIPSEND
+Response AT Hex:da4552524f52da
+Response AT COMPLETE ASCII: ERROR
+
+Response AT ASCII: E
+Response sendCommandATToken AT ERROR
+
+
+Command to sendCommandATToken: AT+CIPSEND
+Response AT Hex:da4552524f52da
+Response AT COMPLETE ASCII: ERROR
+
+Response AT ASCII: E
+Response sendCommandATToken AT ERROR
+
+
+Command to sendCommandATToken: AT+CIPSEND
+Response AT Hex:da4552524f52da
+Response AT COMPLETE ASCII: ERROR
+
+Response AT ASCII: E
+Response sendCommandATToken AT ERROR
+
+
+Command to sendCommandATToken: AT+CIPSEND
+Response AT Hex:da4552524f52da
+Response AT COMPLETE ASCII: ERROR
+
+Response AT ASCII: E
+Response sendCommandATToken AT ERROR
+
+I (173031) SIM800: PublishMqtt2G ERROR AT+CIPSEND
+Read GPRS
