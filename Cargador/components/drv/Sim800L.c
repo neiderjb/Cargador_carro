@@ -7,9 +7,14 @@
 #include "uart_lib.h"
 #include "ZDU0210RJX.h"
 #include "Functions.h"
+#include "FunctionsCC.h"
 #include <esp_log.h>
 
+#include "esp_timer.h"
+
 static const char *TAG = "SIM800";
+
+bool conGPRS = false;
 
 bool sendCommandATToken(char *command, char *responsecommand, bool debug)
 {
@@ -157,6 +162,42 @@ bool sendCommandATSize(char *command, int MinimunSize, bool debug)
         }
         return false;
     }
+}
+
+//Send command to response task
+bool sendCommandAT(char *command, int sizeCommand, char *response, bool debug)
+{
+    uint8_t rx_size = 0;
+    printf("\nCommand to sendCommandAT: %s", command);
+    Write_Multiple_Data_TX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, (uint8_t *)command, sizeCommand, 0);
+
+    //vTaskDelay(50);
+    int try
+        = 3;
+    while (try != 0) //Semaphore ">", "SEND OK"
+    {
+        //Write_Multiple_Data_TX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, (uint8_t *)command, sizeCommand, 0);
+
+        if (strcmp("-", response) == 0)
+        {
+            return true;
+        }
+        if (xSemaphoreTake(Semaphore_WAIT, 10) && (strcmp(">", response) == 0))
+        {
+            printf("Command %s, >OK\n", command);
+            return true;
+        }
+        if (xSemaphoreTake(Semaphore_SENDOK, 10) && (strcmp("SEND OK", response) == 0))
+        {
+            printf("Command %s, SENDOK OK\n", command);
+            return true;
+        }
+        try
+            --;
+        vTaskDelay(100);
+    }
+    printf("NO Response Command\n");
+    return false;
 }
 
 void sendATValue(char *value, int sizeCommand)
@@ -318,44 +359,124 @@ void sendATValueNoRESPONSE(char *value, int sizeCommand, bool debug)
 
 //---------------------------------------------------------------------//
 
-void readDataMQTT2G()
+void gprsRead_task(void *p)
 {
+    ESP_LOGI(TAG, "Gprs READ Task");
+    while (1)
+    {
+        if (conGPRS)
+        {
+            uint8_t dataRxGPRS[64];
+
+            uint8_t rx_size = 0;
+            vTaskDelay(10);
+            rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+            Read_Data_RX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, 0, dataRxGPRS, rx_size);
+
+            //char *ReadValue = substring((char *)dataRxGPRS, 3, (rx_size));
+            char *ReadValue = (char *)dataRxGPRS;
+
+            
+            char delimitador[] = "0xda 0x20"; //"0xda";
+            char *token = strtok(ReadValue, delimitador);
+
+            if (token != NULL)
+            {
+                printf("RX size AT TASK: %d \n", rx_size);
+
+                printf("Response COMPLETE ASCII TASK: %s\n", ReadValue);
+                for (int i = 0; i < strlen(ReadValue); i++)
+                {
+                    printf(" %x", ReadValue[i]);
+                }
+                printf("\n");
+
+                while (token != NULL)
+                {
+
+                    // printf("Token  ASCII: %s , %d\n", token, strlen(token));
+                    // for (int i = 0; i < strlen(token); i++)
+                    // {
+                    //     printf(" %x", token[i]);
+                    // }
+                    // printf("\n");
+                    char *token1 = substring(token, 3, 2);
+                    printf("Token 1  ASCII: %s , %d\n", token1, strlen(token1));
+                    if (strcmp(">", token1) == 0)
+                    {
+                        printf("> Compare OK\n");
+                        xSemaphoreGive(Semaphore_WAIT);
+                        break;
+                    }
+                    char *token2 = substring(token, 3, 7);
+                    printf("Token 2  ASCII: %s , %d\n", token2, strlen(token2));
+                    if (strcmp("SEND OK", token2) == 0)
+                    {
+                        printf("SEND OK Compare OK\n");
+                        xSemaphoreGive(Semaphore_SENDOK);
+                        break;
+                    }
+                    // Sólo en la primera pasamos la cadena; en las siguientes pasamos NULL
+                    token = strtok(NULL, delimitador);
+                }
+            }
+        }
+        else
+        {
+            vTaskDelay(500);
+        }
+
+        //SearchCommand(dataRxGPRS);
+    }
+}
+
+void readDataMQTT2G(char *command, int timeout)
+{
+    unsigned long nowMillis = esp_timer_get_time();
+
     uint8_t dataRxGPRS[64];
     uint8_t rx_size = 0;
-    rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
-    int try
-        = 5;
+    //ESP_LOGI(TAG, "--------READ DATA GPRS-------------");
 
+    //Write_Multiple_Data_TX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, (uint8_t *)command, strlen(command), 0); //SEND ALL DATA
+    rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+
+    
     while (rx_size == 0)
     {
-        if (try == 0)
+        if (esp_timer_get_time()-nowMillis > timeout)
         {
+             //ESP_LOGI(TAG, "TIME OUT NO DATA MQTT\n");
             break;
         }
-        try
-            --;
+        
         rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
-        vTaskDelay(50);
+        vTaskDelay(1);
     }
 
-    if (try != 0)
+    if (rx_size != 0)
     {
-        ESP_LOGI(TAG, "--------READ DATA ¡¡¡¡¡-------------\n");
-        //printf("RX size AT: %d \n", rx_size);
+        ESP_LOGI(TAG, "--------DATA READ 2G-------------\n");
+        printf("RX size AT: %d \n", rx_size);
         Read_Data_RX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, 0, dataRxGPRS, rx_size);
 
-        char *ReadValue = substring((char *)dataRxGPRS, 3, (rx_size - 4));
+        char *ReadValue = substring((char *)dataRxGPRS, 0, (rx_size));
 
-        printf("Response MQTT Hex:");
+        printf("Response MQTT 2G Hex:");
         for (int i = 0; i < rx_size; i++)
-            printf("%x", dataRxGPRS[i]);
+            printf("%02x", dataRxGPRS[i]);
         printf("\n");
-        printf("Response MQTT ASCII: %s\n", ReadValue);
+        printf("Response MQTT ASCII: %s\n", dataRxGPRS);
+
+        if(dataRxGPRS[0] == 0x30 && rx_size > 5 ){
+            SearchCommand(dataRxGPRS);
+        }
         memset(dataRxGPRS, 0, 64);
     }
     else
     {
-        ESP_LOGI(TAG, "NO DATA MQTT\n");
+        //ESP_LOGI(TAG, "NO DATA MQTT\n");
+        memset(dataRxGPRS, 0, 64);
     }
 }
 
@@ -406,8 +527,8 @@ bool sim800l_begin()
     char CommandToSend2[] = "AT+CIPMUX=0\n"; // Selects Single-connection mode
     if (sendCommandATToken(CommandToSend2, "OK", true))
     {
-        if (sendCommandATToken("AT+CIPRXGET=1\n", "OK", true)) //RECEIVE DATA manually FROM THE REMOTE SERVER
-        {
+        //if (sendCommandATToken("AT+CIPRXGET=1\n", "OK", true)) //RECEIVE DATA manually FROM THE REMOTE SERVER
+        //{
             // sendCommandATToken("AT+CIPMODE=0\n", "OK", true);
             // sendCommandATToken("AT+CIPSRIP=0\n", "OK", true);
             vTaskDelay(500);
@@ -498,12 +619,12 @@ bool sim800l_begin()
                 ESP_LOGI(TAG, "Error setting the APN\n");
                 return false;
             }
-        }
-        else
-        {
-            printf("Error setting CIPRXGET");
-            return false;
-        }
+        // }
+        // else
+        // {
+        //     printf("Error setting CIPRXGET");
+        //     return false;
+        // }
     }
     else
     {
@@ -650,7 +771,7 @@ bool StartGPRSMQTTConnectionNew()
 
             vTaskDelay(100); //No es necesario en la version i2c-uart
 
-            char headMQTT[] = {0x10, 0x12, 0x00, 0x04, 0x4D, 0x51, 0x54, 0x54, 0x04, 0x02, 0x00, 0x3C, 0x00, 0x06, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x1A, 0x0D};
+            char headMQTT[] = {0x10, 0x12, 0x00, 0x04, 0x4D, 0x51, 0x54, 0x54, 0x04, 0x02, 0x04, 0xB0, 0x00, 0x06, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x1A, 0x0D};
             // char headMQTT[21];
 
             // MQTTProtocolNameLength = strlen(MQTTProtocolName);
@@ -696,6 +817,7 @@ bool StartGPRSMQTTConnectionNew()
                 if (try == 0)
                 {
                     ESP_LOGI(TAG, "ERROR Send headMQTT FAIL Connection TCP");
+                    conGPRS = false;
                     return false;
                 }
                 try
@@ -705,12 +827,14 @@ bool StartGPRSMQTTConnectionNew()
             if (try != 0)
             {
                 ESP_LOGI(TAG, "Connected TCP BROKER\n");
+                conGPRS = true;
                 vTaskDelay(100); //No es necesario en la version i2c-uart
                 return true;
             }
             else
             {
                 ESP_LOGI(TAG, "Fail Connected TCP BROKER\n");
+                conGPRS = false;
                 return false;
             }
         }
@@ -745,6 +869,81 @@ void StartGPRSMQTTConnection()
     }
 
     printf("Exit StartGPRSMQTTConnection\n");
+}
+
+bool PublishMqtt2GTask(char *topic, int TopicSize, char *data, int DataSize)
+{
+    ESP_LOGI(TAG, "--------Init Publish-------------\n");
+    char command2[] = "AT+CIPSEND\n";
+    //sendATValueNoRESPONSE(command2, strlen(command2), true);
+    //vTaskDelay(100);
+
+    int try
+        = 2;
+    while (1)
+    {
+        if (try == 0)
+        {
+            ESP_LOGI(TAG, "Publish FAIL NO >");
+            return false;
+        }
+
+        if (sendCommandAT(command2, strlen(command2), ">", true))
+        {
+            break;
+        }
+    }
+
+    vTaskDelay(300); //No es necesario en la version i2c-uart
+
+    //30 13 00 08 76 61 6C 65 74 72 6F 6E 68 65 6C 6C 6F 72 61 76 69 1A ---Publish
+
+    try
+        = 2;
+    while (1)
+    {
+        if (try == 0)
+        {
+            return false;
+        }
+        try
+            --;
+        char headPub[4];
+        headPub[0] = 0x30;
+        headPub[1] = (char)DataSize + TopicSize + 2;
+        headPub[2] = (char)TopicSize >> 8;
+        headPub[3] = (char)TopicSize; //- 1
+
+        sendCommandAT(headPub, sizeof(headPub), "-", true);
+        //sendATValueNoRESPONSE(headPub, sizeof(headPub), true); //CAMBIAR POR LA INSTRUCCION ANTERIOR DE SEND AT
+        vTaskDelay(100); //No es necesario en la version i2c-uart
+
+        sendCommandAT(topic, TopicSize, "-", true);
+        //sendATValueNoRESPONSE(topic, TopicSize, true); //CAMBIAR POR LA INSTRUCCION ANTERIOR DE SEND AT
+        vTaskDelay(100); //No es necesario en la version i2c-uart
+
+        sendCommandAT(data, DataSize, "-", true);
+        //sendATValueNoRESPONSE(data, DataSize, true); //CAMBIAR POR LA INSTRUCCION ANTERIOR DE SEND AT
+        vTaskDelay(100); //No es necesario en la version i2c-uart
+
+        char FinPub[2] = {0x1A, 0x0D};
+
+        //sendATValueNoRESPONSE(FinPub, sizeof(FinPub), true); //CAMBIAR POR LA INSTRUCCION ANTERIOR DE SEND AT
+        //return true;
+
+        if (sendCommandAT(FinPub, 2, "SEND OK", true))
+        {
+            ESP_LOGI(TAG, "Publish OK");
+            vTaskDelay(200);
+            return true;
+        }
+        else
+        {
+            ESP_LOGI(TAG, "Publish FAIL PAYLOAD");
+            //return false;
+        }
+    }
+    //ready = true;						 ///solo valida que el dato ya se envio
 }
 
 bool PublishMqtt2G(char *topic, int TopicSize, char *data, int DataSize)

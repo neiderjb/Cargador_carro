@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+// #include "freertos/FreeRTOS.h"
+// #include "freertos/task.h"
 #include "gpio_lib.h"
 
 #define AD0 26
@@ -20,4 +20,4 @@ void begin_maxV();
 void led_state_maxV(int number, int state);
 void rele_state_maxV(int number, int state);
 void esp_out_maxV(int number, int state);
-void RelesControl(int state);
+

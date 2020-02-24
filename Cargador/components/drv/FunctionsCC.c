@@ -92,16 +92,22 @@ void decodeCommand(char *s)
 	cJSON *root, *dataarray;
 	root = cJSON_CreateObject();
 	root = cJSON_Parse(s);
-	printf("Command: %s\n", cJSON_PrintUnformatted(root));
-	dataarray = cJSON_GetObjectItem(root, "command");
 
-	for (int i = 0; i < cJSON_GetArraySize(dataarray); i++)
+	if (root != NULL)
 	{
-		values[i] = (cJSON_GetArrayItem(dataarray, i)->valueint);
-		printf("Send to Queue %d: %d\n", i, values[i]);
+		printf("Command: %s\n", cJSON_PrintUnformatted(root));
+		dataarray = cJSON_GetObjectItem(root, "command");
+
+		for (int i = 0; i < cJSON_GetArraySize(dataarray); i++)
+		{
+			values[i] = (cJSON_GetArrayItem(dataarray, i)->valueint);
+			printf("Send to Queue %d: %d\n", i, values[i]);
+		}
+		cJSON_Delete(dataarray);
 	}
+
 	cJSON_Delete(root);
-	cJSON_Delete(dataarray);
+	
 }
 
 void SearchCommand(uint8_t *data)
@@ -267,7 +273,7 @@ void postMQTT2G(char *topic, int TopicSize, char *data, int DataSize)
 	headPub[0] = 0x30;
 	headPub[1] = (char)DataSize + TopicSize + 2;
 	headPub[2] = (char)TopicSize >> 8;
-	headPub[3] = (char)TopicSize;//- 1
+	headPub[3] = (char)TopicSize;		   //- 1
 	sendATValue(headPub, sizeof(headPub)); //CAMBIAR POR LA INSTRUCCION ANTERIOR DE SEND AT
 	//vTaskDelay(50);					   //No es necesario en la version i2c-uart
 
@@ -279,9 +285,8 @@ void postMQTT2G(char *topic, int TopicSize, char *data, int DataSize)
 
 	char FinPub[2] = {0x1A, 0x0D};
 	sendATValue(FinPub, sizeof(FinPub)); //CAMBIAR POR LA INSTRUCCION ANTERIOR DE SEND AT
-	//ready = true;						 ///solo valida que el dato ya se envio
+										 //ready = true;						 ///solo valida que el dato ya se envio
 }
-
 
 /*! \brief ReadInformation.
  *

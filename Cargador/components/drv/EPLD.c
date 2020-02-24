@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+// #include "freertos/FreeRTOS.h"
+// #include "freertos/task.h"
 #include "gpio_lib.h"
 #include "EPLD.h"
 
@@ -8,7 +8,10 @@
 
 static const char *TAG = "EPLD";
 
-/*Bus configuration, set all esp's inputs and esp's outputs*/
+/* 
+ * @brief  EPLD init Bus configuration, set all esp's inputs and esp's outputs
+ * @Parameter: 
+ */
 void begin_maxV()
 {
     ESP_LOGI(TAG, "begin_maxV Initialize");
@@ -48,78 +51,18 @@ void begin_maxV()
     ESP_LOGI(TAG, "begin_maxV OK");
 }
 
-void RelesControl(int state)
-{
-
-    if (state == 1)
-    {
-        gpio_write(ALE, 1);
-        gpio_write(AD0, 1);
-        gpio_write(AD1, 1);
-        gpio_write(AD2, 0);
-        gpio_write(AD3, 0);
-        gpio_write(ALE, 0);
-
-        gpio_write(AD0, 0);
-        gpio_write(AD1, 1);
-        gpio_write(RW, 0);
-        gpio_write(CS, 0);
-        gpio_write(RW, 1);
-        vTaskDelay(170);
-    }
-    else if (state == 0)
-    {
-        gpio_write(ALE, 1);
-        gpio_write(AD0, 1);
-        gpio_write(AD1, 1);
-        gpio_write(AD2, 0);
-        gpio_write(AD3, 0);
-        gpio_write(ALE, 0);
-
-        gpio_write(AD0, 1);
-        gpio_write(AD1, 0);
-        gpio_write(RW, 0);
-        gpio_write(CS, 0);
-        gpio_write(RW, 1);
-        vTaskDelay(170);
-    }
-    else
-    {
-        gpio_write(ALE, 1);
-        gpio_write(AD0, 1);
-        gpio_write(AD1, 1);
-        gpio_write(AD2, 0);
-        gpio_write(AD3, 0);
-        gpio_write(ALE, 0);
-
-        gpio_write(AD0, 0);
-        gpio_write(AD1, 0);
-        gpio_write(RW, 0);
-        gpio_write(CS, 0);
-        gpio_write(RW, 1);
-        vTaskDelay(170);
-    }
-
-    printf("off signal reles");
-    gpio_write(ALE, 1);
-    gpio_write(AD0, 1);
-    gpio_write(AD1, 1);
-    gpio_write(AD2, 0);
-    gpio_write(AD3, 0);
-    gpio_write(ALE, 0);
-
-    gpio_write(AD0, 0);
-    gpio_write(AD1, 0);
-    gpio_write(RW, 0);
-    gpio_write(CS, 0);
-    gpio_write(RW, 1);
-    vTaskDelay(170);
-}
-
-/*Control on Leds, Set number of led and state (1 = on, 0 = off) */
 uint8_t state_led1 = 0;
 uint8_t state_led2 = 0;
-
+/* 
+ * @brief  Control on Leds, Set number of led and state
+ * @Parameter:
+ *   number = 1, led 1
+ *   number = 2, led 2
+ *   number = 3, led 3
+ *   State = 1, ON color GREEN
+ *   State = 0, OFF
+ *   State = 2, ON color RED
+ */
 void led_state_maxV(int number, int state)
 {
 
@@ -479,127 +422,19 @@ void led_state_maxV(int number, int state)
     }
 }
 
-void esp_out_maxV(int number, int state)
-{
-
-    if (number == 0)
-    {
-        gpio_write(CS, 1);
-        gpio_write(RW, 1);
-        gpio_write(ALE, 1);
-        gpio_write(AD0, 0);
-        gpio_write(AD1, 1);
-        gpio_write(AD2, 0);
-        gpio_write(AD3, 0);
-        gpio_write(ALE, 0);
-        vTaskDelay(1 / portTICK_RATE_MS);
-
-        if (state == 1)
-        {
-            gpio_write(AD0, 1);
-            vTaskDelay(1 / portTICK_RATE_MS);
-            gpio_write(RW, 0);
-            gpio_write(CS, 0);
-            vTaskDelay(1 / portTICK_RATE_MS);
-            gpio_write(RW, 1);
-            gpio_write(CS, 1);
-        }
-        else
-        {
-            gpio_write(AD0, 0);
-            vTaskDelay(1 / portTICK_RATE_MS);
-            gpio_write(RW, 0);
-            gpio_write(CS, 0);
-            vTaskDelay(1 / portTICK_RATE_MS);
-            gpio_write(RW, 1);
-            gpio_write(CS, 1);
-        }
-    }
-    else
-    {
-        if (number == 1)
-        {
-            gpio_write(ALE, 1);
-            gpio_write(AD0, 0);
-            gpio_write(AD1, 1);
-            gpio_write(AD2, 0);
-            gpio_write(AD3, 0);
-            gpio_write(ALE, 0);
-            if (state == 1)
-            {
-                gpio_write(AD1, 1);
-                gpio_write(RW, 0);
-                gpio_write(CS, 0);
-                gpio_write(RW, 1);
-            }
-            else
-            {
-                gpio_write(AD1, 0);
-                gpio_write(RW, 0);
-                gpio_write(CS, 0);
-                gpio_write(RW, 1);
-            }
-        }
-        else
-        {
-            if (number == 2)
-            {
-                gpio_write(ALE, 1);
-                gpio_write(AD0, 0);
-                gpio_write(AD1, 1);
-                gpio_write(AD2, 0);
-                gpio_write(AD3, 0);
-                gpio_write(ALE, 0);
-                if (state == 1)
-                {
-                    gpio_write(AD2, 1);
-                    gpio_write(RW, 0);
-                    gpio_write(CS, 0);
-                    gpio_write(RW, 1);
-                }
-                else
-                {
-                    gpio_write(AD2, 0);
-                    gpio_write(RW, 0);
-                    gpio_write(CS, 0);
-                    gpio_write(RW, 1);
-                }
-            }
-            else
-            {
-                if (number == 3)
-                {
-                    gpio_write(ALE, 1);
-                    gpio_write(AD0, 0);
-                    gpio_write(AD1, 1);
-                    gpio_write(AD2, 0);
-                    gpio_write(AD3, 0);
-                    gpio_write(ALE, 0);
-                    if (state == 1)
-                    {
-                        gpio_write(AD3, 1);
-                        gpio_write(RW, 0);
-                        gpio_write(CS, 0);
-                        gpio_write(RW, 1);
-                    }
-                    else
-                    {
-                        gpio_write(AD3, 0);
-                        gpio_write(RW, 0);
-                        gpio_write(CS, 0);
-                        gpio_write(RW, 1);
-                    }
-                }
-            }
-        }
-    }
-}
-
-/*Control on Rele, Set number of rele and state (1 = active, 0 = off) */
 uint8_t state_rele1 = 0;
 uint8_t state_rele2 = 0;
 uint8_t state_relepower = 0;
-
+/* 
+ * @brief  Control on Rele, Set number of rele and state
+ * @Parameter:
+ *   number = 1, Rele OUTPUT AC
+ *   number = 2, Rele 1
+ *   number = 3, Rele 2
+ *   State = 0 = off
+ *   State = 1, active
+ *   State = 2, inactive
+ */
 void rele_state_maxV(int number, int state)
 {
     if (number == 1)
@@ -800,6 +635,126 @@ void rele_state_maxV(int number, int state)
             vTaskDelay(10 / portTICK_RATE_MS);
             gpio_write(RW, 1);
             gpio_write(CS, 1);
+        }
+    }
+}
+
+/* 
+ * @brief  Control on GPIOS, Set number of pin and state
+ * @Parameter:
+ */
+void esp_out_maxV(int number, int state)
+{
+
+    if (number == 0)
+    {
+        gpio_write(CS, 1);
+        gpio_write(RW, 1);
+        gpio_write(ALE, 1);
+        gpio_write(AD0, 0);
+        gpio_write(AD1, 1);
+        gpio_write(AD2, 0);
+        gpio_write(AD3, 0);
+        gpio_write(ALE, 0);
+        vTaskDelay(1 / portTICK_RATE_MS);
+
+        if (state == 1)
+        {
+            gpio_write(AD0, 1);
+            vTaskDelay(1 / portTICK_RATE_MS);
+            gpio_write(RW, 0);
+            gpio_write(CS, 0);
+            vTaskDelay(1 / portTICK_RATE_MS);
+            gpio_write(RW, 1);
+            gpio_write(CS, 1);
+        }
+        else
+        {
+            gpio_write(AD0, 0);
+            vTaskDelay(1 / portTICK_RATE_MS);
+            gpio_write(RW, 0);
+            gpio_write(CS, 0);
+            vTaskDelay(1 / portTICK_RATE_MS);
+            gpio_write(RW, 1);
+            gpio_write(CS, 1);
+        }
+    }
+    else
+    {
+        if (number == 1)
+        {
+            gpio_write(ALE, 1);
+            gpio_write(AD0, 0);
+            gpio_write(AD1, 1);
+            gpio_write(AD2, 0);
+            gpio_write(AD3, 0);
+            gpio_write(ALE, 0);
+            if (state == 1)
+            {
+                gpio_write(AD1, 1);
+                gpio_write(RW, 0);
+                gpio_write(CS, 0);
+                gpio_write(RW, 1);
+            }
+            else
+            {
+                gpio_write(AD1, 0);
+                gpio_write(RW, 0);
+                gpio_write(CS, 0);
+                gpio_write(RW, 1);
+            }
+        }
+        else
+        {
+            if (number == 2)
+            {
+                gpio_write(ALE, 1);
+                gpio_write(AD0, 0);
+                gpio_write(AD1, 1);
+                gpio_write(AD2, 0);
+                gpio_write(AD3, 0);
+                gpio_write(ALE, 0);
+                if (state == 1)
+                {
+                    gpio_write(AD2, 1);
+                    gpio_write(RW, 0);
+                    gpio_write(CS, 0);
+                    gpio_write(RW, 1);
+                }
+                else
+                {
+                    gpio_write(AD2, 0);
+                    gpio_write(RW, 0);
+                    gpio_write(CS, 0);
+                    gpio_write(RW, 1);
+                }
+            }
+            else
+            {
+                if (number == 3)
+                {
+                    gpio_write(ALE, 1);
+                    gpio_write(AD0, 0);
+                    gpio_write(AD1, 1);
+                    gpio_write(AD2, 0);
+                    gpio_write(AD3, 0);
+                    gpio_write(ALE, 0);
+                    if (state == 1)
+                    {
+                        gpio_write(AD3, 1);
+                        gpio_write(RW, 0);
+                        gpio_write(CS, 0);
+                        gpio_write(RW, 1);
+                    }
+                    else
+                    {
+                        gpio_write(AD3, 0);
+                        gpio_write(RW, 0);
+                        gpio_write(CS, 0);
+                        gpio_write(RW, 1);
+                    }
+                }
+            }
         }
     }
 }

@@ -35,6 +35,7 @@
         "xlocmon": "c",
         "xtr1common": "c",
         "tuple": "c",
-        "utility": "c"
+        "utility": "c",
+        "sim800l.h": "c"
     }
 }

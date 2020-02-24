@@ -99,17 +99,11 @@ void gprs_task(void *p)
 		if (SincI2C)
 		{
 			SincI2C = false;
-			printf("Publish GPRS \n");
 
-			//postMQTT2G("airis/cc/report/", strlen("airis/cc/report"), "keepAliveCC", strlen("keepAliveCC"));
-			//PublishMqtt2GOLD("airis/1155/report", strlen("airis/1155/report"), "keepAliveCC1", strlen("keepAliveCC1"));
-			PublishMqtt2G("airis/cc/report", strlen("airis/cc/report"), "keepAliveCC1", strlen("keepAliveCC1"));
-
-			printf("Read GPRS \n");
-			readDataMQTT2G();
+			readDataMQTT2G("AT+CIPRXGET=2,25\n", 2000);
+			vTaskDelay(5);
 			SincI2C = true;
 		}
-		vTaskDelay(200);
 	}
 }
 
@@ -137,6 +131,9 @@ void app_main()
 	Semaphore_Out_Phoenix = xSemaphoreCreateBinary();
 	Semaphore_Reset_Phoenix = xSemaphoreCreateBinary();
 	Semaphore_Config = xSemaphoreCreateBinary();
+
+	Semaphore_WAIT = xSemaphoreCreateBinary();
+	Semaphore_SENDOK = xSemaphoreCreateBinary();
 
 	//EPLD
 	begin_maxV();
@@ -199,6 +196,8 @@ void app_main()
 	if (detect2G)
 	{
 		sim800l_PowerOn();
+		//xTaskCreatePinnedToCore(gprsRead_task, "gprsRead_task", 2048, NULL, 3, NULL, 1);
+
 		int try
 			= 2;
 		while (try != 0)
@@ -207,19 +206,12 @@ void app_main()
 			{
 				if (StartGPRSMQTTConnectionNew())
 				{
-					//StartGPRSMQTTConnection();
-					//postMQTT2G("airis/cc/report", strlen("airis/cc/report"), "connected ", strlen("connected"));
-					// PublishMqtt2G("airis/cc/report", strlen("airis/cc/report"), "connected", strlen("connected"));
-					// PublishMqtt2GOLD("airis/1155/report", strlen("airis/1155/report"), "connected1", strlen("connected1"));
-					// PublishMqtt2GOLD("airis/1155/report", strlen("airis/1155/report"), "connected2", strlen("connected2"));
+					PublishMqtt2G("airis/1155/command", strlen("airis/cc/command"), "connected ", strlen("connected"));
+				
+					subscribeTopic();
 
-					subscribeTopic();
-					//postMQTT2G("airis/cc/report", strlen("airis/cc/report"), "connected ", strlen("connected"));
-					PublishMqtt2G("airis/1155/command", strlen("airis/1155/command"), "connected ", strlen("connected"));
-					PublishMqtt2G("airis/1155/command", strlen("airis/1155/command"), "connected2 ", strlen("connected"));
-					subscribeTopic();
-					PublishMqtt2G("airis/1155/command", strlen("airis/1155/command"), "connected3 ", strlen("connected"));
-					// PublishMqtt2GOLD("airis/1155/report", strlen("airis/1155/report"), "connected", strlen("connected"));
+					PublishMqtt2G("airis/1155/command", strlen("airis/1155/command"), "connected2 ", strlen("connected2"));
+					PublishMqtt2G("airis/1155/command", strlen("airis/1155/command"), "connected3 ", strlen("connected3"));
 
 					xTaskCreatePinnedToCore(gprs_task, "gprs_task", 2048, NULL, 3, NULL, 1);
 					try
@@ -241,10 +233,9 @@ void app_main()
 		}
 	}
 
-	while (1)
-	{
-		vTaskDelay(100);
-	}
+	//Periodic Timer Memory Stack
+	ESP_ERROR_CHECK(esp_timer_start_periodic(Timer_Memory_Control, 10000000));
+
 
 	//I2C-SPI
 	if (detectAnalizer)
@@ -304,8 +295,7 @@ void app_main()
 
 	// vTaskDelay(1000);
 	spi_config(true);
-	//Periodic Timer
-	ESP_ERROR_CHECK(esp_timer_start_periodic(Timer_Memory_Control, 10000000));
+	
 
 	//Firmware INIT OK
 	for (int a = 0; a < 3; a++)

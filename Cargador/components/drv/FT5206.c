@@ -7,6 +7,16 @@
 #include "gpio_lib.h"
 #include "software_i2c.h"
 
+/* 
+ * @brief  Control on Leds, Set number of led and state
+ * @Parameter:
+ *   number = 1, led 1
+ *   number = 2, led 2
+ *   number = 3, led 3
+ *   State = 1, ON color GREEN
+ *   State = 0, OFF
+ *   State = 2, ON color RED
+ */
 char getTouchPositions(uint16_t *touch_coordinates, char *reg)
 {
 

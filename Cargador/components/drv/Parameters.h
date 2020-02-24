@@ -176,6 +176,9 @@ xSemaphoreHandle Semaphore_Reset_Phoenix;
 xSemaphoreHandle Semaphore_Config;
 
 
+//
+xSemaphoreHandle Semaphore_WAIT;
+xSemaphoreHandle Semaphore_SENDOK;
 
 char* PSerial;
 uint16_t PCurrent;
