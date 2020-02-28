@@ -87,7 +87,11 @@ unsigned short CommEnergyIC(bool RW, uint8_t address, unsigned short val)
     {
         uint8_t dataRead[10];
         datos[1] = address;
-        i2c_write_SC18IS602B(0x01, datos, sizeof(datos));
+        if (xSemaphoreTake(Semaphore_I2C, 10))
+        {
+            i2c_write_SC18IS602B(0x01, datos, sizeof(datos));
+            xSemaphoreGive(Semaphore_I2C);
+        }
         vTaskDelay(10 / portTICK_RATE_MS);
         i2c_read_SC18IS602B(dataRead, sizeof(dataRead));
         output = dataRead[2] << 8 | dataRead[3];
@@ -99,7 +103,11 @@ unsigned short CommEnergyIC(bool RW, uint8_t address, unsigned short val)
         datos[2] = data[1];
         datos[3] = data[0];
         //printf("WRITE  Data 0: %x , Data 1: %x \n", datos[2], datos[3]);
-        i2c_write_SC18IS602B(0x01, datos, sizeof(datos));
+        if (xSemaphoreTake(Semaphore_I2C, 10))
+        {
+            i2c_write_SC18IS602B(0x01, datos, sizeof(datos));
+            xSemaphoreGive(Semaphore_I2C);
+        }
         //free (data);
         vTaskDelay(10 / portTICK_RATE_MS);
     }
@@ -837,10 +845,10 @@ void read_initial_analyzer()
     double PhaseC = 0;
 
     if (SincI2C) //Only take value when  SincI2C = false
-    {             //Sincronizate with Phoenix read task
+    {            //Sincronizate with Phoenix read task
         SincI2C = false;
-        unsigned short sys0 = GetSysStatus0();  //EMMState0
-        unsigned short sys1 = GetSysStatus1();  //EMMState1
+        unsigned short sys0 = GetSysStatus0(); //EMMState0
+        unsigned short sys1 = GetSysStatus1(); //EMMState1
         // unsigned short en0 = GetMeterStatus0(); //EMMIntState0
         // unsigned short en1 = GetMeterStatus1(); //EMMIntState1
 
@@ -934,7 +942,7 @@ void grid_analyzer_task(void *arg)
     for (;;)
     {
         if (SincI2C) //Only take value when  SincI2C = false
-        {             //Sincronizate with Phoenix read task
+        {            //Sincronizate with Phoenix read task
             SincI2C = false;
             unsigned short sys0 = GetSysStatus0();  //EMMState0
             unsigned short sys1 = GetSysStatus1();  //EMMState1
@@ -997,7 +1005,7 @@ void grid_analyzer_task(void *arg)
 
                 if (voltageA < 100)
                 {
-                    printf("No se detecto la Fase 1");
+                    //printf("No se detecto la Fase 1");
                     Phase1 = false;
                 }
                 else
@@ -1006,7 +1014,7 @@ void grid_analyzer_task(void *arg)
                 }
                 if (voltageB < 100)
                 {
-                    printf("No se detecto la Fase 2");
+                    //printf("No se detecto la Fase 2");
                     Phase2 = false;
                 }
                 else
@@ -1015,7 +1023,7 @@ void grid_analyzer_task(void *arg)
                 }
                 if (voltageC < 100)
                 {
-                    printf("No se detecto la Fase 3");
+                    //printf("No se detecto la Fase 3");
                     Phase3 = false;
                 }
                 else

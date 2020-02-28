@@ -79,6 +79,7 @@ bool my_input_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
     bool valid = true;
     if (xSemaphoreTake(Semaphore_control_touch, 10))
     {
+        displayOn(true);
         if (touched_FT5206())
         {
             getRegisterInfo(registers);

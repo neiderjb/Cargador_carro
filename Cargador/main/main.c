@@ -53,10 +53,10 @@ void Network_Control(void *p)
 	ESP_LOGI(TAG, "Initiation Network task");
 
 	//initialize flash memory to WIFI and BT
-	nvs_flash_init();
+	nvs_flash_init();	//Comment to use BT
 
-	//bt_config("ESP_CC_SPAIN");
-	//bt_init();
+	// bt_config("ESP_CC_SPAIN");
+	// bt_init();
 
 	//Wifi Configuration
 	// wifi_begin(ConfigurationObject.ssid, ConfigurationObject.password);
@@ -95,15 +95,8 @@ void gprs_task(void *p)
 	ESP_LOGI(TAG, "Initiation Gprs Task");
 	while (1)
 	{
-		//Keep Alive
-		if (SincI2C)
-		{
-			SincI2C = false;
-
-			readDataMQTT2G("AT+CIPRXGET=2,25\n", 2000);
-			vTaskDelay(5);
-			SincI2C = true;
-		}
+		readDataMQTT2G("AT+CIPRXGET=2,25\n", 2000);
+		vTaskDelay(5);
 	}
 }
 
@@ -134,6 +127,8 @@ void app_main()
 
 	Semaphore_WAIT = xSemaphoreCreateBinary();
 	Semaphore_SENDOK = xSemaphoreCreateBinary();
+	Semaphore_I2C = xSemaphoreCreateBinary();
+	xSemaphoreGive(Semaphore_I2C);
 
 	//EPLD
 	begin_maxV();
@@ -143,6 +138,8 @@ void app_main()
 
 	//TimerControl
 	timer_begin();
+	//Periodic Timer Memory Stack
+	ESP_ERROR_CHECK(esp_timer_start_periodic(Timer_Memory_Control, 10000000));
 
 	/*	//Codigo solo Probar Analizador de RED 
 	////Debug Analizer
@@ -193,10 +190,10 @@ void app_main()
 
 	//I2C-UART
 	begin_ZDU0210RJX();
+
 	if (detect2G)
 	{
 		sim800l_PowerOn();
-		//xTaskCreatePinnedToCore(gprsRead_task, "gprsRead_task", 2048, NULL, 3, NULL, 1);
 
 		int try
 			= 2;
@@ -206,12 +203,9 @@ void app_main()
 			{
 				if (StartGPRSMQTTConnectionNew())
 				{
-					PublishMqtt2G("airis/1155/command", strlen("airis/cc/command"), "connected ", strlen("connected"));
-				
 					subscribeTopic();
-
-					PublishMqtt2G("airis/1155/command", strlen("airis/1155/command"), "connected2 ", strlen("connected2"));
-					PublishMqtt2G("airis/1155/command", strlen("airis/1155/command"), "connected3 ", strlen("connected3"));
+					PublishMqtt2G("airis/cc/command", strlen("airis/cc/command"), "subscribeTopic ", strlen("subscribeTopic"));
+					PublishMqtt2G("airis/cc/command", strlen("airis/cc/command"), "OKConnected ", strlen("OKConnected"));
 
 					xTaskCreatePinnedToCore(gprs_task, "gprs_task", 2048, NULL, 3, NULL, 1);
 					try
@@ -233,14 +227,10 @@ void app_main()
 		}
 	}
 
-	//Periodic Timer Memory Stack
-	ESP_ERROR_CHECK(esp_timer_start_periodic(Timer_Memory_Control, 10000000));
-
-
 	//I2C-SPI
 	if (detectAnalizer)
 	{
-		begin_SC18IS602B();
+		begin_SC18IS602B(); //Conversor I2C SPI
 		//configuration analizer
 		begin_analizer();
 		begin_calibration_analizer(LineFreq, PGAGain, VoltageGain, CurrentGain, 60853, 63853);
@@ -258,12 +248,13 @@ void app_main()
 	{
 		xTaskCreate(grid_analyzer_task, "grid_analyzer_task", 2048, NULL, 5, &TaskHandle_Analizer);
 	}
+
 	if (detectModbus)
 	{
 		begin_phoenixcontact();
 		xTaskCreate(phoenix_task, "phoenix_task", 3072, NULL, 5, &TaskHandle_Phoenix);
 	}
-	//xTaskCreate(Time_Task_Control, "Time_Task_Control", 2048, NULL, 1, NULL);
+
 	xTaskCreatePinnedToCore(Network_Control, "Network_Control", 3072, NULL, 3, &TaskHandle_Network, 1);
 
 	//LittleVgl Init
@@ -295,7 +286,6 @@ void app_main()
 
 	// vTaskDelay(1000);
 	spi_config(true);
-	
 
 	//Firmware INIT OK
 	for (int a = 0; a < 3; a++)

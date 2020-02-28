@@ -430,7 +430,11 @@ uint8_t ModbusMasterTransaction(uint8_t u8MBFunction)
     //printf("send MODBUS: \n");
     for (i = 0; i < u8ModbusADUSize; i++)
     {
-        Write_Data_TX_FIFO_ZDU0210RJX(ZDU0210RJX_address,u8ModbusADU[i], 0);
+        if (xSemaphoreTake(Semaphore_I2C, 10))
+        {
+            Write_Data_TX_FIFO_ZDU0210RJX(ZDU0210RJX_address, u8ModbusADU[i], 0);
+            xSemaphoreGive(Semaphore_I2C);
+        }
         //printf("%x \n", u8ModbusADU[i]);
     }
     //printf("\n");
@@ -455,14 +459,20 @@ void responseModbus(uint8_t u8MBFunction, uint8_t *data_rd, bool coil)
     if (coil)
         size = 6;
 
-    u8ModbusADUSize = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address,0, 0);
+    u8ModbusADUSize = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address, 0, 0);
 
     //printf("RX size MODBUS: %d \n", u8ModbusADUSize);
 
     if (u8ModbusADUSize > 0)
     {
-        Read_Data_RX_FIFO_ZDU0210RJX(ZDU0210RJX_address, 0, u8ModbusADU, u8ModbusADUSize);
-        uart_reset_FIFO_ZDU0210RJX(ZDU0210RJX_address,0);
+
+        if (xSemaphoreTake(Semaphore_I2C, 10))
+        {
+            Read_Data_RX_FIFO_ZDU0210RJX(ZDU0210RJX_address, 0, u8ModbusADU, u8ModbusADUSize);
+            uart_reset_FIFO_ZDU0210RJX(ZDU0210RJX_address, 0);
+            xSemaphoreGive(Semaphore_I2C);
+        }
+
         //printf("----------------------------------\n");
         //printf("Response Phoenix: \n");
         //for (int i = 0; i < u8ModbusADUSize; i++)
@@ -583,7 +593,11 @@ void responseModbus(uint8_t u8MBFunction, uint8_t *data_rd, bool coil)
                 if (u8ModbusADUSize == 64)
                 {
                     ESP_LOGE(TAG, "ERROR MODBUS");
-                    uart_reset_ZDU0210RJX(ZDU0210RJX_address,0);
+                    if (xSemaphoreTake(Semaphore_I2C, 10))
+                    {
+                        uart_reset_ZDU0210RJX(ZDU0210RJX_address, 0);
+                        xSemaphoreGive(Semaphore_I2C);
+                    }
                     vTaskDelay(100);
                     begin_ZDU0210RJX(0xFF, 0xFF);
                 }
@@ -598,7 +612,11 @@ void responseModbus(uint8_t u8MBFunction, uint8_t *data_rd, bool coil)
             if (u8ModbusADUSize == 64)
             {
                 ESP_LOGE(TAG, "ERROR MODBUS");
-                uart_reset_ZDU0210RJX(ZDU0210RJX_address,0);
+                if (xSemaphoreTake(Semaphore_I2C, 10))
+                {
+                    uart_reset_ZDU0210RJX(ZDU0210RJX_address, 0);
+                    xSemaphoreGive(Semaphore_I2C);
+                }
                 vTaskDelay(100);
                 begin_ZDU0210RJX(0xFF, 0xFF);
             }
@@ -610,11 +628,19 @@ void responseModbus(uint8_t u8MBFunction, uint8_t *data_rd, bool coil)
     {
         ESP_LOGI(TAG, "NO DATA MODBUS");
         ESP_LOGI(TAG, "SizeBuffer:%d \n", u8ModbusADUSize);
-        uart_reset_FIFO_ZDU0210RJX(ZDU0210RJX_address,0);
+        if (xSemaphoreTake(Semaphore_I2C, 10))
+        {
+            uart_reset_FIFO_ZDU0210RJX(ZDU0210RJX_address, 0);
+            xSemaphoreGive(Semaphore_I2C);
+        }
         if (u8ModbusADUSize == 64)
         {
             ESP_LOGE(TAG, "ERROR MODBUS");
-            uart_reset_ZDU0210RJX(ZDU0210RJX_address,0);
+            if (xSemaphoreTake(Semaphore_I2C, 10))
+            {
+                uart_reset_ZDU0210RJX(ZDU0210RJX_address, 0);
+                xSemaphoreGive(Semaphore_I2C);
+            }
             vTaskDelay(100);
             begin_ZDU0210RJX(0xFF, 0xFF);
         }
@@ -638,7 +664,11 @@ void responseModbusTask(uint8_t u8MBFunction, uint8_t *data_rd, bool coil, uint8
 
     if (u8ModbusADUSize > 0)
     {
-        Read_Data_RX_FIFO_ZDU0210RJX(ZDU0210RJX_address, 0, u8ModbusADU, u8ModbusADUSize);
+        if (xSemaphoreTake(Semaphore_I2C, 10))
+        {
+            Read_Data_RX_FIFO_ZDU0210RJX(ZDU0210RJX_address, 0, u8ModbusADU, u8ModbusADUSize);
+            xSemaphoreGive(Semaphore_I2C);
+        }
         //printf("----------------------------------\n");
         //printf("Response Phoenix: \n");
         //for (int i = 0; i < u8ModbusADUSize; i++)
@@ -773,7 +803,11 @@ void resetBufferTx(uint8_t ZDUAddr) //optimizar
 {
     uint8_t u8ModbusADU[1];
     uint8_t u8ModbusADUSize = 0;
-    Read_Data_RX_FIFO_ZDU0210RJX(ZDUAddr, 0, u8ModbusADU, u8ModbusADUSize);
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        Read_Data_RX_FIFO_ZDU0210RJX(ZDUAddr, 0, u8ModbusADU, u8ModbusADUSize);
+        xSemaphoreGive(Semaphore_I2C);
+    }
     //uart_reset_FIFO_ZDU0210RJX(0);
 }
 

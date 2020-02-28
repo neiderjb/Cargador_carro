@@ -43,8 +43,6 @@ uint8_t UART_RESET[2] = {0x0A, 0x00};
 
 void begin_ZDU0210RJX()
 {
-
-
     if (detectModbus)
     {
         //CONFIGURE ZDU MODBUS

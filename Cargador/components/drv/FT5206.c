@@ -56,7 +56,7 @@ void getTouchOnePositions(uint16_t *touch_coordinates, char *reg)
     touch_coordinates[0] = (((uint16_t)reg[FT5206_TOUCH1_XH] & 0x0F) << 8) | ((uint16_t)reg[FT5206_TOUCH1_XL]);
     touch_coordinates[1] = (((uint16_t)reg[FT5206_TOUCH1_YH] & 0x0F) << 8) | ((uint16_t)reg[FT5206_TOUCH1_YL]);
     printf("getTouchPositions N-touch: %c x: %d y: %d\n", nr_of_touches, touch_coordinates[0], touch_coordinates[1]);
-   // return nr_of_touches;
+    // return nr_of_touches;
 }
 
 // interrupts for touch detection
@@ -75,7 +75,7 @@ void IRAM_ATTR touch_interrupt()
     }
     //printf("Interrupción");
     //if (cambio_touch_interrupt && finish_print)
-    if (cambio_touch_interrupt )
+    if (cambio_touch_interrupt)
     {
         xSemaphoreGive(Semaphore_control_touch);
         newTouch = true;
@@ -97,8 +97,6 @@ bool touched_FT5206()
         return false;
     }
 }
-
-
 
 void begin_FT5206()
 {
@@ -135,7 +133,7 @@ void begin_FT5206()
     printf("gpio_set_intr_type \n");
     //install gpio isr service
     gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
-     printf("gpio_install_isr_service \n");
+    printf("gpio_install_isr_service \n");
     //hook isr handler for specific gpio pin
     gpio_isr_handler_add((gpio_num_t)GPIO_INPUT_IO_1, touch_interrupt, (void *)GPIO_INPUT_IO_1);
     printf("gpio_isr_handler_add \n");
@@ -143,8 +141,12 @@ void begin_FT5206()
     printf("END config ISR \n");
 
     uint8_t datasend = 0;
-    FT5206_write_single_register(FT5206_I2C_ADDRESS,FT5206_DEVICE_MODE,datasend);
-    FT5206_write_single_register(FT5206_I2C_ADDRESS,FT5206_AUTO,datasend);
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        FT5206_write_single_register(FT5206_I2C_ADDRESS, FT5206_DEVICE_MODE, datasend);
+        FT5206_write_single_register(FT5206_I2C_ADDRESS, FT5206_AUTO, datasend);
+        xSemaphoreGive(Semaphore_I2C);
+    }
 
     // gpio_config_t io_conf;
     // io_conf.pin_bit_mask = GPIO_INPUT_PIN_SEL_CTP_INT;
@@ -171,5 +173,9 @@ void begin_FT5206()
 
 void getRegisterInfo(char *registers)
 {
-    FT5206_read_registers(FT5206_I2C_ADDRESS, (uint8_t *)registers, FT5206_NUMBER_OF_REGISTERS);
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        FT5206_read_registers(FT5206_I2C_ADDRESS, (uint8_t *)registers, FT5206_NUMBER_OF_REGISTERS);
+        xSemaphoreGive(Semaphore_I2C);
+    }
 }

@@ -43,20 +43,30 @@ void begin_PCF85063TP()
 /*Function: The clock timing will start */
 void startClock(void) // set the ClockHalt bit low to start the rtc
 {
-    uint8_t data[1];
-    sw_i2c_read(PCD85063TP_I2C_ADDRESS, 0x00, data, 1);
-    data[1] = data[1] & ~0x20; // save actual control_1 regitser and AND sec with bit 7 (sart/stop bit) = clock started
-    uint8_t dataIn[2] = {0x00, data[1]};
-    sw_i2c_write(PCD85063TP_I2C_ADDRESS, dataIn, sizeof(dataIn));
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        uint8_t data[1];
+        sw_i2c_read(PCD85063TP_I2C_ADDRESS, 0x00, data, 1);
+        data[1] = data[1] & ~0x20; // save actual control_1 regitser and AND sec with bit 7 (sart/stop bit) = clock started
+        uint8_t dataIn[2] = {0x00, data[1]};
+
+        sw_i2c_write(PCD85063TP_I2C_ADDRESS, dataIn, sizeof(dataIn));
+        xSemaphoreGive(Semaphore_I2C);
+    }
 }
 /*Function: The clock timing will stop */
 void stopClock(void) // set the ClockHalt bit high to stop the rtc
 {
-    uint8_t data[1];
-    sw_i2c_read(PCD85063TP_I2C_ADDRESS, 0x00, data, 1);
-    data[1] = data[1] | 0x20; // save actual control_1 regitser and AND sec with bit 7 (sart/stop bit) = clock started
-    uint8_t dataOut[] = {0x00, data[1]};
-    sw_i2c_write(PCD85063TP_I2C_ADDRESS, dataOut, sizeof(dataOut));
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        uint8_t data[1];
+        sw_i2c_read(PCD85063TP_I2C_ADDRESS, 0x00, data, 1);
+        data[1] = data[1] | 0x20; // save actual control_1 regitser and AND sec with bit 7 (sart/stop bit) = clock started
+        uint8_t dataOut[] = {0x00, data[1]};
+
+        sw_i2c_write(PCD85063TP_I2C_ADDRESS, dataOut, sizeof(dataOut));
+        xSemaphoreGive(Semaphore_I2C);
+    }
 }
 /****************************************************************/
 /*Function: Read time and date from RTC  */
@@ -64,7 +74,11 @@ void getTime(uint8_t *data)
 {
     // Reset the register pointer
     uint8_t datos[7];
-    sw_i2c_read(PCD85063TP_I2C_ADDRESS, 0x04, datos, 7);
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        sw_i2c_read(PCD85063TP_I2C_ADDRESS, 0x04, datos, 7);
+        xSemaphoreGive(Semaphore_I2C);
+    }
 
     // A few of these need masks because certain bits are control bits
     second = bcdToDec(datos[0] & 0x7f); //bcdToDec(Wire.read() & 0x7f);
@@ -116,7 +130,11 @@ void fillDayOfWeek(uint8_t _dow)
 void reset()
 {
     uint8_t data[2] = {0x00, decToBcd(0x10)};
-    sw_i2c_write(PCD85063TP_I2C_ADDRESS, data, sizeof(data));
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        sw_i2c_write(PCD85063TP_I2C_ADDRESS, data, sizeof(data));
+        xSemaphoreGive(Semaphore_I2C);
+    }
 }
 
 /* 
@@ -181,14 +199,22 @@ uint8_t cap_sel(uint8_t value)
 uint8_t readReg(uint8_t reg)
 {
     uint8_t datos;
-    sw_i2c_read(PCD85063TP_I2C_ADDRESS, (reg & 0xFF), &datos, 1);
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        sw_i2c_read(PCD85063TP_I2C_ADDRESS, (reg & 0xFF), &datos, 1);
+        xSemaphoreGive(Semaphore_I2C);
+    }
     return datos;
 }
 
 void writeReg(uint8_t reg, uint8_t data)
 {
     uint8_t dataOut[] = {(reg & 0xFF), (data & 0xFF)};
-    sw_i2c_write(PCD85063TP_I2C_ADDRESS, dataOut, sizeof(dataOut));
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        sw_i2c_write(PCD85063TP_I2C_ADDRESS, dataOut, sizeof(dataOut));
+        xSemaphoreGive(Semaphore_I2C);
+    }
 }
 
 void Time_Task_Control(void *p)

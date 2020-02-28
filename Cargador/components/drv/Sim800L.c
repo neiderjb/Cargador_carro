@@ -24,10 +24,18 @@ bool sendCommandATToken(char *command, char *responsecommand, bool debug)
     {
         printf("\nCommand to sendCommandATToken: %s", command);
     }
-    Write_Multiple_Data_TX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, (uint8_t *)command, strlen(command), 0); //SEND ALL DATA
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        Write_Multiple_Data_TX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, (uint8_t *)command, strlen(command), 0); //SEND ALL DATA
+        xSemaphoreGive(Semaphore_I2C);
+    }
     //Write_Data_TX_FIFO_ZDU0210RJX(ZDU0210RJX_address,u8ModbusADU[i], 0); //SEND TO BYTE TO BYTE
     vTaskDelay(200);
-    rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+        xSemaphoreGive(Semaphore_I2C);
+    }
     int try
         = 2;
     while (rx_size == 0)
@@ -38,14 +46,22 @@ bool sendCommandATToken(char *command, char *responsecommand, bool debug)
         }
         try
             --;
-        rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+        if (xSemaphoreTake(Semaphore_I2C, 10))
+        {
+            rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+            xSemaphoreGive(Semaphore_I2C);
+        }
         vTaskDelay(100);
     }
 
     if (try != 0)
     {
         // printf("RX size AT: %d \n", rx_size);
-        Read_Data_RX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, 0, dataRxGPRS, rx_size);
+        if (xSemaphoreTake(Semaphore_I2C, 10))
+        {
+            Read_Data_RX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, 0, dataRxGPRS, rx_size);
+            xSemaphoreGive(Semaphore_I2C);
+        }
 
         char *ReadValue = substring((char *)dataRxGPRS, 3, strlen(responsecommand)); //(rx_size - 4)
         char *ReadValueComplete = substring((char *)dataRxGPRS, 3, rx_size);         //(rx_size - 4)
@@ -99,10 +115,17 @@ bool sendCommandATSize(char *command, int MinimunSize, bool debug)
     {
         printf("\nCommand to sendCommandATSize: %s", command);
     }
-
-    Write_Multiple_Data_TX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, (uint8_t *)command, strlen(command), 0);
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        Write_Multiple_Data_TX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, (uint8_t *)command, strlen(command), 0);
+        xSemaphoreGive(Semaphore_I2C);
+    }
     vTaskDelay(200);
-    rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+        xSemaphoreGive(Semaphore_I2C);
+    }
     int try
         = 2;
     while (rx_size == 0)
@@ -113,14 +136,22 @@ bool sendCommandATSize(char *command, int MinimunSize, bool debug)
         }
         try
             --;
-        rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+        if (xSemaphoreTake(Semaphore_I2C, 10))
+        {
+            rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+            xSemaphoreGive(Semaphore_I2C);
+        }
         vTaskDelay(100);
     }
 
     if (try != 0)
     {
         //printf("RX size AT: %d \n", rx_size);
-        Read_Data_RX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, 0, dataRxGPRS, rx_size);
+        if (xSemaphoreTake(Semaphore_I2C, 10))
+        {
+            Read_Data_RX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, 0, dataRxGPRS, rx_size);
+            xSemaphoreGive(Semaphore_I2C);
+        }
 
         char *ReadValue = substring((char *)dataRxGPRS, 3, (rx_size - 4));
         char *ReadValueComplete = substring((char *)dataRxGPRS, 3, rx_size);
@@ -169,7 +200,11 @@ bool sendCommandAT(char *command, int sizeCommand, char *response, bool debug)
 {
     uint8_t rx_size = 0;
     printf("\nCommand to sendCommandAT: %s", command);
-    Write_Multiple_Data_TX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, (uint8_t *)command, sizeCommand, 0);
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        Write_Multiple_Data_TX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, (uint8_t *)command, sizeCommand, 0);
+        xSemaphoreGive(Semaphore_I2C);
+    }
 
     //vTaskDelay(50);
     int try
@@ -206,13 +241,25 @@ void sendATValue(char *value, int sizeCommand)
     uint8_t rx_size = 0;
 
     printf("\nCommand to sendCommandATSize: %s", value);
-
-    Write_Multiple_Data_TX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, (uint8_t *)value, sizeCommand, 0);
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        Write_Multiple_Data_TX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, (uint8_t *)value, sizeCommand, 0);
+        xSemaphoreGive(Semaphore_I2C);
+    }
 
     vTaskDelay(50);
-    rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+        xSemaphoreGive(Semaphore_I2C);
+    }
     //printf("RX size AT: %d \n", rx_size);
-    Read_Data_RX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, 0, dataRxGPRS, rx_size);
+
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        Read_Data_RX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, 0, dataRxGPRS, rx_size);
+        xSemaphoreGive(Semaphore_I2C);
+    }
 
     char *ReadValue = substring((char *)dataRxGPRS, 3, rx_size);
 
@@ -233,11 +280,18 @@ bool sendATValueResponse(char *value, int sizeCommand, char *responsecommand, bo
     {
         printf("\nCommand to sendATValue: %s", value);
     }
-
-    Write_Multiple_Data_TX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, (uint8_t *)value, sizeCommand, 0);
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        Write_Multiple_Data_TX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, (uint8_t *)value, sizeCommand, 0);
+        xSemaphoreGive(Semaphore_I2C);
+    }
 
     vTaskDelay(200);
-    rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+        xSemaphoreGive(Semaphore_I2C);
+    }
 
     int try
         = 2;
@@ -249,14 +303,22 @@ bool sendATValueResponse(char *value, int sizeCommand, char *responsecommand, bo
         }
         try
             --;
-        rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+        if (xSemaphoreTake(Semaphore_I2C, 10))
+        {
+            rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+            xSemaphoreGive(Semaphore_I2C);
+        }
         vTaskDelay(100);
     }
 
     if (try != 0)
     {
         //printf("RX size AT: %d \n", rx_size);
-        Read_Data_RX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, 0, dataRxGPRS, rx_size);
+        if (xSemaphoreTake(Semaphore_I2C, 10))
+        {
+            Read_Data_RX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, 0, dataRxGPRS, rx_size);
+            xSemaphoreGive(Semaphore_I2C);
+        }
 
         char *ReadValue = substring((char *)dataRxGPRS, 3, strlen(responsecommand));
         char *ReadValueComplete = substring((char *)dataRxGPRS, 3, rx_size);
@@ -310,11 +372,18 @@ void sendATValueNoRESPONSE(char *value, int sizeCommand, bool debug)
     {
         printf("\nCommand to sendATValue: %s", value);
     }
-
-    Write_Multiple_Data_TX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, (uint8_t *)value, sizeCommand, 0);
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        Write_Multiple_Data_TX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, (uint8_t *)value, sizeCommand, 0);
+        xSemaphoreGive(Semaphore_I2C);
+    }
 
     vTaskDelay(50);
-    rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+        xSemaphoreGive(Semaphore_I2C);
+    }
     int try
         = 5;
 
@@ -326,14 +395,22 @@ void sendATValueNoRESPONSE(char *value, int sizeCommand, bool debug)
         }
         try
             --;
-        rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+        if (xSemaphoreTake(Semaphore_I2C, 10))
+        {
+            rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+            xSemaphoreGive(Semaphore_I2C);
+        }
         vTaskDelay(50);
     }
 
     if (try != 0)
     {
         printf("RX size AT: %d \n", rx_size);
-        Read_Data_RX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, 0, dataRxGPRS, rx_size);
+        if (xSemaphoreTake(Semaphore_I2C, 10))
+        {
+            Read_Data_RX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, 0, dataRxGPRS, rx_size);
+            xSemaphoreGive(Semaphore_I2C);
+        }
 
         char *ReadValue = substring((char *)dataRxGPRS, 3, (rx_size - 4));
         char *ReadValueComplete = substring((char *)dataRxGPRS, 3, (rx_size));
@@ -364,69 +441,7 @@ void gprsRead_task(void *p)
     ESP_LOGI(TAG, "Gprs READ Task");
     while (1)
     {
-        if (conGPRS)
-        {
-            uint8_t dataRxGPRS[64];
-
-            uint8_t rx_size = 0;
-            vTaskDelay(10);
-            rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
-            Read_Data_RX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, 0, dataRxGPRS, rx_size);
-
-            //char *ReadValue = substring((char *)dataRxGPRS, 3, (rx_size));
-            char *ReadValue = (char *)dataRxGPRS;
-
-            
-            char delimitador[] = "0xda 0x20"; //"0xda";
-            char *token = strtok(ReadValue, delimitador);
-
-            if (token != NULL)
-            {
-                printf("RX size AT TASK: %d \n", rx_size);
-
-                printf("Response COMPLETE ASCII TASK: %s\n", ReadValue);
-                for (int i = 0; i < strlen(ReadValue); i++)
-                {
-                    printf(" %x", ReadValue[i]);
-                }
-                printf("\n");
-
-                while (token != NULL)
-                {
-
-                    // printf("Token  ASCII: %s , %d\n", token, strlen(token));
-                    // for (int i = 0; i < strlen(token); i++)
-                    // {
-                    //     printf(" %x", token[i]);
-                    // }
-                    // printf("\n");
-                    char *token1 = substring(token, 3, 2);
-                    printf("Token 1  ASCII: %s , %d\n", token1, strlen(token1));
-                    if (strcmp(">", token1) == 0)
-                    {
-                        printf("> Compare OK\n");
-                        xSemaphoreGive(Semaphore_WAIT);
-                        break;
-                    }
-                    char *token2 = substring(token, 3, 7);
-                    printf("Token 2  ASCII: %s , %d\n", token2, strlen(token2));
-                    if (strcmp("SEND OK", token2) == 0)
-                    {
-                        printf("SEND OK Compare OK\n");
-                        xSemaphoreGive(Semaphore_SENDOK);
-                        break;
-                    }
-                    // Sólo en la primera pasamos la cadena; en las siguientes pasamos NULL
-                    token = strtok(NULL, delimitador);
-                }
-            }
-        }
-        else
-        {
-            vTaskDelay(500);
-        }
-
-        //SearchCommand(dataRxGPRS);
+        vTaskDelay(500);
     }
 }
 
@@ -439,18 +454,24 @@ void readDataMQTT2G(char *command, int timeout)
     //ESP_LOGI(TAG, "--------READ DATA GPRS-------------");
 
     //Write_Multiple_Data_TX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, (uint8_t *)command, strlen(command), 0); //SEND ALL DATA
-    rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+        xSemaphoreGive(Semaphore_I2C);
+    }
 
-    
     while (rx_size == 0)
     {
-        if (esp_timer_get_time()-nowMillis > timeout)
+        if (esp_timer_get_time() - nowMillis > timeout)
         {
-             //ESP_LOGI(TAG, "TIME OUT NO DATA MQTT\n");
+            //ESP_LOGI(TAG, "TIME OUT NO DATA MQTT\n");
             break;
         }
-        
-        rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+        if (xSemaphoreTake(Semaphore_I2C, 10))
+        {
+            rx_size = Read_Receive_Transmit_FIFO_Level_Registers_ZDU0210RJX(ZDU0210RJX_address2G, 0, 0);
+            xSemaphoreGive(Semaphore_I2C);
+        }
         vTaskDelay(1);
     }
 
@@ -458,7 +479,11 @@ void readDataMQTT2G(char *command, int timeout)
     {
         ESP_LOGI(TAG, "--------DATA READ 2G-------------\n");
         printf("RX size AT: %d \n", rx_size);
-        Read_Data_RX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, 0, dataRxGPRS, rx_size);
+        if (xSemaphoreTake(Semaphore_I2C, 10))
+        {
+            Read_Data_RX_FIFO_ZDU0210RJX(ZDU0210RJX_address2G, 0, dataRxGPRS, rx_size);
+            xSemaphoreGive(Semaphore_I2C);
+        }
 
         char *ReadValue = substring((char *)dataRxGPRS, 0, (rx_size));
 
@@ -468,7 +493,8 @@ void readDataMQTT2G(char *command, int timeout)
         printf("\n");
         printf("Response MQTT ASCII: %s\n", dataRxGPRS);
 
-        if(dataRxGPRS[0] == 0x30 && rx_size > 5 ){
+        if (dataRxGPRS[0] == 0x30 && rx_size > 5)
+        {
             SearchCommand(dataRxGPRS);
         }
         memset(dataRxGPRS, 0, 64);
@@ -529,96 +555,96 @@ bool sim800l_begin()
     {
         //if (sendCommandATToken("AT+CIPRXGET=1\n", "OK", true)) //RECEIVE DATA manually FROM THE REMOTE SERVER
         //{
-            // sendCommandATToken("AT+CIPMODE=0\n", "OK", true);
-            // sendCommandATToken("AT+CIPSRIP=0\n", "OK", true);
+        // sendCommandATToken("AT+CIPMODE=0\n", "OK", true);
+        // sendCommandATToken("AT+CIPSRIP=0\n", "OK", true);
+        vTaskDelay(500);
+        while (!sendCommandATToken("AT+CGATT?\n", "+CGATT: 1", true))
+        {
+            if (try == 0)
+            {
+                ESP_LOGI(TAG, " AT+CGATT NO CONNECTION");
+                return false;
+            }
+            try
+                --;
             vTaskDelay(500);
-            while (!sendCommandATToken("AT+CGATT?\n", "+CGATT: 1", true))
+        }
+        ESP_LOGI(TAG, "+CGATT: 1 CONECTION GPRS");
+        sendCommandATToken("AT+CIPSTATUS\n", "OK", true);
+
+        char CommandToSend3[] = "AT+CGDCONT=1,\"IP\",\"internet.comcel.com.co\"\n"; //cambiar por APN del operador
+        //char CommandToSend3[] = "AT+CGDCONT=1,\"IP\",\"web.colombiamovil.com.co\"\n"; //cambiar por APN del operador
+        //char CommandToSend3[] = "AT+CGDCONT=1,\"IP\",\"telefonica.es\"\n"; //cambiar por APN del operador
+        sendCommandATToken(CommandToSend3, "OK", true);
+
+        char CommandToSend4[] = "AT+CSTT=\"internet.comcel.com.co\"\n"; //cambiar por APN del operador
+        //char CommandToSend4[] = "AT+CSTT=\"web.colombiamovil.com.co\"\n"; //cambiar por APN del operador
+        //char CommandToSend4[] = "AT+CSTT=\"telefonica.es\"\n"; //cambiar por APN del operador
+        if (sendCommandATToken(CommandToSend4, "OK", true))
+        {
+            // Waits for status IP START
+            sendCommandATToken("AT+CIPSTATUS\n", "OK", true);
+            vTaskDelay(1000);
+
+            // Brings Up Wireless Connection
+            char CommandToSend5[] = "AT+CIICR\n";
+            try
+                = 5;
+            while (!sendCommandATToken(CommandToSend5, "OK", true))
             {
                 if (try == 0)
                 {
-                    ESP_LOGI(TAG, " AT+CGATT NO CONNECTION");
+                    ESP_LOGI(TAG, "AT+CIICR ERROR BRINGING UP WIRELESS CONNECTION");
+                    return false;
+                }
+                try
+                    --;
+                vTaskDelay(1000);
+            }
+            // Waits for status IP GPRSACT
+            try
+                = 5;
+            while (!sendCommandATToken("AT+CIPSTATUS\n", "OK", true))
+            {
+                if (try == 0)
+                {
+                    ESP_LOGI(TAG, "AT+CIPSTATUS ERROR");
                     return false;
                 }
                 try
                     --;
                 vTaskDelay(500);
             }
-            ESP_LOGI(TAG, "+CGATT: 1 CONECTION GPRS");
-            sendCommandATToken("AT+CIPSTATUS\n", "OK", true);
+            vTaskDelay(300);
+            // Gets Local IP Address
+            char CommandToSend6[] = "AT+CIFSR\n";
+            sendCommandATSize(CommandToSend6, 10, true);
 
-            char CommandToSend3[] = "AT+CGDCONT=1,\"IP\",\"internet.comcel.com.co\"\n"; //cambiar por APN del operador
-            //char CommandToSend3[] = "AT+CGDCONT=1,\"IP\",\"web.colombiamovil.com.co\"\n"; //cambiar por APN del operador
-            //char CommandToSend3[] = "AT+CGDCONT=1,\"IP\",\"telefonica.es\"\n"; //cambiar por APN del operador
-            sendCommandATToken(CommandToSend3, "OK", true);
-
-            char CommandToSend4[] = "AT+CSTT=\"internet.comcel.com.co\"\n"; //cambiar por APN del operador
-            //char CommandToSend4[] = "AT+CSTT=\"web.colombiamovil.com.co\"\n"; //cambiar por APN del operador
-            //char CommandToSend4[] = "AT+CSTT=\"telefonica.es\"\n"; //cambiar por APN del operador
-            if (sendCommandATToken(CommandToSend4, "OK", true))
+            // Waits for status IP STATUS
+            char CommandToSend7[] = "AT+CIPSTATUS\n";
+            try
+                = 5;
+            while (!sendCommandATToken(CommandToSend7, "OK", true))
             {
-                // Waits for status IP START
-                sendCommandATToken("AT+CIPSTATUS\n", "OK", true);
-                vTaskDelay(1000);
-
-                // Brings Up Wireless Connection
-                char CommandToSend5[] = "AT+CIICR\n";
-                try
-                    = 5;
-                while (!sendCommandATToken(CommandToSend5, "OK", true))
+                if (try == 0)
                 {
-                    if (try == 0)
-                    {
-                        ESP_LOGI(TAG, "AT+CIICR ERROR BRINGING UP WIRELESS CONNECTION");
-                        return false;
-                    }
-                    try
-                        --;
-                    vTaskDelay(1000);
+                    ESP_LOGI(TAG, "AT+CIPSTATUS ERROR");
+                    return false;
                 }
-                // Waits for status IP GPRSACT
                 try
-                    = 5;
-                while (!sendCommandATToken("AT+CIPSTATUS\n", "OK", true))
-                {
-                    if (try == 0)
-                    {
-                        ESP_LOGI(TAG, "AT+CIPSTATUS ERROR");
-                        return false;
-                    }
-                    try
-                        --;
-                    vTaskDelay(500);
-                }
-                vTaskDelay(300);
-                // Gets Local IP Address
-                char CommandToSend6[] = "AT+CIFSR\n";
-                sendCommandATSize(CommandToSend6, 10, true);
-
-                // Waits for status IP STATUS
-                char CommandToSend7[] = "AT+CIPSTATUS\n";
-                try
-                    = 5;
-                while (!sendCommandATToken(CommandToSend7, "OK", true))
-                {
-                    if (try == 0)
-                    {
-                        ESP_LOGI(TAG, "AT+CIPSTATUS ERROR");
-                        return false;
-                    }
-                    try
-                        --;
-                    vTaskDelay(500);
-                }
-                //vTaskDelay(1000);
-                gpio_write_ZDU0210RJX(ZDU0210RJX_address2G, 0x40, 0x40);
-                ESP_LOGI(TAG, "CONECTION GPRS OK");
-                return true;
+                    --;
+                vTaskDelay(500);
             }
-            else
-            {
-                ESP_LOGI(TAG, "Error setting the APN\n");
-                return false;
-            }
+            //vTaskDelay(1000);
+            gpio_write_ZDU0210RJX(ZDU0210RJX_address2G, 0x40, 0x40);
+            ESP_LOGI(TAG, "CONECTION GPRS OK");
+            return true;
+        }
+        else
+        {
+            ESP_LOGI(TAG, "Error setting the APN\n");
+            return false;
+        }
         // }
         // else
         // {

@@ -276,17 +276,18 @@ void phoenix_task(void *arg)
         {
             phoenixcontact_Set_Reset(1);
         }
-
-        if (!charging && SincI2C) //take variables PHOENIX contact
-        {
-            SincI2C = false;
-            config_charging_Values();
-            if (ScreenConfig)
-            {
-                update_label_configuration(PSerial, PCurrent, EStatus, PStatus, Phase1, Phase2, Phase3);
-            }
-            SincI2C = true;
-        }
+        
+        //Screen Configuration
+        // if (!charging && SincI2C) //take variables PHOENIX contact
+        // {
+        //     SincI2C = false;
+        //     config_charging_Values();
+        //     if (ScreenConfig)
+        //     {
+        //         update_label_configuration(PSerial, PCurrent, EStatus, PStatus, Phase1, Phase2, Phase3);
+        //     }
+        //     SincI2C = true;
+        // }
 
         if (enterTicketMqtt)
         {
@@ -294,9 +295,9 @@ void phoenix_task(void *arg)
             external_ticket();
         }
 
-        if (charging && SincI2C) //Sincronizate with grid_analyzer_task
+        if (charging) //Sincronizate with grid_analyzer_task
         {
-            SincI2C = false;
+            
             EStatus = phoenixcontact_error_status();
             if (EStatus != 0x0000)
             {
@@ -314,7 +315,7 @@ void phoenix_task(void *arg)
             {
                 ESP_LOGI(TAG, "PStatus: %x", PStatus);
                 ESP_LOGI(TAG, "************C1- Cargando************");
-#ifdef FAKE_DATA
+                #ifdef FAKE_DATA
                 contador_power_read++;
                 power_actual_value = 5;
                 power_charge_value += power_actual_value;
@@ -323,14 +324,14 @@ void phoenix_task(void *arg)
                 update_label_carga_one(power_actual_value, power_charge_value, total_cost, contador_power_read);
                 ReportCharger(power_actual_value, power_charge_value, total_cost, contador_power_read);
                 //ReportStatusCharger("charging", phoenixError(EStatus));
-#else
+                #else
                 contador_power_read = ((esp_timer_get_time() - contador_power_read) / 1000000) / 60;
                 power_actual_value = GetApparentPowerA() + GetApparentPowerB() + GetApparentPowerC();
                 power_charge_value += power_actual_value;
                 total_cost = PRICE_ENERGY * power_charge_value;
 
                 update_label_carga_one(power_actual_value, power_charge_value, total_cost, contador_power_read);
-#endif
+                #endif
                 if (power_charge_value >= total_power || contador_power_read >= total_time)
                 {
                     ESP_LOGI(TAG, "************B1 - Carga finalizada************");
@@ -349,7 +350,7 @@ void phoenix_task(void *arg)
 
             phoenixcontact_ChargingCurrentSpecificationCP();
             //phoenixcontact_Get_SettingMaximumPermissibleChargingCurrent();
-            SincI2C = true;
+            
         }
         vTaskDelay(500 / portTICK_RATE_MS);
     }

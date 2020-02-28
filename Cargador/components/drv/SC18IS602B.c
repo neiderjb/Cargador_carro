@@ -17,12 +17,9 @@
 
 #include "SC18IS602B.h"
 #include "software_i2c.h"
+#include "Parameters.h"
 
 static const char *TAG = "SC18IS602B";
-
-
-
-
 
 // SC18IS601B_GPIO_WRITE_CMD =  0xF4;
 // SC18IS601B_GPIO_READ_CMD =  0xF5;
@@ -31,15 +28,23 @@ static const char *TAG = "SC18IS602B";
 
 bool setLowPowerMode()
 {
-    SC18IS601B_IDLE_CMD  = 0xF2;
-    sw_i2c_write(SC18IS601B_address, &SC18IS601B_IDLE_CMD, 1);
+    SC18IS601B_IDLE_CMD = 0xF2;
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        sw_i2c_write(SC18IS601B_address, &SC18IS601B_IDLE_CMD, 1);
+        xSemaphoreGive(Semaphore_I2C);
+    }
     return true;
 }
 
 void clearInterrupt_SC18IS602B()
 {
     SC18IS601B_CLEAR_INTERRUPT_CMD = 0xF1;
-    sw_i2c_write(SC18IS601B_address, &SC18IS601B_CLEAR_INTERRUPT_CMD, 1);
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        sw_i2c_write(SC18IS601B_address, &SC18IS601B_CLEAR_INTERRUPT_CMD, 1);
+        xSemaphoreGive(Semaphore_I2C);
+    }
 }
 
 /* 
@@ -51,7 +56,6 @@ void clearInterrupt_SC18IS602B()
  */
 bool i2c_write_SC18IS602B(uint8_t cmdByte, uint8_t *data, size_t len)
 {
-
     sw_i2c_spi_write(SC18IS601B_address, cmdByte, data, len);
     return true;
 }
@@ -71,21 +75,26 @@ bool configureSPI(bool lsbFirst, enum SC18IS601B_SPI_Mode spiMode, enum SC18IS60
     dataWrite[0] = SC18IS601B_CONFIG_SPI_CMD;
     dataWrite[1] = configByte;
     //printf("SPI CONFIG: %x \n", configByte);
+
     sw_i2c_write(SC18IS601B_address, dataWrite, sizeof(dataWrite));
+
     return true;
 }
 
 void begin_SC18IS602B()
 {
-    if (configureSPI(false, SC18IS601B_SPIMODE_3, SC18IS601B_SPICLK_58_kHz))
+    if (xSemaphoreTake(Semaphore_I2C, 10))
     {
-        ESP_LOGI(TAG, "begin_SC18IS602B -OK");
+        if (configureSPI(false, SC18IS601B_SPIMODE_3, SC18IS601B_SPICLK_58_kHz))
+        {
+            ESP_LOGI(TAG, "begin_SC18IS602B -OK");
+        }
+        else
+        {
+            ESP_LOGI(TAG, "begin_SC18IS602B -FAIL");
+        }
+        xSemaphoreGive(Semaphore_I2C);
     }
-    else
-    {
-        ESP_LOGI(TAG, "begin_SC18IS602B -FAIL");
-    }
-    
 }
 
 uint8_t spiTransfer(int slaveNum, uint8_t txByte)
@@ -99,7 +108,11 @@ bool i2c_read_SC18IS602B(uint8_t *readBuf, size_t len)
 {
     //while (Wire.requestFrom(address,len) == 0);
     // return Wire.readBytes(readBuf, len);
-    sw_i2c_spi_read(SC18IS601B_address, readBuf, len);
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        sw_i2c_spi_read(SC18IS601B_address, readBuf, len);
+        xSemaphoreGive(Semaphore_I2C);
+    }
     return true;
 }
 
@@ -116,9 +129,14 @@ bool spiTransferData(int slaveNum, uint8_t *txData, size_t txLen, uint8_t *readB
     //the function ID will have the lower 4 bits set to the
     //activated slave selects. We use only 1 at a time here.
     uint8_t functionID = (1 << slaveNum);
-    //transmit our TX buffer
-    sw_i2c_write(SC18IS601B_address, &functionID, txLen);
-    //read in the data that came from MISO
-    sw_i2c_spi_read(SC18IS601B_address, readBuf, txLen);
+    if (xSemaphoreTake(Semaphore_I2C, 10))
+    {
+        //transmit our TX buffer
+        sw_i2c_write(SC18IS601B_address, &functionID, txLen);
+        //read in the data that came from MISO
+        sw_i2c_spi_read(SC18IS601B_address, readBuf, txLen);
+        xSemaphoreGive(Semaphore_I2C);
+    }
+
     return true;
 }

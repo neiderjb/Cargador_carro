@@ -180,6 +180,9 @@ xSemaphoreHandle Semaphore_Config;
 xSemaphoreHandle Semaphore_WAIT;
 xSemaphoreHandle Semaphore_SENDOK;
 
+xSemaphoreHandle Semaphore_I2C;
+
+
 char* PSerial;
 uint16_t PCurrent;
 uint16_t PStatus;
